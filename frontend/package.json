@@ -34,6 +34,7 @@
     "expo-sensors": "~15.0.8",
     "expo-sharing": "~14.0.8",
     "expo-splash-screen": "~31.0.13",
+    "expo-sqlite": "~16.0.10",
     "expo-status-bar": "~3.0.9",
     "expo-symbols": "~1.0.8",
     "expo-system-ui": "~6.0.9",
@@ -41,6 +42,7 @@
     "expo-video": "~3.0.16",
     "expo-web-browser": "~15.0.10",
     "ionicons": "^8.0.13",
+    "firebase": "^12.11.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.73.1",
@@ -56,10 +58,12 @@
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.5.1",
     "svg-path-properties": "^2.0.2",
-    "yup": "^1.7.1"
+    "yup": "^1.7.1",
+    "sqlite3": "^6.0.1"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
+    "@types/sqlite3": "^3.1.11",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "typescript": "~5.9.2"
