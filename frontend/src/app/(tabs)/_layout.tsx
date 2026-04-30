@@ -4,17 +4,11 @@ import { Text } from "react-native";
 
 import HomeScreen from "./index";
 import Leaderboard from "./leaderboard";
-import SettingScreen from "./setting"
+import SettingScreen from "./setting";
+import TeamScreen from "./team";
 const Tab = createBottomTabNavigator();
 
-// Placeholder screens for other tabs (you can create these later)
-// function LeaderboardScreen() {
-//   return Leaderboard;
-// }
 
-function TeamScreen() {
-  return <Text>Team</Text>;
-}
 
 
 export default function TabsLayout() {

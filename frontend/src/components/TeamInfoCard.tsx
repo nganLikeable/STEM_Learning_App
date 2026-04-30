@@ -4,25 +4,20 @@ import { colors, spacing, borderRadius, shadows } from '../theme';
 
 interface TeamInfoCardProps {
   teamName?: string;
+  teamId?: string;
   members?: string[];
   grade?: string;
   points?: number;
   rank?: number;
 }
 
-const TeamInfoCard: React.FC<TeamInfoCardProps> = ({
-  teamName = 'Team Rockets',
-  members = ['Alice', 'Bob', 'Charlie'],
-  grade = 'Year 7',
-  points = 450,
-  rank = 12,
-}) => {
+const TeamInfoCard: React.FC<TeamInfoCardProps> = ({ teamName, teamId, members, grade, points, rank}) => {
   return (
     <View style={[styles.container, shadows.medium]}>
       {/* Team Name Header */}
       <View style={styles.header}>
-        <Text style={styles.trophy}>🏆</Text>
         <Text style={styles.teamName}>{teamName}</Text>
+        {teamId ? <Text style={styles.teamId}>ID: {teamId}</Text> : null}
       </View>
 
       {/* Members */}
@@ -64,16 +59,22 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: spacing.md,
-  },
-  trophy: {
-    fontSize: 24,
-    marginRight: spacing.sm,
   },
   teamName: {
     fontSize: 18,
     fontWeight: 'bold',
     color: colors.text,
+    flex: 1,
+  },
+  teamId: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1897ff',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
   infoRow: {
     flexDirection: 'row',

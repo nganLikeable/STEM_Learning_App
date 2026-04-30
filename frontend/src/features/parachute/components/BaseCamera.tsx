@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import {
   CameraType,
   CameraView,
@@ -5,8 +6,8 @@ import {
   useMicrophonePermissions,
 } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
-import { useRef, useState } from "react";
-import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 interface BaseCameraProps {
   onVideoCaptured: (uri: string) => void;
@@ -47,6 +48,12 @@ export default function BaseCamera({
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [audioPermission, requestAudioPermission] = useMicrophonePermissions();
 
+  // ask for permission
+  useEffect(() => {
+    requestCameraPermission();
+    requestAudioPermission();
+  }, []);
+
   // Reference to the CameraView component to control recording
   const cameraRef = useRef<CameraView | null>(null);
 
@@ -55,21 +62,21 @@ export default function BaseCamera({
     return <View />; // Show loading state in here later
   }
 
-  // permission not granted yet
-  if (!cameraPermission.granted || !audioPermission) {
-    return (
-      <View>
-        <Text>Camera Permission needs to be granted to record</Text>
-        <Button
-          onPress={() => {
-            requestAudioPermission();
-            requestCameraPermission();
-          }}
-          title="grant permission"
-        />
-      </View>
-    );
-  }
+  // // permission not granted yet
+  // if (!cameraPermission.granted || !audioPermission.granted) {
+  //   return (
+  //     <View>
+  //       <Text>Camera Permission needs to be granted to record</Text>
+  //       <Button
+  //         onPress={() => {
+  //           requestAudioPermission();
+  //           requestCameraPermission();
+  //         }}
+  //         title="grant permission"
+  //       />
+  //     </View>
+  //   );
+  // }
 
   // flip camera
   function toggleCameraFunction() {
@@ -108,6 +115,15 @@ export default function BaseCamera({
 
   return (
     <View style={styles.container}>
+      {!isRecording && (
+        <TouchableOpacity
+          style={styles.buttonFlip}
+          onPress={toggleCameraFunction}
+        >
+          <Ionicons name="camera-reverse-outline" size={32} color="#fff" />
+        </TouchableOpacity>
+      )}
+
       <CameraView
         style={styles.camera}
         facing={facing}
@@ -120,24 +136,41 @@ export default function BaseCamera({
         onMountError={(error) => console.log("Camera mount error", error)}
       />
       <View style={styles.controls}>
-        <TouchableOpacity
-          style={styles.buttonFlip}
-          onPress={toggleCameraFunction}
-        >
-          <Text>Flip camera</Text>
-        </TouchableOpacity>
-
-        <Button
+        {/* <Button
           // disable button if camera is not ready
           disabled={!isCameraReady}
           title={isRecording ? "Stop Recording" : "Record Video"}
           onPress={isRecording ? handleStopRecording : handleRecord}
-        />
+        /> */}
+        {!isRecording && (
+          <TouchableOpacity
+            onPress={pickFromGallery}
+            style={styles.iconButton}
+            disabled={isRecording}
+          >
+            <Ionicons name="images-outline" size={28} color="#fff" />
+          </TouchableOpacity>
+        )}
 
-        <Button
-          title={uploadVideo ? "Upload Video" : "UploadVideo"}
+        <TouchableOpacity
+          disabled={!isCameraReady}
+          onPress={isRecording ? handleStopRecording : handleRecord}
+          style={[
+            styles.recordButton,
+            isRecording && styles.recordButtonActive,
+          ]}
+        >
+          <Ionicons
+            name={isRecording ? "stop" : "radio-button-on"}
+            size={36}
+            color="#fff"
+          />
+        </TouchableOpacity>
+
+        {/* <Button
+          title={uploadVideo ? "Upload Video" : "Upload Video"}
           onPress={pickFromGallery}
-        />
+        /> */}
       </View>
     </View>
   );
@@ -150,7 +183,15 @@ const styles = StyleSheet.create({
   camera: {
     flex: 1,
   },
-  buttonFlip: {},
+  buttonFlip: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    padding: 12,
+    borderRadius: 50,
+    zIndex: 10,
+  },
   video: {
     flex: 1,
     alignSelf: "stretch",
@@ -163,11 +204,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-evenly",
   },
-  fullPreview: {
-    flex: 1,
+  iconButton: {
+    backgroundColor: "rgba(0,0,0,0.4)",
+    padding: 14,
+    borderRadius: 50,
   },
-  previewControls: {
-    flexDirection: "row",
-    justifyContent: "space-around",
+  recordButton: {
+    backgroundColor: "#e53935",
+    padding: 18,
+    borderRadius: 50,
+  },
+  recordButtonActive: {
+    backgroundColor: "#b71c1c",
   },
 });

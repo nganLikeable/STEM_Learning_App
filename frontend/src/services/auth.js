@@ -10,3 +10,5 @@ export const register = (email, password) => {
 export const login = (email, password) => {
   return signInWithEmailAndPassword(auth, email, password);
 };
+
+export const getCurrentUser = () => auth.currentUser;

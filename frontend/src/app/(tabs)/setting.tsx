@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,17 +11,23 @@ import { useRouter } from 'expo-router';
 import { getAuth, signOut } from 'firebase/auth';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getUserProfile } from '../../services/firestore';
 
-/**
- * SettingScreen — displays app settings and account options.
- * Currently provides a sign-out action that clears the Firebase
- * session and redirects the user back to the login screen.
- */
 export default function SettingScreen() {
   const router = useRouter();
-
-  // loading: true while the sign-out request is in flight (disables button to prevent double-tap)
   const [loading, setLoading] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  useEffect(() => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    getUserProfile(user.uid).then((snap) => {
+      if (snap.exists()) setProfile(snap.data());
+    }).finally(() => setProfileLoading(false));
+  }, []);
 
   /**
    * handleLogout — signs the user out of Firebase Auth.
@@ -62,6 +68,22 @@ export default function SettingScreen() {
       {/* ── Page title ── */}
       <Text style={s.pageTitle}>Settings</Text>
 
+      {/* ── User profile card ── */}
+      {profileLoading ? (
+        <ActivityIndicator style={{ marginBottom: 20 }} color="#3977fd" />
+      ) : profile ? (
+        <View style={s.profileCard}>
+          <View style={s.avatar}>
+            <Text style={s.avatarText}>{profile.name?.[0]?.toUpperCase() ?? '?'}</Text>
+          </View>
+          <View style={s.profileInfo}>
+            <Text style={s.profileName}>{profile.name}</Text>
+            <Text style={s.profileMeta}>Grade {profile.grade} · {profile.email}</Text>
+            <Text style={s.profileTeam}>Team ID: {profile.teamId}</Text>
+          </View>
+        </View>
+      ) : null}
+
       {/* ── Account section ── */}
       <View style={s.section}>
         <Text style={s.sectionTitle}>Account</Text>
@@ -94,11 +116,62 @@ export default function SettingScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
-  // Full-screen background
   screen: {
     flex: 1,
     backgroundColor: '#F8F4EF',
     padding: 20,
+  },
+
+  profileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 3,
+    gap: 14,
+  },
+
+  avatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#3977fd',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  avatarText: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#fff',
+  },
+
+  profileInfo: {
+    flex: 1,
+  },
+
+  profileName: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 2,
+  },
+
+  profileMeta: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginBottom: 2,
+  },
+
+  profileTeam: {
+    fontSize: 12,
+    color: '#9CA3AF',
   },
 
   // Top-level heading

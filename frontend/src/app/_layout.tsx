@@ -9,6 +9,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // getAuth: gets the Firebase Auth instance; onAuthStateChanged: listens for login/logout events
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getUserProfile } from '../services/firestore';
 
 // Required import to activate Reanimated's JS thread before the app renders
 import 'react-native-reanimated';
@@ -77,11 +78,12 @@ export default function RootLayout() {
     const inAuth = segments[0] === 'login' || segments[0] === 'register' || segments[0] === 'onboarding';
 
     if (!user && !inAuth) {
-      // Not logged in and trying to access a protected screen → redirect to login
       router.replace('/login');
     } else if (user && (segments[0] === 'login' || segments[0] === 'register')) {
-      // Already logged in but still on login/register → go to onboarding
-      router.replace('/onboarding');
+      // Cold start: user already logged in — check if they completed onboarding
+      getUserProfile(user.uid).then((snap) => {
+        router.replace(snap.exists() ? '/(tabs)' : '/onboarding');
+      });
     }
   }, [user, authReady, segments]); // re-run whenever user, readiness, or route changes
 

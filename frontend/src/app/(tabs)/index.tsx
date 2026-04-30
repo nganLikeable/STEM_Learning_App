@@ -2,9 +2,13 @@ import Header from "@/src/components/header";
 import TeamInfoCard from "@/src/components/TeamInfoCard";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import { getUserProfile, getTeam, getTeamMembers } from '../../services/firestore';
+import { getAuth } from 'firebase/auth';
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -147,6 +151,8 @@ const GridCard: React.FC<GridCardProps> = ({ activity }) => {
   );
 };
 
+
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 /**
@@ -155,26 +161,58 @@ const GridCard: React.FC<GridCardProps> = ({ activity }) => {
  *   2. Health & Medical Science (activities 5–7) — 2-col row + 1 tall full-width card
  */
 export default function HomeScreen() {
-  // Split the flat activities array into the two sections
-  const engineering = activities.slice(0, 4); // ids 1-4
-  const health = activities.slice(4, 6); // ids 5-6 (side by side)
-  const healthTall = activities[6]; // id 7  (full-width tall card)
+  const engineering = activities.slice(0, 4);
+  const health = activities.slice(4, 6);
+  const healthTall = activities[6];
+
+  const [userName, setUserName] = useState('');
+  const [teamName, setTeamName] = useState('');
+  const [teamId, setTeamId] = useState('');
+  const [memberNames, setMemberNames] = useState<string[]>([]);
+  const [grade, setGrade] = useState('');
+
+  useEffect(() => {
+    const load = async () => {
+      const user = getAuth().currentUser;
+      if (!user) return;
+
+      const profileSnap = await getUserProfile(user.uid);
+      if (!profileSnap.exists()) return;
+
+      const profile = profileSnap.data();
+      setUserName(profile.name);
+      setGrade(`Year ${profile.grade}`);
+
+      if (profile.teamId) {
+        setTeamId(profile.teamId);
+
+        const [teamSnap, teamMembers] = await Promise.all([
+          getTeam(profile.teamId),
+          getTeamMembers(profile.teamId),
+        ]);
+
+        if (teamSnap.exists()) setTeamName(teamSnap.data().name);
+        setMemberNames(teamMembers.map((m: any) => m.name));
+      }
+    };
+
+    load();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Custom header with app branding */}
-      <Header />
+      <Header userName={userName} />
 
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
-        {/* Team summary card */}
         <TeamInfoCard
-          teamName="Team Rockets"
-          members={["Alice", "Bob", "Charlie"]}
-          grade="Year 7"
+          teamName={teamName}
+          teamId={teamId}
+          members={memberNames}
+          grade={grade}
           points={450}
           rank={12}
         />

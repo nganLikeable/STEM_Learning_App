@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { login } from '../services/auth';
+import { getUserProfile } from '../services/firestore';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -27,9 +28,9 @@ export default function LoginScreen() {
     setError('');
     setLoading(true);
     try {
-      await login(email.trim(), password);
-      // Go to onboarding to collect name, grade, and team info before entering the app
-      router.replace('/onboarding');
+      const result = await login(email.trim(), password);
+      const snap = await getUserProfile(result.user.uid);
+      router.replace(snap.exists() ? '/(tabs)' : '/onboarding');
     } catch (e: any) {
       setError(e.message ?? 'Login failed. Please try again.');
     } finally {

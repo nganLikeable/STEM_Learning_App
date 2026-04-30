@@ -8,9 +8,12 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { saveUserProfile, createTeam, getTeam, serverTimestamp } from '../services/firestore';
+import { getCurrentUser } from '../services/auth';
 
 /**
  * OnboardingScreen — shown once after the user logs in for the first time.
@@ -21,8 +24,9 @@ export default function OnboardingScreen() {
   const router = useRouter();
 
   // ── Personal info fields ──────────────────────────────────────────────────
-  const [name, setName]   = useState('');
-  const [grade, setGrade] = useState('');
+  const [name, setName]     = useState('');
+  const [grade, setGrade]   = useState('');
+  const [gradeOpen, setGradeOpen] = useState(false);
 
   // ── Team choice: null = not answered yet, true = in a team, false = create one
   const [inTeam, setInTeam] = useState<boolean | null>(null);
@@ -38,6 +42,7 @@ export default function OnboardingScreen() {
 
   // ── Form-level validation error ───────────────────────────────────────────
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   /**
    * addMember — validates the email input and appends it to the members list.
@@ -74,7 +79,7 @@ export default function OnboardingScreen() {
    * handleStart — validates the form then navigates to the main app.
    * Does not persist data yet; wire up Firestore here when ready.
    */
-  const handleStart = () => {
+  const handleStart = async () => {
     // Name and grade are always required
     if (!name.trim() || !grade.trim()) {
       setError('Please fill in your name and grade.');
@@ -100,8 +105,45 @@ export default function OnboardingScreen() {
     }
 
     setError('');
-    // TODO: save profile + team data to Firestore before navigating
-    router.replace('/(tabs)');
+    setLoading(true);
+
+    try {
+      const user = getCurrentUser();
+
+      let resolvedTeamId = teamId.trim().toUpperCase();
+
+      if (inTeam) {
+        // Validate the entered team ID exists in Firestore
+        const teamSnap = await getTeam(resolvedTeamId);
+        if (!teamSnap.exists()) {
+          setError('Team ID not found. Please check and try again.');
+          setLoading(false);
+          return;
+        }
+      } else {
+        // Create a new team — the ID is generated inside createTeam
+        resolvedTeamId = await createTeam({
+          name: teamName.trim(),
+          members: [user.email, ...members],
+          createdAt: serverTimestamp(),
+        });
+      }
+
+      await saveUserProfile(user.uid, {
+        name: name.trim(),
+        grade,
+        teamId: resolvedTeamId,
+        email: user.email,
+        createdAt: serverTimestamp(),
+      });
+
+      router.replace('/(tabs)');
+      
+    } catch (e: any) {
+      setError(e.message ?? 'Failed to save profile. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -135,21 +177,42 @@ export default function OnboardingScreen() {
           />
 
           {/* ── Grade ── */}
-          {/* Grade selector — tap a pill to select, tap again to deselect */}
           <Text style={s.label}>Grade / Year Level</Text>
-          <View style={s.gradeRow}>
-            {['5', '6', '7', '8', '9'].map((g) => (
-              <Pressable
-                key={g}
-                style={[s.gradePill, grade === g && s.gradePillActive]}
-                onPress={() => setGrade(grade === g ? '' : g)}
-              >
-                <Text style={[s.gradeText, grade === g && s.gradeTextActive]}>
-                  {g}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+          <Pressable
+            style={s.dropdownTrigger}
+            onPress={() => setGradeOpen((o) => !o)}
+          >
+            <Text style={[s.dropdownValue, !grade && s.dropdownPlaceholder]}>
+              {grade ? `Grade ${grade}` : 'Select your grade'}
+            </Text>
+            <MaterialCommunityIcons
+              name={gradeOpen ? 'chevron-up' : 'chevron-down'}
+              size={20}
+              color="#6B7280"
+            />
+          </Pressable>
+          {gradeOpen && (
+            <View style={s.dropdownList}>
+              {['5', '6', '7', '8', '9', '10', '11', '12'].map((g, i, arr) => (
+                <Pressable
+                  key={g}
+                  style={[
+                    s.dropdownItem,
+                    grade === g && s.dropdownItemActive,
+                    i < arr.length - 1 && s.dropdownItemBorder,
+                  ]}
+                  onPress={() => { setGrade(g); setGradeOpen(false); }}
+                >
+                  <Text style={[s.dropdownItemText, grade === g && s.dropdownItemTextActive]}>
+                    Grade {g}
+                  </Text>
+                  {grade === g && (
+                    <MaterialCommunityIcons name="check" size={16} color="#3977fd" />
+                  )}
+                </Pressable>
+              ))}
+            </View>
+          )}
 
           {/* ── Team question ── */}
           <Text style={s.label}>Are you in a team yet?</Text>
@@ -184,7 +247,7 @@ export default function OnboardingScreen() {
               <Text style={s.label}>Team ID</Text>
               <TextInput
                 style={s.input}
-                placeholder="e.g. TEAM-4821"
+                placeholder="e.g. A3K9Z"
                 placeholderTextColor="#9CA3AF"
                 value={teamId}
                 onChangeText={setTeamId}
@@ -192,7 +255,6 @@ export default function OnboardingScreen() {
               />
             </View>
           )}
-
           {/* ── Create new team (shown when inTeam === false) ── */}
           {inTeam === false && (
             <View style={s.subCard}>
@@ -363,40 +425,67 @@ const s = StyleSheet.create({
     color: '#fff',
   },
 
-  // Row of grade pill buttons
-  gradeRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
-  },
-
-  // Individual grade pill (inactive)
-  gradePill: {
-    flex: 1,
-    paddingVertical: 11,
-    borderRadius: 12,
+  dropdownTrigger: {
     borderWidth: 1.5,
     borderColor: '#E5E7EB',
-    alignItems: 'center',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     backgroundColor: '#F9FAFB',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
   },
 
-  // Selected grade pill
-  gradePillActive: {
-    backgroundColor: '#3977fd',
-    borderColor: '#3977fd',
+  dropdownValue: {
+    fontSize: 15,
+    color: '#1F2937',
   },
 
-  // Grade label text (inactive)
-  gradeText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#6B7280',
+  dropdownPlaceholder: {
+    color: '#9CA3AF',
   },
 
-  // Grade label text (selected)
-  gradeTextActive: {
-    color: '#fff',
+  dropdownList: {
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    marginBottom: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+
+  dropdownItem: {
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  dropdownItemBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+
+  dropdownItemActive: {
+    backgroundColor: '#EEF4FF',
+  },
+
+  dropdownItemText: {
+    fontSize: 15,
+    color: '#374151',
+  },
+
+  dropdownItemTextActive: {
+    color: '#3977fd',
+    fontWeight: '600',
   },
 
   // Indented card shown below the toggle for team forms
