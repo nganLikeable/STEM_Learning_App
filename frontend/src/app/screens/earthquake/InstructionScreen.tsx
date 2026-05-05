@@ -25,7 +25,11 @@ const instructionData = {
     { color: "#4CBF7C", label: "Damping Layer" },
   ],
 
-  formulas: ["Damping = fold count + pillar support", "Vibration absorption", "Structure stability"],
+  formulas: [
+    "Damping = fold count + pillar support",
+    "Vibration absorption",
+    "Structure stability",
+  ],
 };
 
 export default function InstructionScreen() {
@@ -41,7 +45,7 @@ export default function InstructionScreen() {
         diagramTitle={instructionData.diagramTitle}
         legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
-        screen='./VideoRecorderScreen'
+        screen="/pickAvatar"
       />
     </SafeAreaView>
   );
