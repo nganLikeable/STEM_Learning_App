@@ -22,8 +22,6 @@ export default function AvatarPicker({
   onSelect,
 }: AvatarPickerProps) {
   const [activeTab, setActiveTab] = useState<avatarCategory>("adventurer"); //
-  const ADVENTURER_AVATARS = AVATARS.adventurer;
-  const NEUTRAL_AVATARS = AVATARS.neutral;
 
   // get list of avatar group
   const currentAvatars = AVATARS[activeTab];

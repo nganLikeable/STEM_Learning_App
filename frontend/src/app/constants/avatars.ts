@@ -179,8 +179,5 @@ export const AVATARS = {
 // get avatar by id - name of image
 export const getAvatarSource = (id: string) => {
   const allAvatars = [...AVATARS.adventurer, ...AVATARS.neutral];
-  return (
-    allAvatars.find((avatar) => avatar.id === id)?.source ??
-    AVATARS.adventurer[0].source
-  );
+  return allAvatars.find((avatar) => avatar.id === id)?.source ?? null;
 };

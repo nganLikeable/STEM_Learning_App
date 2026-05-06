@@ -17,7 +17,7 @@ const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 const db = getFirestore(app);
 
 export const saveUserProfile = (uid, data) =>
-  setDoc(doc(db, "users", uid), data);
+  setDoc(doc(db, "users", uid), data, { merge: true });
 
 export const getUserProfile = (uid) => getDoc(doc(db, "users", uid));
 
@@ -80,6 +80,14 @@ export const setActivity1 = async (
     console.error("Error saving to Firestore", e);
     throw e;
   }
+};
+
+export const updateUserAvatar = (uid, avatarId) =>
+  setDoc(doc(db, "users", uid), { avatarId }, { merge: true });
+
+export const getUserAvatar = async (uid) => {
+  const snap = await getDoc(doc(db, "users", uid));
+  return snap.data()?.avatarId ?? null;
 };
 
 export { serverTimestamp };
