@@ -1,24 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Link } from 'expo-router';
-import { colors, spacing, borderRadius } from '../theme';
+import useGetUserAvatar from "@/hooks/user/useGetUserAvatar";
+import { Link } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { borderRadius, colors, spacing } from "../theme";
 
 interface HeaderProps {
   userName?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ userName = 'User' }) => {
-  const [greeting, setGreeting] = useState('Good morning');
+const Header: React.FC<HeaderProps> = ({ userName = "User" }) => {
+  const [greeting, setGreeting] = useState("Good morning");
+  const avatar = useGetUserAvatar();
 
   useEffect(() => {
     // Determine greeting based on time of day
     const hour = new Date().getHours();
     if (hour >= 12 && hour < 18) {
-      setGreeting('Good afternoon');
+      setGreeting("Good afternoon");
     } else if (hour >= 18) {
-      setGreeting('Good evening');
+      setGreeting("Good evening");
     } else {
-      setGreeting('Good morning');
+      setGreeting("Good morning");
     }
   }, []);
 
@@ -34,7 +36,14 @@ const Header: React.FC<HeaderProps> = ({ userName = 'User' }) => {
         <Link href="../../setting" asChild>
           <Pressable style={styles.avatarButton}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>👤</Text>
+              {avatar ? (
+                <Image
+                  source={avatar}
+                  style={{ width: 48, height: 48, borderRadius: 24 }}
+                />
+              ) : (
+                <Text style={styles.avatarText}>☺️</Text>
+              )}
             </View>
           </Pressable>
         </Link>
@@ -45,15 +54,15 @@ const Header: React.FC<HeaderProps> = ({ userName = 'User' }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderBottomWidth: 0,
   },
   content: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   greetingContainer: {
     flex: 1,
@@ -61,12 +70,12 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 14,
     color: colors.textSecondary,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: spacing.xs,
   },
   userName: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.text,
   },
   avatarButton: {
@@ -78,8 +87,8 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     backgroundColor: colors.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
     borderColor: colors.accent,
   },
