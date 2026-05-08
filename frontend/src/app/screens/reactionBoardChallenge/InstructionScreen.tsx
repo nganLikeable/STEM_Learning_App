@@ -6,10 +6,7 @@ const instructionData = {
   instruction:
     "Measure reaction time, coordination, and improvement through digital and physical challenges. Phase 1: Tap the screen as quickly as the hidden button appears and record reaction time. Phase 2: Repeat using your non-dominant hand. Phase 3: Trace a moving shape on the screen and review accuracy and delay.",
 
-  tools: [
-    "Mobile phone with STEMM Lab app",
-    "Clear working space",
-  ],
+  tools: ["Mobile phone with STEMM Lab app", "Clear working space"],
 
   diagramImage:
     "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png",
@@ -21,7 +18,11 @@ const instructionData = {
     { color: "#E87C4C", label: "Non-Dominant Hand" },
   ],
 
-  formulas: ["Reaction Time (ms)", "Average Reaction: 200-300ms", "Coordination score"],
+  formulas: [
+    "Reaction Time (ms)",
+    "Average Reaction: 200-300ms",
+    "Coordination score",
+  ],
 };
 
 export default function InstructionScreen() {
@@ -37,7 +38,7 @@ export default function InstructionScreen() {
         diagramTitle={instructionData.diagramTitle}
         legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
-        screen='./VideoRecorderScreen'
+        screen="./ReactionGameScreen"
       />
     </SafeAreaView>
   );
