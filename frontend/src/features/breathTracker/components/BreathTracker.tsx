@@ -1,5 +1,5 @@
 import { Button, StyleSheet, Text, View } from "react-native";
-import useBreathTracker from "../../../../hooks/useBreathTracker";
+import useBreathTracker from "../hooks/useBreathTracker";
 
 export default function BreathTracker() {
   const { bpm, x, y, z, stop, start, isRecording } = useBreathTracker();

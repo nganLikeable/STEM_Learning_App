@@ -38,7 +38,7 @@ export default function InstructionScreen() {
         diagramTitle={instructionData.diagramTitle}
         legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
-        screen="./ReactionGameScreen"
+        screen="./TracingGameScreen"
       />
     </SafeAreaView>
   );
