@@ -23,6 +23,15 @@ const instructionData = {
     "Average Reaction: 200-300ms",
     "Coordination score",
   ],
+  journeyParams: {
+    titles: ["Phase 1", "Phase 2", "Phase 3"],
+    descriptions: ["gi do", "gi do", "gi do"],
+    pathIDs: [
+      "/screens/reactionBoardChallenge/ReactionBoardGameScreen",
+      "/screens/reactionBoardChallenge/ReactionBoardGameScreen",
+      "/screens/reactionBoardChallenge/ReactionBoardGameScreen",
+    ],
+  },
 };
 
 export default function InstructionScreen() {
@@ -38,7 +47,7 @@ export default function InstructionScreen() {
         diagramTitle={instructionData.diagramTitle}
         legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
-        screen="./ReactionBoardGameScreen"
+        journeyParams={instructionData.journeyParams}
       />
     </SafeAreaView>
   );
