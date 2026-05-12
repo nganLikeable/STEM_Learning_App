@@ -76,7 +76,7 @@ export default function TracingGame() {
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>PHASE 3</Text>
+        {/* <Text style={styles.eyebrow}>PHASE 3</Text> */}
         <Text style={styles.title}>Tracing Challenge</Text>
         <Text style={styles.subtitle}>
           {status === "idle" && `Trace the ${shape.emoji} ${shape.label}`}

@@ -6,7 +6,7 @@ const STATUS_CONFIG: Record<
   Status,
   { bg: string; label: string; sublabel?: string }
 > = {
-  idle: { bg: "#ffee02", label: "TAP TO START", sublabel: "reaction test" },
+  idle: { bg: "#ffc800", label: "TAP TO START", sublabel: "reaction test" },
   waiting: { bg: "#dc2626f0", label: "WAIT...", sublabel: "don't tap yet" },
   ready: { bg: "#16a34a", label: "TAP!", sublabel: "now!" },
   done: { bg: "#c09bff", label: "", sublabel: "tap to retry" },
@@ -19,20 +19,20 @@ const getFeedback = (ms: number) => {
   return { emoji: "🔴", label: "Keep practicing" };
 };
 
-export default function TapReactionGame() {
+// for screen setting stage
+interface TapReactionGameProps {
+  phase: "dominant" | "non-dominant";
+  onNext: () => void;
+}
+
+export default function TapReactionGame({
+  phase,
+  onNext,
+}: TapReactionGameProps) {
   const [status, setStatus] = useState<Status>("idle");
   const [reactionTime, setReactionTime] = useState<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // clean up on unmount
-  useEffect(() => {
-    return () => {
-      if (timerRef.current !== null) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
 
   const handleStart = () => {
     setReactionTime(null);
@@ -72,11 +72,30 @@ export default function TapReactionGame() {
   const config = STATUS_CONFIG[status];
   const feedback = reactionTime ? getFeedback(reactionTime) : null;
 
+  // reset when phase changes
+  useEffect(() => {
+    setStatus("idle");
+    setReactionTime(null);
+    startTimeRef.current = null;
+    timerRef.current = null;
+    // reset when unmount
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+    }
+  }, [phase]);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>REACTION TEST</Text>
         <Text style={styles.subtitle}>How fast{"\n"}are you?</Text>
+        {/* Phase badge */}
+        <View style={styles.phaseBadge}>
+          <Text style={styles.phaseDot}>●</Text>
+          <Text style={styles.phaseText}>
+            {phase === "dominant" ? "Dominant Hand" : "Non-dominant Hand"}
+          </Text>
+        </View>
       </View>
 
       <View style={styles.gameWrapper}>
@@ -109,6 +128,24 @@ export default function TapReactionGame() {
           </>
         ) : (
           <Text style={styles.feedbackPlaceholder}>—</Text>
+        )}
+      </View>
+
+      <View style={styles.nextWrapper}>
+        {status === "done" && (
+          <Pressable
+            onPress={onNext}
+            style={({ pressed }) => [
+              styles.nextBtn,
+              pressed && styles.nextBtnPressed,
+            ]}
+          >
+            <Text style={styles.nextBtnText}>
+              {phase === "dominant"
+                ? "Test your non-dominant hand"
+                : "Move to Tracing Game"}
+            </Text>
+          </Pressable>
         )}
       </View>
 
@@ -223,5 +260,49 @@ const styles = StyleSheet.create({
     fontSize: 13,
     letterSpacing: 0.5,
     textAlign: "center",
+  },
+  // next button to proceed
+  nextWrapper: {
+    height: 56, // fixed — prevents layout shift when button appears/disappears
+    justifyContent: "center",
+  },
+  nextBtn: {
+    backgroundColor: "#facc15",
+    paddingHorizontal: 28,
+    paddingVertical: 14,
+    borderRadius: 50,
+  },
+  nextBtnPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.97 }],
+  },
+  nextBtnText: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#0f172a",
+    letterSpacing: 1,
+  },
+  // phase - hand Type
+  phaseBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#1e293b",
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#334155",
+    marginTop: 4,
+  },
+  phaseDot: {
+    fontSize: 8,
+    color: "#facc15",
+  },
+  phaseText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#94a3b8",
+    letterSpacing: 0.5,
   },
 });
