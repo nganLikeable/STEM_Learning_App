@@ -23,12 +23,18 @@ const instructionData = {
 
   formulas: ["Sound Level (dB)", "0-30 dB: Safe", "85-90 dB: Risk", "110+ dB: Severe damage"],
     journeyParams: {
-    titles: ['Phase 1', 'Phase 2', 'Phase 3'],
-    descriptions: ['gi do', 'gi do', 'gi do'],
+    titles: [
+      'Phase 1: Drop a book on the table (20cm)', 
+      'Phase 2: Drop a book on the ground (1m)', 
+      'Phase 3: Drop a full filled of bottle of water on the table (20cm)'],
+    descriptions: [
+      'Place the phone on the table, then gently drop a book from approximately 20cm near the phone to measure the sound dB level.', 
+      'Place the phone near the testing area, then drop a book from approximately 1 meter above the ground to record the sound dB level.', 
+      'Place the phone close to the table, then drop a full bottle of water from approximately 20cm onto the table to measure the sound dB level.'],
     pathIDs: [
-      '/screens/parachute/VideoRecorderScreen',
-      '/screens/parachute/VideoRecorderScreen',
-      '/screens/parachute/VideoRecorderScreen',
+      '/screens/soundPollutionHunter/soundMeasureTracking',
+      '/screens/soundPollutionHunter/soundMeasureTracking',
+      '/screens/soundPollutionHunter/soundMeasureTracking',
     ],
   }
 };
