@@ -1,7 +1,9 @@
 import { getFirestore, doc, setDoc, getDoc, collection, serverTimestamp, query, where, getDocs } from "firebase/firestore";
 import app from "./firebase";
 
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const db = getFirestore(app);
+
 
 export const saveUserProfile = (uid, data) =>
   setDoc(doc(db, 'users', uid), data);
@@ -9,7 +11,7 @@ export const saveUserProfile = (uid, data) =>
 export const getUserProfile = (uid) =>
   getDoc(doc(db, 'users', uid));
 
-const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
 
 const generateTeamId = () =>
   Array.from({ length: 5 }, () => CHARS[Math.floor(Math.random() * CHARS.length)]).join('');
@@ -36,5 +38,9 @@ export const getTeamMembers = async (teamId) => {
   );
   return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
 };
+
+
+
+
 
 export { serverTimestamp };

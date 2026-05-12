@@ -22,6 +22,15 @@ const instructionData = {
   ],
 
   formulas: ["Sound Level (dB)", "0-30 dB: Safe", "85-90 dB: Risk", "110+ dB: Severe damage"],
+    journeyParams: {
+    titles: ['Phase 1', 'Phase 2', 'Phase 3'],
+    descriptions: ['gi do', 'gi do', 'gi do'],
+    pathIDs: [
+      '/screens/parachute/VideoRecorderScreen',
+      '/screens/parachute/VideoRecorderScreen',
+      '/screens/parachute/VideoRecorderScreen',
+    ],
+  }
 };
 
 export default function InstructionScreen() {
@@ -37,7 +46,7 @@ export default function InstructionScreen() {
         diagramTitle={instructionData.diagramTitle}
         legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
-        screen='./VideoRecorderScreen'
+        journeyParams={instructionData.journeyParams}
       />
     </SafeAreaView>
   );
