@@ -2,6 +2,12 @@ import { Button } from "@react-navigation/elements";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter } from 'expo-router';
 
+interface JourneyParams {
+  titles: string[];
+  descriptions: string[];
+  pathIDs: string[];
+}
+
 interface InstructionProps {
   instruction: string;
   title?: string;
@@ -12,7 +18,7 @@ interface InstructionProps {
   diagramTitle?: string;
   legendItems?: Array<{ color: string; label: string }>;
   formulas?: string[];
-  screen?: string;
+  journeyParams?: JourneyParams;
 }
 
 export default function Instruction({
@@ -25,8 +31,7 @@ export default function Instruction({
   diagramTitle = "Diagram",
   legendItems,
   formulas,
-  screen
-
+  journeyParams,
 }: InstructionProps) {
   
   const router = useRouter();
@@ -100,18 +105,32 @@ export default function Instruction({
         <Text style={styles.bodyText}>{instruction}</Text>
       </SectionCard>
 
-      <Button onPress={() => router.push(screen as any)}>
+      <Button
+        onPress={() => {
+          if (!journeyParams) return;
+          router.push({
+            pathname: '/JourneyComponent',
+            params: {
+              journeyData: JSON.stringify({
+                titles:       journeyParams.titles,
+                descriptions: journeyParams.descriptions,
+                pathIDs:      journeyParams.pathIDs,
+              }),
+            },
+          });
+        }}
+      >
         Start Experiment
       </Button>
 
-      {/* ── Safety Note ── */}
+      {/* ── Safety Note ──
       <View style={styles.safetyBanner}>
         <Text style={styles.safetyIcon}>⚠️</Text>
         <Text style={styles.safetyText}>
           Always conduct this experiment under teacher supervision in a safe
           open area.
         </Text>
-      </View>
+      </View> */}
     </ScrollView>
   );
 }

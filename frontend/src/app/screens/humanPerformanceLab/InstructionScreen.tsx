@@ -22,6 +22,15 @@ const instructionData = {
   ],
 
   formulas: ["Vibration = Movement smoothness", "Speed vs Coordination", "Range of motion"],
+  journeyParams: {
+    titles: ['Phase 1', 'Phase 2', 'Phase 3'],
+    descriptions: ['gi do', 'gi do', 'gi do'],
+    pathIDs: [
+      'dienPathVaoDay',
+      'dienPathVaoDay',
+      'dienPathVaoDay',
+    ],
+  }
 };
 
 export default function InstructionScreen() {
@@ -37,7 +46,7 @@ export default function InstructionScreen() {
         diagramTitle={instructionData.diagramTitle}
         legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
-        screen='./VideoRecorderScreen'
+        journeyParams={instructionData.journeyParams}
       />
     </SafeAreaView>
   );

@@ -27,6 +27,15 @@ const instructionData = {
   ],
 
   formulas: ["Net Force = Weight − Drag Force", "g-force = Δv/t_contact ÷ 9.8", "Drag Force = Weight − Net Force"],
+  journeyParams: {
+    titles: ['Phase 1', 'Phase 2', 'Phase 3'],
+    descriptions: ['gi do', 'gi do', 'gi do'],
+    pathIDs: [
+      '/screens/parachute/VideoRecorderScreen',
+      '/screens/parachute/VideoRecorderScreen',
+      '/screens/parachute/VideoRecorderScreen',
+    ],
+  }
 };
 
 export default function InstructionScreen() {
@@ -42,7 +51,7 @@ export default function InstructionScreen() {
         diagramTitle={instructionData.diagramTitle}
         legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
-        screen='./VideoRecorderScreen'
+        journeyParams={instructionData.journeyParams}
       />
     </SafeAreaView>
   );
