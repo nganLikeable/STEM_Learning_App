@@ -1,19 +1,23 @@
-import React, { useState } from 'react';
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  StyleSheet,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { saveUserProfile, createTeam, getTeam, serverTimestamp } from '../services/firestore';
-import { getCurrentUser } from '../services/auth';
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { getCurrentUser } from "../services/auth";
+import {
+  createTeam,
+  getTeam,
+  saveUserProfile,
+  serverTimestamp,
+} from "../services/firestore";
 
 /**
  * OnboardingScreen — shown once after the user logs in for the first time.
@@ -24,24 +28,24 @@ export default function OnboardingScreen() {
   const router = useRouter();
 
   // ── Personal info fields ──────────────────────────────────────────────────
-  const [name, setName]     = useState('');
-  const [grade, setGrade]   = useState('');
+  const [name, setName] = useState("");
+  const [grade, setGrade] = useState("");
   const [gradeOpen, setGradeOpen] = useState(false);
 
   // ── Team choice: null = not answered yet, true = in a team, false = create one
   const [inTeam, setInTeam] = useState<boolean | null>(null);
 
   // ── Join existing team ────────────────────────────────────────────────────
-  const [teamId, setTeamId] = useState('');
+  const [teamId, setTeamId] = useState("");
 
   // ── Create new team ───────────────────────────────────────────────────────
-  const [teamName, setTeamName]         = useState('');
-  const [memberEmail, setMemberEmail]   = useState(''); // current input value
-  const [members, setMembers]           = useState<string[]>([]); // confirmed member list
-  const [emailError, setEmailError]     = useState('');
+  const [teamName, setTeamName] = useState("");
+  const [memberEmail, setMemberEmail] = useState(""); // current input value
+  const [members, setMembers] = useState<string[]>([]); // confirmed member list
+  const [emailError, setEmailError] = useState("");
 
   // ── Form-level validation error ───────────────────────────────────────────
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   /**
@@ -52,20 +56,20 @@ export default function OnboardingScreen() {
     const trimmed = memberEmail.trim();
 
     // Basic email format check
-    if (!trimmed || !trimmed.includes('@')) {
-      setEmailError('Please enter a valid email address.');
+    if (!trimmed || !trimmed.includes("@")) {
+      setEmailError("Please enter a valid email address.");
       return;
     }
 
     // Prevent adding the same email twice
     if (members.includes(trimmed)) {
-      setEmailError('This member has already been added.');
+      setEmailError("This member has already been added.");
       return;
     }
 
-    setEmailError('');
+    setEmailError("");
     setMembers((prev) => [...prev, trimmed]); // append to the list
-    setMemberEmail('');                        // reset the input
+    setMemberEmail(""); // reset the input
   };
 
   /**
@@ -82,29 +86,29 @@ export default function OnboardingScreen() {
   const handleStart = async () => {
     // Name and grade are always required
     if (!name.trim() || !grade.trim()) {
-      setError('Please fill in your name and grade.');
+      setError("Please fill in your name and grade.");
       return;
     }
 
     // Team choice must be answered
     if (inTeam === null) {
-      setError('Please tell us whether you are in a team yet.');
+      setError("Please tell us whether you are in a team yet.");
       return;
     }
 
     // Join path: Team ID is required
     if (inTeam && !teamId.trim()) {
-      setError('Please enter your Team ID.');
+      setError("Please enter your Team ID.");
       return;
     }
 
     // Create path: Team name is required (members are optional)
     if (!inTeam && !teamName.trim()) {
-      setError('Please enter a name for your team.');
+      setError("Please enter a name for your team.");
       return;
     }
 
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
@@ -116,7 +120,7 @@ export default function OnboardingScreen() {
         // Validate the entered team ID exists in Firestore
         const teamSnap = await getTeam(resolvedTeamId);
         if (!teamSnap.exists()) {
-          setError('Team ID not found. Please check and try again.');
+          setError("Team ID not found. Please check and try again.");
           setLoading(false);
           return;
         }
@@ -135,12 +139,12 @@ export default function OnboardingScreen() {
         teamId: resolvedTeamId,
         email: user.email,
         createdAt: serverTimestamp(),
+        avatarId: "", // initialize as empty string, update later
       });
 
-      router.replace('/(tabs)');
-      
+      router.replace("/pickAvatar");
     } catch (e: any) {
-      setError(e.message ?? 'Failed to save profile. Please try again.');
+      setError(e.message ?? "Failed to save profile. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -150,7 +154,7 @@ export default function OnboardingScreen() {
     // KeyboardAvoidingView lifts the card above the keyboard on iOS
     <KeyboardAvoidingView
       style={s.screen}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
         contentContainerStyle={s.scroll}
@@ -158,7 +162,6 @@ export default function OnboardingScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={s.card}>
-
           {/* ── Header ── */}
           <Text style={s.title}>Almost There!</Text>
           <Text style={s.subtitle}>Tell us a bit about yourself</Text>
@@ -183,17 +186,17 @@ export default function OnboardingScreen() {
             onPress={() => setGradeOpen((o) => !o)}
           >
             <Text style={[s.dropdownValue, !grade && s.dropdownPlaceholder]}>
-              {grade ? `Grade ${grade}` : 'Select your grade'}
+              {grade ? `Grade ${grade}` : "Select your grade"}
             </Text>
             <MaterialCommunityIcons
-              name={gradeOpen ? 'chevron-up' : 'chevron-down'}
+              name={gradeOpen ? "chevron-up" : "chevron-down"}
               size={20}
               color="#6B7280"
             />
           </Pressable>
           {gradeOpen && (
             <View style={s.dropdownList}>
-              {['5', '6', '7', '8', '9', '10', '11', '12'].map((g, i, arr) => (
+              {["5", "6", "7", "8", "9", "10", "11", "12"].map((g, i, arr) => (
                 <Pressable
                   key={g}
                   style={[
@@ -201,13 +204,25 @@ export default function OnboardingScreen() {
                     grade === g && s.dropdownItemActive,
                     i < arr.length - 1 && s.dropdownItemBorder,
                   ]}
-                  onPress={() => { setGrade(g); setGradeOpen(false); }}
+                  onPress={() => {
+                    setGrade(g);
+                    setGradeOpen(false);
+                  }}
                 >
-                  <Text style={[s.dropdownItemText, grade === g && s.dropdownItemTextActive]}>
+                  <Text
+                    style={[
+                      s.dropdownItemText,
+                      grade === g && s.dropdownItemTextActive,
+                    ]}
+                  >
                     Grade {g}
                   </Text>
                   {grade === g && (
-                    <MaterialCommunityIcons name="check" size={16} color="#3977fd" />
+                    <MaterialCommunityIcons
+                      name="check"
+                      size={16}
+                      color="#3977fd"
+                    />
                   )}
                 </Pressable>
               ))}
@@ -217,13 +232,14 @@ export default function OnboardingScreen() {
           {/* ── Team question ── */}
           <Text style={s.label}>Are you in a team yet?</Text>
           <View style={s.toggleRow}>
-
             {/* YES button */}
             <Pressable
               style={[s.toggleBtn, inTeam === true && s.toggleBtnActive]}
               onPress={() => setInTeam(true)}
             >
-              <Text style={[s.toggleText, inTeam === true && s.toggleTextActive]}>
+              <Text
+                style={[s.toggleText, inTeam === true && s.toggleTextActive]}
+              >
                 Yes
               </Text>
             </Pressable>
@@ -233,11 +249,12 @@ export default function OnboardingScreen() {
               style={[s.toggleBtn, inTeam === false && s.toggleBtnActive]}
               onPress={() => setInTeam(false)}
             >
-              <Text style={[s.toggleText, inTeam === false && s.toggleTextActive]}>
+              <Text
+                style={[s.toggleText, inTeam === false && s.toggleTextActive]}
+              >
                 No
               </Text>
             </Pressable>
-
           </View>
 
           {/* ── Join existing team (shown when inTeam === true) ── */}
@@ -281,7 +298,10 @@ export default function OnboardingScreen() {
                   placeholder="teammate@example.com"
                   placeholderTextColor="#9CA3AF"
                   value={memberEmail}
-                  onChangeText={(t) => { setMemberEmail(t); setEmailError(''); }}
+                  onChangeText={(t) => {
+                    setMemberEmail(t);
+                    setEmailError("");
+                  }}
                   autoCapitalize="none"
                   keyboardType="email-address"
                 />
@@ -291,7 +311,9 @@ export default function OnboardingScreen() {
               </View>
 
               {/* Email validation error */}
-              {emailError ? <Text style={s.emailError}>{emailError}</Text> : null}
+              {emailError ? (
+                <Text style={s.emailError}>{emailError}</Text>
+              ) : null}
 
               {/* List of added members */}
               {members.map((m) => (
@@ -302,11 +324,17 @@ export default function OnboardingScreen() {
                   </View>
 
                   {/* Email label */}
-                  <Text style={s.memberEmail} numberOfLines={1}>{m}</Text>
+                  <Text style={s.memberEmail} numberOfLines={1}>
+                    {m}
+                  </Text>
 
                   {/* Remove button */}
                   <Pressable onPress={() => removeMember(m)} hitSlop={8}>
-                    <MaterialCommunityIcons name="close-circle" size={20} color="#9CA3AF" />
+                    <MaterialCommunityIcons
+                      name="close-circle"
+                      size={20}
+                      color="#9CA3AF"
+                    />
                   </Pressable>
                 </View>
               ))}
@@ -319,9 +347,13 @@ export default function OnboardingScreen() {
             onPress={handleStart}
           >
             <Text style={s.btnText}>Start Exploring</Text>
-            <MaterialCommunityIcons name="arrow-right" size={18} color="#fff" style={{ marginLeft: 6 }} />
+            <MaterialCommunityIcons
+              name="arrow-right"
+              size={18}
+              color="#fff"
+              style={{ marginLeft: 6 }}
+            />
           </Pressable>
-
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -334,23 +366,23 @@ const s = StyleSheet.create({
   // Blue background matching the login screen
   screen: {
     flex: 1,
-    backgroundColor: '#E6F4FE',
+    backgroundColor: "#E6F4FE",
   },
 
   // Centres the card and adds breathing room at top/bottom
   scroll: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 24,
     paddingVertical: 40,
   },
 
   // White rounded card — same as login
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 20,
     padding: 28,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -359,40 +391,40 @@ const s = StyleSheet.create({
 
   title: {
     fontSize: 26,
-    fontWeight: '800',
-    color: '#1F2937',
+    fontWeight: "800",
+    color: "#1F2937",
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
     marginBottom: 24,
   },
 
   // Field label above each input
   label: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#374151',
+    fontWeight: "600",
+    color: "#374151",
     marginBottom: 6,
   },
 
   // Text input — same as login
   input: {
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
+    borderColor: "#E5E7EB",
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-    color: '#1F2937',
+    color: "#1F2937",
     marginBottom: 16,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: "#F9FAFB",
   },
 
   // Yes / No toggle container
   toggleRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     marginBottom: 20,
   },
@@ -403,58 +435,58 @@ const s = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    borderColor: "#E5E7EB",
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
   },
 
   // Selected state for Yes/No button
   toggleBtnActive: {
-    backgroundColor: '#3977fd',
-    borderColor: '#3977fd',
+    backgroundColor: "#3977fd",
+    borderColor: "#3977fd",
   },
 
   toggleText: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#6B7280',
+    fontWeight: "700",
+    color: "#6B7280",
   },
 
   // Text colour when toggle is selected
   toggleTextActive: {
-    color: '#fff',
+    color: "#fff",
   },
 
   dropdownTrigger: {
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
+    borderColor: "#E5E7EB",
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    backgroundColor: '#F9FAFB',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    backgroundColor: "#F9FAFB",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 4,
   },
 
   dropdownValue: {
     fontSize: 15,
-    color: '#1F2937',
+    color: "#1F2937",
   },
 
   dropdownPlaceholder: {
-    color: '#9CA3AF',
+    color: "#9CA3AF",
   },
 
   dropdownList: {
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
+    borderColor: "#E5E7EB",
     borderRadius: 12,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     marginBottom: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
+    overflow: "hidden",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
@@ -464,59 +496,59 @@ const s = StyleSheet.create({
   dropdownItem: {
     paddingHorizontal: 14,
     paddingVertical: 13,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
 
   dropdownItemBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: "#F3F4F6",
   },
 
   dropdownItemActive: {
-    backgroundColor: '#EEF4FF',
+    backgroundColor: "#EEF4FF",
   },
 
   dropdownItemText: {
     fontSize: 15,
-    color: '#374151',
+    color: "#374151",
   },
 
   dropdownItemTextActive: {
-    color: '#3977fd',
-    fontWeight: '600',
+    color: "#3977fd",
+    fontWeight: "600",
   },
 
   // Indented card shown below the toggle for team forms
   subCard: {
-    backgroundColor: '#F0F7FF',
+    backgroundColor: "#F0F7FF",
     borderRadius: 14,
     padding: 16,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#DBEAFE',
+    borderColor: "#DBEAFE",
   },
 
   subCardTitle: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: "700",
+    color: "#1F2937",
     marginBottom: 14,
   },
 
   // Small helper text below a label
   hint: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: "#9CA3AF",
     marginTop: -10,
     marginBottom: 10,
   },
 
   // Row containing the email input + Add button
   addRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: 8,
   },
 
@@ -528,33 +560,33 @@ const s = StyleSheet.create({
 
   // Blue square Add button
   addBtn: {
-    backgroundColor: '#3977fd',
+    backgroundColor: "#3977fd",
     borderRadius: 12,
     width: 46,
     height: 46,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   // Small red error text under the email add row
   emailError: {
     fontSize: 12,
-    color: '#E74C3C',
+    color: "#E74C3C",
     marginTop: 6,
     marginBottom: 8,
   },
 
   // Row showing a confirmed team member
   memberRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderRadius: 10,
     padding: 10,
     marginTop: 8,
     gap: 10,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#E5E7EB",
   },
 
   // Circular avatar with member's initial
@@ -562,47 +594,47 @@ const s = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#3977fd',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#3977fd",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   memberInitial: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#fff',
+    fontWeight: "700",
+    color: "#fff",
   },
 
   // Email text in the member row — truncates if too long
   memberEmail: {
     flex: 1,
     fontSize: 13,
-    color: '#374151',
+    color: "#374151",
   },
 
   // Primary CTA button — same blue as login
   btn: {
-    backgroundColor: '#3977fd',
+    backgroundColor: "#3977fd",
     borderRadius: 12,
     paddingVertical: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 8,
   },
 
   btnText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 
   // Red error banner at the top of the card
   error: {
-    color: '#E74C3C',
+    color: "#E74C3C",
     fontSize: 13,
     marginBottom: 12,
-    backgroundColor: '#FDECEA',
+    backgroundColor: "#FDECEA",
     padding: 10,
     borderRadius: 8,
   },
