@@ -25,16 +25,20 @@ const instructionData = {
     { color: "#4CBF7C", label: "Damping Layer" },
   ],
 
-  formulas: ["Damping = fold count + pillar support", "Vibration absorption", "Structure stability"],
+  formulas: [
+    "Damping = fold count + pillar support",
+    "Vibration absorption",
+    "Structure stability",
+  ],
   journeyParams: {
-    titles: ['Phase 1', 'Phase 2', 'Phase 3'],
-    descriptions: ['gi do', 'gi do', 'gi do'],
+    titles: ["Phase 1", "Phase 2", "Phase 3"],
+    descriptions: ["gi do", "gi do", "gi do"],
     pathIDs: [
-      '',
-      '',
-      '',
+      "/screens/earthquake/EarthquakeScreen",
+      "/screens/earthquake/EarthquakeScreen",
+      "/screens/earthquake/EarthquakeScreen",
     ],
-  }
+  },
 };
 
 export default function InstructionScreen() {
