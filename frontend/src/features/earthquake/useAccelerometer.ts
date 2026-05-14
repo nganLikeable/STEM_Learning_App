@@ -1,4 +1,3 @@
-// useAccelerometer.ts
 import { Accelerometer } from "expo-sensors";
 import { useRef, useState } from "react";
 
@@ -13,10 +12,18 @@ export default function useAccelerometer() {
     typeof Accelerometer.addListener
   > | null>(null);
   const prevFilteredRef = useRef(0);
+
+  // calibrated resting acceleration - normal resting value
   const baselineRef = useRef(0);
   const baselineSamplesRef = useRef<number[]>([]);
+
+  // if baseline is ready
   const isBaselineSetRef = useRef(false);
+
+  // highest acceleration detected during test
   const maxAccelRef = useRef(0);
+
+  // jerk:  rate at which acceleration changes
   const allJerksRef = useRef<number[]>([]);
 
   const handleData = ({ x, y, z }: { x: number; y: number; z: number }) => {
@@ -26,7 +33,7 @@ export default function useAccelerometer() {
     const filtered =
       EMA_ALPHA * raw + (1 - EMA_ALPHA) * prevFilteredRef.current;
 
-    // Phase 1 — collect baseline
+    // COLLECT BASELINE
     if (!isBaselineSetRef.current) {
       baselineSamplesRef.current.push(filtered);
       if (baselineSamplesRef.current.length >= BASELINE_SAMPLES) {
@@ -38,7 +45,8 @@ export default function useAccelerometer() {
       return;
     }
 
-    // Phase 2 — measure against baseline
+    // MEASURE AGAINST BASELINE
+    // subtract the baseline to measure the movement, not gravity
     const adjusted = Math.abs(filtered - baselineRef.current);
     const jerk = Math.abs(filtered - prevFilteredRef.current);
 
