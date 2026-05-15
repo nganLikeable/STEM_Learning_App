@@ -14,9 +14,10 @@ export default function useVibrationPattern() {
     while (Date.now() < endTime && activeRef.current) {
       // Rapid-fire heavy impacts with minimal pause — most intense pattern possible
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-      await new Promise((r) => setTimeout(r, 5)); // 30ms gap — as fast as iOS allows
+      await new Promise((r) => setTimeout(r, 0));
     }
 
+    // cleanup
     setIsVibrating(false);
     activeRef.current = false;
   };

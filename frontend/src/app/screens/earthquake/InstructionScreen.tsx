@@ -34,9 +34,9 @@ const instructionData = {
     titles: ["Phase 1", "Phase 2", "Phase 3"],
     descriptions: ["gi do", "gi do", "gi do"],
     pathIDs: [
-      "/screens/earthquake/EarthquakeScreen",
-      "/screens/earthquake/EarthquakeScreen",
-      "/screens/earthquake/EarthquakeScreen",
+      "/screens/earthquake/EarthquakeScreen?design=1",
+      "/screens/earthquake/EarthquakeScreen?design=2",
+      "/screens/earthquake/EarthquakeScreen?design=3",
     ],
   },
 };

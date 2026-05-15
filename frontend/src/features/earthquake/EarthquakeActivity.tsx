@@ -3,7 +3,6 @@ import { useState } from "react";
 import {
   Dimensions,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -74,7 +73,7 @@ function DesignCard({
         </View>
         <View style={card.divider} />
         <View style={card.stat}>
-          <Text style={card.statValue}>{result.maxRotationDeg}°/s</Text>
+          <Text style={card.statValue}>{result.peakRotationRateDeg}°/s</Text>
           <Text style={card.statLabel}>Peak rotation</Text>
         </View>
         <View style={card.divider} />
@@ -89,34 +88,25 @@ function DesignCard({
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
+interface Props {
+  designNumber: 1 | 2 | 3;
+}
 
-export default function EarthquakeActivity() {
+export default function EarthquakeActivity({ designNumber }: Props) {
   const [labelInput, setLabelInput] = useState("");
 
   const {
     status,
     countdown,
     progress,
-    results,
-    currentDesign,
+    result,
     totalDesigns,
-    isLastDesign,
     liveRotation,
     liveAccel,
     beginCountdown,
-    nextDesign,
     reset,
-  } = useEarthquakeTest();
-
-  const winnerIndex =
-    results.length > 0
-      ? results.indexOf(
-          results.reduce((a, b) =>
-            a.stabilityScore > b.stabilityScore ? a : b,
-          ),
-        )
-      : -1;
+    backToPath,
+  } = useEarthquakeTest(designNumber);
 
   // ── Idle — design label entry ─────────────────────────────────────────────
 
@@ -126,9 +116,7 @@ export default function EarthquakeActivity() {
         <View style={styles.header}>
           <Text style={styles.eyebrow}>ACTIVITY 4</Text>
           <Text style={styles.title}>Earthquake{"\n"}Lab</Text>
-          <Text style={styles.subtitle}>
-            Design {currentDesign} of {totalDesigns}
-          </Text>
+          <Text style={styles.subtitle}>Design {designNumber}</Text>
         </View>
 
         <View style={styles.inputSection}>
@@ -236,27 +224,25 @@ export default function EarthquakeActivity() {
   // ── Done — single result ──────────────────────────────────────────────────
 
   if (status === "done") {
-    const latest = results[results.length - 1];
+    const stabilityScore = result?.stabilityScore ?? 0;
     const scoreColor =
-      latest.stabilityScore >= 75
+      stabilityScore >= 75
         ? "#22c55e"
-        : latest.stabilityScore >= 50
+        : stabilityScore >= 50
           ? "#facc15"
           : "#ef4444";
 
     return (
       <View style={styles.screen}>
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>
-            DESIGN {latest.designNumber} RESULT
-          </Text>
-          <Text style={styles.title}>{latest.label}</Text>
+          <Text style={styles.eyebrow}>DESIGN {designNumber} RESULT</Text>
+          <Text style={styles.title}>{result?.label}</Text>
         </View>
 
         {/* Big score */}
         <View style={styles.scoreCircle}>
           <Text style={[styles.scoreNumber, { color: scoreColor }]}>
-            {latest.stabilityScore}
+            {stabilityScore}
           </Text>
           <Text style={styles.scoreUnit}>/ 100</Text>
           <Text style={styles.scoreLabel}>Stability</Text>
@@ -266,79 +252,36 @@ export default function EarthquakeActivity() {
         <View style={styles.breakdownRow}>
           <View style={styles.breakdownItem}>
             <Text style={styles.breakdownValue}>
-              {latest.totalRotationDeg}°
+              {result?.totalRotationDeg}°
             </Text>
             <Text style={styles.breakdownLabel}>Total rotation</Text>
           </View>
           <View style={styles.breakdownDivider} />
           <View style={styles.breakdownItem}>
             <Text style={styles.breakdownValue}>
-              {latest.maxRotationDeg}°/s
+              {result?.peakRotationRateDeg}°/s
             </Text>
             <Text style={styles.breakdownLabel}>Peak rotation</Text>
           </View>
           <View style={styles.breakdownDivider} />
           <View style={styles.breakdownItem}>
             <Text style={styles.breakdownValue}>
-              {latest.maxAcceleration.toFixed(2)}G
+              {result?.maxAcceleration.toFixed(2)}G
             </Text>
             <Text style={styles.breakdownLabel}>Max accel</Text>
           </View>
         </View>
-
-        {isLastDesign ? (
+        <View style={styles.buttonRow}>
           <Pressable
             style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
-            onPress={nextDesign} // triggers summary
+            onPress={backToPath}
           >
-            <Text style={styles.ctaText}>SEE COMPARISON →</Text>
+            <Text style={styles.ctaText}>DONE →</Text>
           </Pressable>
-        ) : (
-          <Pressable
-            style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
-            onPress={nextDesign}
-          >
-            <Text style={styles.ctaText}>
-              TEST DESIGN {currentDesign + 1} →
-            </Text>
-          </Pressable>
-        )}
+        </View>
       </View>
     );
   }
-
-  // ── Summary — all 3 designs ───────────────────────────────────────────────
-
-  return (
-    <ScrollView
-      style={styles.summaryScroll}
-      contentContainerStyle={styles.summaryContent}
-    >
-      <Text style={styles.eyebrow}>ACTIVITY 4 COMPLETE</Text>
-      <Text style={styles.title}>Results</Text>
-      <Text style={styles.subtitle}>
-        Best structure:{" "}
-        <Text style={{ color: "#facc15" }}>
-          Design {results[winnerIndex]?.designNumber}
-        </Text>
-      </Text>
-
-      {results.map((r, i) => (
-        <DesignCard key={i} result={r} isWinner={i === winnerIndex} />
-      ))}
-
-      <Pressable
-        style={({ pressed }) => [
-          styles.cta,
-          { marginTop: 8 },
-          pressed && styles.ctaPressed,
-        ]}
-        onPress={reset}
-      >
-        <Text style={styles.ctaText}>START OVER</Text>
-      </Pressable>
-    </ScrollView>
-  );
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
@@ -369,7 +312,7 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, color: "#64748b", textAlign: "center" },
 
   // Input
-  inputSection: { width: "100%", gap: 12 },
+  inputSection: { width: "100%", gap: 12, marginTop: -200 },
   inputLabel: {
     fontSize: 13,
     fontWeight: "600",
@@ -450,14 +393,9 @@ const styles = StyleSheet.create({
     color: "#0f172a",
     letterSpacing: 2,
   },
-
-  // Summary
-  summaryScroll: { flex: 1, backgroundColor: "#0f172a" },
-  summaryContent: {
-    alignItems: "center",
-    paddingVertical: 64,
-    paddingHorizontal: 24,
-    gap: 16,
+  buttonRow: {
+    flexDirection: "row",
+    gap: 12,
   },
 });
 

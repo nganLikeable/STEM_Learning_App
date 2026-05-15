@@ -1,4 +1,5 @@
 // useEarthquakeTest.ts
+import { useNavigation } from "expo-router";
 import { useRef, useState } from "react";
 import { DesignResult, TestStatus } from "./types";
 import useAccelerometer from "./useAccelerometer";
@@ -17,13 +18,12 @@ function computeStability(totalRotationDeg: number, maxAccel: number): number {
   return Math.round((rotationScore * 0.7 + accelScore * 0.3) * 100);
 }
 
-export default function useEarthquakeTest() {
+export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
   const [status, setStatus] = useState<TestStatus>("idle");
   const [countdown, setCountdown] = useState(COUNTDOWN_FROM);
   const [progress, setProgress] = useState(0); // 0–1 during test
-  const [results, setResults] = useState<DesignResult[]>([]);
-  const [currentDesign, setCurrentDesign] = useState(1);
   const [designLabel, setDesignLabel] = useState("");
+  const [result, setResult] = useState<DesignResult | null>(null);
 
   const gyroscope = useGyroscope();
   const accelerometer = useAccelerometer();
@@ -31,6 +31,9 @@ export default function useEarthquakeTest() {
 
   const animFrameRef = useRef<number>(0);
   const startTimeRef = useRef<number>(0);
+
+  // go back to journey comopnent
+  const navigation = useNavigation();
 
   // ── Countdown ─────────────────────────────────────────────────────────────
 
@@ -95,30 +98,20 @@ export default function useEarthquakeTest() {
     vibration.stop();
     cancelAnimationFrame(animFrameRef.current);
 
-    const { totalRotationDeg, maxRotationDeg } = gyroscope.getResult();
+    const { totalRotationDeg, peakRotationRateDeg } = gyroscope.getResult();
     const { maxAcceleration } = accelerometer.getResult();
 
     const result: DesignResult = {
-      designNumber: currentDesign as 1 | 2 | 3,
+      designNumber,
       label: designLabel,
       totalRotationDeg,
-      maxRotationDeg,
+      peakRotationRateDeg,
       maxAcceleration,
       stabilityScore: computeStability(totalRotationDeg, maxAcceleration),
     };
 
-    setResults((prev) => [...prev, result]);
+    setResult(result);
     setStatus("done");
-  };
-
-  // ── Navigation ────────────────────────────────────────────────────────────
-
-  const nextDesign = () => {
-    gyroscope.reset();
-    accelerometer.reset();
-    setCurrentDesign((d) => d + 1);
-    setStatus("idle");
-    setProgress(0);
   };
 
   const reset = () => {
@@ -129,9 +122,12 @@ export default function useEarthquakeTest() {
     setStatus("idle");
     setCountdown(COUNTDOWN_FROM);
     setProgress(0);
-    setResults([]);
-    setCurrentDesign(1);
+    setResult(null);
     setDesignLabel("");
+  };
+
+  const backToPath = () => {
+    navigation.goBack();
   };
 
   return {
@@ -139,16 +135,14 @@ export default function useEarthquakeTest() {
     status,
     countdown,
     progress,
-    results,
-    currentDesign,
+    result,
     totalDesigns: 3,
-    isLastDesign: currentDesign === 3,
     // live sensor readings for UI
     liveRotation: gyroscope.liveRotation,
     liveAccel: accelerometer.liveAccel,
     // actions
     beginCountdown,
-    nextDesign,
     reset,
+    backToPath,
   };
 }

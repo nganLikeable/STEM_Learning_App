@@ -2,7 +2,7 @@
 export type DesignResult = {
   designNumber: 1 | 2 | 3;
   label: string;
-  maxRotationDeg: number;
+  peakRotationRateDeg: number;
   totalRotationDeg: number;
   maxAcceleration: number;
   stabilityScore: number;
