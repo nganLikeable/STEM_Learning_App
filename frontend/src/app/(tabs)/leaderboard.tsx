@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,34 +6,20 @@ import {
   FlatList,
   Image,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { spacing, borderRadius, shadows } from '../../theme';
+import { getAllTeams } from '../../services/firestore';
 
 type Team = {
   id: string;
   name: string;
   points: number;
   rank: number;
-  delta: number;
   avatar?: string;
 };
-
-const sampleTeams: Team[] = [
-  { id: '1',  name: 'Team Comet',     points: 980, rank: 1,  delta: +5 },
-  { id: '2',  name: 'Team Rocket',    points: 870, rank: 2,  delta: +2 },
-  { id: '3',  name: 'Team Planet',    points: 760, rank: 3,  delta: -1 },
-  { id: '4',  name: 'Team Astro',     points: 700, rank: 4,  delta: 0 },
-  { id: '5',  name: 'Team Orbit',     points: 680, rank: 5,  delta: +4 },
-  { id: '6',  name: 'Team Nova',      points: 650, rank: 6,  delta: -2 },
-  { id: '7',  name: 'Team Galaxy',    points: 630, rank: 7,  delta: +4 },
-  { id: '8',  name: 'Team Starlight', points: 610, rank: 8,  delta: 0 },
-  { id: '9',  name: 'Team Meteor',    points: 590, rank: 9,  delta: +4 },
-  { id: '10', name: 'Team Aurora',    points: 560, rank: 10, delta: 0 },
-  { id: '11', name: 'Team Pulsar',    points: 540, rank: 11, delta: -1 },
-  { id: '12', name: 'Team Quasar',    points: 520, rank: 12, delta: +2 },
-];
 
 // ─── Podium column ────────────────────────────────────────────────────────────
 
@@ -66,9 +52,6 @@ const PodiumAvatar: React.FC<{ team: Team; position: 1 | 2 | 3 }> = ({ team, pos
 // ─── List row ─────────────────────────────────────────────────────────────────
 
 const RankRow: React.FC<{ team: Team; highlighted?: boolean }> = ({ team, highlighted }) => {
-  const isUp   = team.delta > 0;
-  const isDown = team.delta < 0;
-  const isEqual = team.delta == 0;
   const rank2d = String(team.rank).padStart(2, '0');
 
   return (
@@ -82,7 +65,7 @@ const RankRow: React.FC<{ team: Team; highlighted?: boolean }> = ({ team, highli
           <Image source={{ uri: team.avatar }} style={{ width: 44, height: 44, borderRadius: 999 }} />
         ) : (
           <View style={s.listAvatarFallback}>
-            <Text style={s.listAvatarLetter}>{team.name.charAt(5).toUpperCase()}</Text>
+            <Text style={s.listAvatarLetter}>{team.name.charAt(0).toUpperCase()}</Text>
           </View>
         )}
       </View>
@@ -94,17 +77,6 @@ const RankRow: React.FC<{ team: Team; highlighted?: boolean }> = ({ team, highli
           <Text style={s.rowPts}>{team.points} pts</Text>
         </View>
       </View>
-
-      <View style={[s.deltaBadge, { backgroundColor: isUp ? '#E8F7EE' : isDown ? '#FDECEA' : '#FFF9C4' }]}>
-        <MaterialCommunityIcons
-          name={isUp ? 'triangle' : isDown ? 'triangle-down' : 'minus' }
-          size={isEqual ? 18 : 9}
-          color={isUp ? '#27AE60' : isDown ? '#E74C3C' : '#B8860B'}
-        />
-        <Text style={[s.deltaText, { color: isUp ? '#27AE60' : isDown ? '#E74C3C' : '#B8860B' }]}>
-          {team.delta === 0 ? '' : Math.abs(team.delta)}
-        </Text>
-      </View>
     </Pressable>
   );
 };
@@ -113,8 +85,30 @@ const RankRow: React.FC<{ team: Team; highlighted?: boolean }> = ({ team, highli
 
 const Leaderboard: React.FC = () => {
   const router = useRouter();
-  const top3   = sampleTeams.slice(0, 3);
-  const rest   = sampleTeams.slice(3);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getAllTeams()
+      .then((raw: Array<{ id: string; name?: string; points?: number }>) => {
+        const sorted = raw
+          .sort((a, b) => (b.points ?? 0) - (a.points ?? 0))
+          .map((t, i) => ({ id: t.id, name: t.name ?? 'Unknown', points: t.points ?? 0, rank: i + 1 }));
+        setTeams(sorted);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const top3 = teams.slice(0, 3);
+  const rest = teams.slice(3);
+
+  if (loading) {
+    return (
+      <View style={[s.screen, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#3977fd" />
+      </View>
+    );
+  }
 
   return (
     <View style={s.screen}>

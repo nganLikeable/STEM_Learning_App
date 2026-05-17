@@ -29,9 +29,9 @@ const instructionData = {
     titles: ['Phase 1', 'Phase 2', 'Phase 3'],
     descriptions: ['gi do', 'gi do', 'gi do'],
     pathIDs: [
-      'dienPathVaoDay',
-      'dienPathVaoDay',
-      'dienPathVaoDay',
+      '/screens/handFanChallenge/handFanTracking',
+      '/screens/handFanChallenge/handFanTracking',
+      '/screens/handFanChallenge/handFanTracking',
     ],
   }
 };

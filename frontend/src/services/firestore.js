@@ -1,4 +1,4 @@
-import { getFirestore, doc, setDoc, getDoc, collection, serverTimestamp, query, where, getDocs } from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, collection, serverTimestamp, query, where, getDocs, updateDoc, increment } from "firebase/firestore";
 import app from "./firebase";
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -25,9 +25,17 @@ export const createTeam = async (data) => {
     const snap = await getDoc(doc(db, 'teams', teamId));
     exists = snap.exists();
   }
-  await setDoc(doc(db, 'teams', teamId), data);
+  await setDoc(doc(db, 'teams', teamId), { points: 0, ...data });
   return teamId;
 };
+
+export const getAllTeams = async () => {
+  const snap = await getDocs(collection(db, 'teams'));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+};
+
+export const addTeamPoints = (teamId, pts) =>
+  updateDoc(doc(db, 'teams', teamId), { points: increment(pts) });
 
 export const getTeam = (teamId) =>
   getDoc(doc(db, 'teams', teamId));
