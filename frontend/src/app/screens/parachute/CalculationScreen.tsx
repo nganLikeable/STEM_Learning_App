@@ -1,4 +1,6 @@
 import { parachuteCalculate } from "@/lib/parachute";
+import { setActivity1 } from "@/src/services/firestore";
+import { useTeamStore } from "@/src/store/team-store";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Button, StyleSheet, Text, TextInput, View } from "react-native";
@@ -9,6 +11,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 type Step = "INPUT" | "CALCULATE" | "RESULT";
 
 export default function CalculationFlow() {
+  // get teamId to store
+  const { teamId } = useTeamStore();
+  console.log("teamId from store:", teamId);
+
   // read params markedTime to prefill
   const { markedTime } = useLocalSearchParams<{
     markedTime?: string | string[];
@@ -49,9 +55,6 @@ export default function CalculationFlow() {
     netForce: null as boolean | null,
     dragForce: null as boolean | null,
   });
-
-  // points for correct answers
-  const [pts, setPts] = useState(0);
 
   // correct answers
   const [correct, setCorrect] = useState(0);
@@ -219,7 +222,7 @@ export default function CalculationFlow() {
     return parachuteCalculate({ time: t, distance: d, mass: m });
   };
 
-  function validate() {
+  async function validate() {
     const t = parseFloat(input.time);
     const d = parseFloat(input.distance);
     const m = parseFloat(input.mass);
@@ -263,6 +266,25 @@ export default function CalculationFlow() {
       (f) => f === true,
     ).length;
     setCorrect(correctCount);
+
+    // save to firestore
+    try {
+      await setActivity1(
+        teamId,
+        { time: t, distance: d, mass: m },
+        {
+          velocity: parseFloat(userCalculation.velocity),
+          acceleration: parseFloat(userCalculation.acceleration),
+          netForce: parseFloat(userCalculation.netForce),
+          dragForce: parseFloat(userCalculation.dragForce),
+        },
+        validationMap,
+        correctCount,
+      );
+      console.log("Saved successfully");
+    } catch (e) {
+      console.error("Failed to save:", e);
+    }
   }
 
   if (step === "RESULT") {

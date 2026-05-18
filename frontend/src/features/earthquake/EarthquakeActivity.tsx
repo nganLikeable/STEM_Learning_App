@@ -100,7 +100,6 @@ export default function EarthquakeActivity({ designNumber }: Props) {
     countdown,
     progress,
     result,
-    totalDesigns,
     liveRotation,
     liveAccel,
     beginCountdown,

@@ -1,25 +1,26 @@
 // React core + hooks for side effects and state management
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
 // Stack: stack navigator; useRouter: programmatic navigation; useSegments: reads current URL segments
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments } from "expo-router";
 
 // Wraps the app so gesture-based interactions (swipe, drag) work correctly on both platforms
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 // getAuth: gets the Firebase Auth instance; onAuthStateChanged: listens for login/logout events
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getUserProfile } from '../services/firestore';
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getUserProfile } from "../services/firestore";
 
 // Required import to activate Reanimated's JS thread before the app renders
-import 'react-native-reanimated';
+import "react-native-reanimated";
 
 // Initialises Firebase app (side-effect import — must run before any Firebase calls)
-import '../services/firebase';
+import "../services/firebase";
+import { useTeamStore } from "../store/team-store";
 
 // Tells expo-router which route group to treat as the default/anchor (the tab navigator)
 export const unstable_settings = {
-  anchor: '(tabs)',
+  anchor: "(tabs)",
 };
 
 /**
@@ -43,6 +44,9 @@ export default function RootLayout() {
   // user: the currently signed-in Firebase user object, or null if logged out
   const [user, setUser] = useState<any>(null);
 
+  // save to zustand for global access of teamId
+  const setTeamId = useTeamStore((state) => state.setTeamId);
+
   /**
    * Effect 1 — Subscribe to Firebase auth state.
    * Runs once on mount. onAuthStateChanged fires immediately with the current
@@ -55,7 +59,7 @@ export default function RootLayout() {
 
     // Subscribe: callback receives the user object (or null when signed out)
     const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);         // store the user (or null) in state
+      setUser(u); // store the user (or null) in state
       setAuthReady(true); // mark that Firebase has responded — safe to redirect now
     });
 
@@ -75,14 +79,30 @@ export default function RootLayout() {
     if (!authReady) return;
 
     // Auth-only screens: login, register, and onboarding are all publicly accessible
-    const inAuth = segments[0] === 'login' || segments[0] === 'register' || segments[0] === 'onboarding';
+    const inAuth =
+      segments[0] === "login" ||
+      segments[0] === "register" ||
+      segments[0] === "onboarding";
 
     if (!user && !inAuth) {
-      router.replace('/login');
-    } else if (user && (segments[0] === 'login' || segments[0] === 'register')) {
+      router.replace("/login");
+    } else if (
+      user &&
+      (segments[0] === "login" || segments[0] === "register")
+    ) {
       // Cold start: user already logged in — check if they completed onboarding
       getUserProfile(user.uid).then((snap) => {
-        router.replace(snap.exists() ? '/(tabs)' : '/onboarding');
+        // if snap exists - setTeamId to zustand
+        if (snap.exists()) {
+          const profile = snap.data();
+          if (profile?.teamId) {
+            setTeamId(profile.teamId);
+            // console.log(profile.teamId);
+          }
+          router.replace("./(tabs)");
+        } else {
+          router.replace("./onboarding");
+        }
       });
     }
   }, [user, authReady, segments]); // re-run whenever user, readiness, or route changes

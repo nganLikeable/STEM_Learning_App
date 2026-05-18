@@ -1,4 +1,6 @@
 // useEarthquakeTest.ts
+import { setActivity4 } from "@/src/services/firestore";
+import { useTeamStore } from "@/src/store/team-store";
 import { useNavigation } from "expo-router";
 import { useRef, useState } from "react";
 import { DesignResult, TestStatus } from "./types";
@@ -34,6 +36,8 @@ export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
 
   // go back to journey comopnent
   const navigation = useNavigation();
+
+  const { teamId } = useTeamStore();
 
   // ── Countdown ─────────────────────────────────────────────────────────────
 
@@ -92,7 +96,7 @@ export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
     animFrameRef.current = requestAnimationFrame(tick);
   };
 
-  const finishTest = () => {
+  const finishTest = async () => {
     gyroscope.stop();
     accelerometer.stop();
     vibration.stop();
@@ -101,16 +105,31 @@ export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
     const { totalRotationDeg, peakRotationRateDeg } = gyroscope.getResult();
     const { maxAcceleration } = accelerometer.getResult();
 
+    const stabilityScore = computeStability(totalRotationDeg, maxAcceleration);
+
     const result: DesignResult = {
       designNumber,
       label: designLabel,
       totalRotationDeg,
       peakRotationRateDeg,
       maxAcceleration,
-      stabilityScore: computeStability(totalRotationDeg, maxAcceleration),
+      stabilityScore,
     };
 
     setResult(result);
+
+    // save to firestore
+    try {
+      if (!teamId) {
+        throw new Error("Missing teamId. Join or create a team before saving Activity 4.");
+      }
+
+      await setActivity4(teamId, designNumber, result);
+      console.log("Saved successfully");
+    } catch (e) {
+      console.error("Failed to save:", e);
+    }
+
     setStatus("done");
   };
 
@@ -136,7 +155,6 @@ export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
     countdown,
     progress,
     result,
-    totalDesigns: 3,
     // live sensor readings for UI
     liveRotation: gyroscope.liveRotation,
     liveAccel: accelerometer.liveAccel,
