@@ -6,10 +6,7 @@ const instructionData = {
   instruction:
     "Investigate how the human body moves by measuring speed, smoothness, and coordination during controlled stretching activities. Hold the phone firmly in one hand and activate the vibration sensor. Perform guided movements slowly as shown in the app and record the vibration. Review speed, smoothness, and range-of-motion data.",
 
-  tools: [
-    "Mobile phone with STEMM Lab app",
-    "Open space to move safely",
-  ],
+  tools: ["Mobile phone with STEMM Lab app", "Open space to move safely"],
 
   diagramImage:
     "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png",
@@ -21,16 +18,20 @@ const instructionData = {
     { color: "#E84C7C", label: "Jerky Movement" },
   ],
 
-  formulas: ["Vibration = Movement smoothness", "Speed vs Coordination", "Range of motion"],
+  formulas: [
+    "Vibration = Movement smoothness",
+    "Speed vs Coordination",
+    "Range of motion",
+  ],
   journeyParams: {
-    titles: ['Phase 1', 'Phase 2', 'Phase 3'],
-    descriptions: ['gi do', 'gi do', 'gi do'],
+    titles: ["Phase 1", "Phase 2", "Phase 3"],
+    descriptions: ["gi do", "gi do", "gi do"],
     pathIDs: [
-      'dienPathVaoDay',
-      'dienPathVaoDay',
-      'dienPathVaoDay',
+      "./screens/humanPerformanceLab/HumanPerformanceScreen?addId=1",
+      "./screens/humanPerformanceLab/HumanPerformanceScreen?addId=2",
+      "./screens/humanPerformanceLab/HumanPerformanceScreen?addId=3",
     ],
-  }
+  },
 };
 
 export default function InstructionScreen() {
