@@ -1,13 +1,14 @@
 import Header from "@/src/components/header";
 import TeamInfoCard from "@/src/components/TeamInfoCard";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { getAuth } from 'firebase/auth';
+import React, { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { getUserProfile, getTeam, getTeamMembers } from '../../services/firestore';
-import { getAuth } from 'firebase/auth';
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -171,33 +172,44 @@ export default function HomeScreen() {
   const [memberNames, setMemberNames] = useState<string[]>([]);
   const [grade, setGrade] = useState('');
 
-  useEffect(() => {
-    const load = async () => {
-      const user = getAuth().currentUser;
-      if (!user) return;
+  const loadProfile = useCallback(async () => {
+    const user = getAuth().currentUser;
+    if (!user) return;
 
-      const profileSnap = await getUserProfile(user.uid);
-      if (!profileSnap.exists()) return;
+    const profileSnap = await getUserProfile(user.uid);
+    if (!profileSnap.exists()) return;
 
-      const profile = profileSnap.data();
-      setUserName(profile.name);
-      setGrade(`Year ${profile.grade}`);
+    const profile = profileSnap.data();
+    setUserName(profile.name);
+    setGrade(`Year ${profile.grade}`);
 
-      if (profile.teamId) {
-        setTeamId(profile.teamId);
+    if (profile.teamId) {
+      setTeamId(profile.teamId);
 
-        const [teamSnap, teamMembers] = await Promise.all([
-          getTeam(profile.teamId),
-          getTeamMembers(profile.teamId),
-        ]);
+      const [teamSnap, teamMembers] = await Promise.all([
+        getTeam(profile.teamId),
+        getTeamMembers(profile.teamId),
+      ]);
 
-        if (teamSnap.exists()) setTeamName(teamSnap.data().name);
-        setMemberNames(teamMembers.map((m: any) => m.name));
-      }
-    };
+      if (teamSnap.exists()) setTeamName(teamSnap.data().name);
+      setMemberNames(teamMembers.map((m: any) => m.name));
+      return;
+    }
 
-    load();
+    setTeamId("");
+    setTeamName("");
+    setMemberNames([]);
   }, []);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [loadProfile])
+  );
 
   return (
     <SafeAreaView style={styles.container}>

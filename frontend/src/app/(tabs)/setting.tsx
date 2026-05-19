@@ -14,6 +14,32 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getUserProfile } from "../../services/firestore";
+import { useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+
+function SettingOption({
+  option,
+  onPress,
+}: {
+  option: string;
+  onPress?: () => void;
+}) {
+  return (
+    <View>
+      <Pressable
+        style={({ pressed }) => [s.row, pressed && { opacity: 0.7 }]}
+        onPress={onPress}
+      >
+        <Text style={s.rowLabel}>{option}</Text>
+        <MaterialCommunityIcons
+          name="chevron-right"
+          size={20}
+          color="#9CA3AF"
+        />
+      </Pressable>
+    </View>
+  );
+}
 
 export default function SettingScreen() {
   const router = useRouter();
@@ -24,17 +50,30 @@ export default function SettingScreen() {
   // get user avatar
   const avatar = useGetUserAvatar();
 
-  useEffect(() => {
+  const loadProfile = useCallback(() => {
     const auth = getAuth();
     const user = auth.currentUser;
-    if (!user) return;
+    if (!user) {
+      setProfileLoading(false);
+      return;
+    }
+
+    setProfileLoading(true);
 
     getUserProfile(user.uid)
       .then((snap) => {
-        if (snap.exists()) setProfile(snap.data());
+        if (snap.exists()) {
+          setProfile(snap.data());
+        }
       })
       .finally(() => setProfileLoading(false));
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [loadProfile])
+  );
 
   /**
    * handleLogout — signs the user out of Firebase Auth.
@@ -64,6 +103,14 @@ export default function SettingScreen() {
       },
     ]);
   };
+
+  // open profile editor
+  const handleChangeAvatar = () => {
+    router.push("/changeProfile");
+  };
+
+  // change preferences - sound and such
+  const handlePreferences = () => {};
 
   return (
     <SafeAreaView style={s.screen}>
@@ -97,31 +144,68 @@ export default function SettingScreen() {
       {/* ── Account section ── */}
       <View style={s.section}>
         <Text style={s.sectionTitle}>Account</Text>
+        <SettingOption option="Profile" onPress={handleChangeAvatar} />
+        <SettingOption option="Preferences" onPress={handlePreferences} />
+      </View>
 
-        {/* Sign out row */}
+      {/* Support section*/}
+      <View style={s.section}>
+        <Text style={s.sectionTitle}>Support</Text>
+        {/* placeholders - undefined functions */}
+        <SettingOption option="Help Center" />
+        <SettingOption option="Feedback" />
+      </View>
+
+      {/* ── Sign Out section (bottom) ── */}
+      <View style={[s.section, s.bottomSection, s.signOutSection]}>
         <Pressable
-          style={({ pressed }) => [s.row, pressed && { opacity: 0.7 }]}
+          style={({ pressed }) => [
+            s.row,
+            s.signOutRow,
+            pressed && { opacity: 0.7 },
+          ]}
           onPress={handleLogout}
           disabled={loading}
         >
-          {/* Red icon to signal a destructive action */}
-          <View style={s.iconBox}>
-            <MaterialCommunityIcons name="logout" size={20} color="#E74C3C" />
+          <View style={s.signOutIconBox}>
+            <MaterialCommunityIcons name="logout" size={20} color="#fff" />
           </View>
 
-          <Text style={s.rowLabel}>Sign Out</Text>
+          <Text style={s.signOutLabel}>SIGN OUT</Text>
 
           {/* Show spinner while sign-out is in progress */}
-          {loading ? (
-            <ActivityIndicator size="small" color="#9CA3AF" />
-          ) : (
-            <MaterialCommunityIcons
-              name="chevron-right"
-              size={20}
-              color="#9CA3AF"
-            />
-          )}
+          {loading && <ActivityIndicator size="small" color="#9CA3AF" />}
         </Pressable>
+      </View>
+
+      {/* Small legal links below sign-out (not part of the card) */}
+      <View style={s.legalContainer}>
+        <View style={s.row}>
+          <Text style={s.rowLabel}>Terms</Text>
+          <MaterialCommunityIcons
+            name="chevron-right"
+            size={20}
+            color="#9CA3AF"
+          />
+        </View>
+
+        <View style={s.row}>
+          <Text style={s.rowLabel}>Privacy Policy</Text>
+          <MaterialCommunityIcons
+            name="chevron-right"
+            size={20}
+            color="#9CA3AF"
+          />
+        </View>
+
+        <View style={[s.row, { borderTopWidth: 1 }]}>
+          <Text style={s.rowLabel}>Acknowledgements</Text>
+          <MaterialCommunityIcons
+            name="chevron-right"
+            size={20}
+            color="#9CA3AF"
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -207,6 +291,8 @@ const s = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 16,
     paddingHorizontal: 16,
+    paddingVertical: 6,
+    marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07,
@@ -234,22 +320,54 @@ const s = StyleSheet.create({
     borderTopColor: "#F3F4F6",
   },
 
-  // Coloured circle behind the row icon
-  iconBox: {
-    width: 34,
-    height: 34,
-    borderRadius: 8,
-    backgroundColor: "#FDECEA",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 14,
-  },
-
   // Row label text
   rowLabel: {
     flex: 1,
     fontSize: 15,
     fontWeight: "600",
+    color: "#1F2937",
+  },
+
+  // Bottom section styling
+  bottomSection: {
+    marginTop: "auto",
+    marginBottom: 12,
+  },
+
+  // Slightly smaller sign-out card to match other rows
+  signOutSection: {
+    paddingVertical: 6,
+  },
+
+  // Sign out row styling
+  signOutRow: {
+    borderTopWidth: 0,
+    paddingVertical: 10,
+  },
+
+  // Sign out icon box
+  signOutIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    backgroundColor: "#E74C3C",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+
+  // Sign out label text
+  signOutLabel: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "600",
     color: "#E74C3C",
+    textAlign: "center",
+  },
+
+  // Legal / small links below sign out (rendered as regular rows)
+  legalContainer: {
+    marginTop: 12,
+    paddingHorizontal: 16,
   },
 });
