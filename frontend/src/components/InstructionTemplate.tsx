@@ -1,6 +1,9 @@
 import { Button } from "@react-navigation/elements";
 import { useRouter } from "expo-router";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { createSession } from "../services/session";
+import { useSessionStore } from "../store/session-store";
+import { useTeamStore } from "../store/team-store";
 
 interface JourneyParams {
   titles: string[];
@@ -38,7 +41,36 @@ export default function Instruction({
   predictionPath,
 }: InstructionProps) {
   const router = useRouter();
+  const { teamId } = useTeamStore();
+  const { sessionId, setSessionId } = useSessionStore();
 
+  const handleStartExperiment = async () => {
+    if (!teamId) return;
+
+    try {
+      let activeSessionId = sessionId;
+
+      if (!activeSessionId) {
+        activeSessionId = await createSession(teamId, null);
+        // persist the newly created session id into the global store
+        setSessionId(activeSessionId);
+      }
+      if (!journeyParams || !predictionPath) return;
+
+      router.push({
+        pathname: predictionPath as any,
+        params: {
+          journeyData: JSON.stringify({
+            titles: journeyParams.titles,
+            descriptions: journeyParams.descriptions,
+            pathIDs: journeyParams.pathIDs,
+          }),
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       {/* ── Header ── */}
@@ -112,23 +144,7 @@ export default function Instruction({
         <Text style={styles.bodyText}>{instruction}</Text>
       </SectionCard>
 
-      <Button
-        onPress={() => {
-          if (!journeyParams || !predictionPath) return;
-          router.push({
-            pathname: predictionPath,
-            params: {
-              journeyData: JSON.stringify({
-                titles: journeyParams.titles,
-                descriptions: journeyParams.descriptions,
-                pathIDs: journeyParams.pathIDs,
-              }),
-            },
-          } as any);
-        }}
-      >
-        Start Experiment
-      </Button>
+      <Button onPress={handleStartExperiment}>Start Experiment</Button>
 
       {/* ── Safety Note ──
       <View style={styles.safetyBanner}>

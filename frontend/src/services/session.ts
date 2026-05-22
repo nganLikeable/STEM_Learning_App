@@ -27,13 +27,14 @@ export const createSession = async (
   }
 };
 
-// update phase
+// update prediction and/or phase for an existing session
 export const updateSession = async (
   sessionId: string,
+  prediction: number | null,
   currentPhase: number,
 ) => {
   try {
-    updateDoc(doc(db, "sessions", sessionId), { currentPhase });
+    updateDoc(doc(db, "sessions", sessionId), { prediction, currentPhase });
   } catch (e) {
     console.error("Error updating session", e);
     throw e;

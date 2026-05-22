@@ -26,7 +26,6 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import { createSession } from "../services/session";
 import { useSessionStore } from "../store/session-store";
 import { useTeamStore } from "../store/team-store";
 // ─────────────────────────────────────────────
@@ -275,23 +274,13 @@ export default function JourneyComponent() {
 
   const nodes = buildNodes(titles, descriptions, pathIDs);
 
-  const handleStart = async (node: JourneyNodeData) => {
+  const handleStart = (node: JourneyNodeData) => {
     setActiveNode(null);
     console.log(node.pathID);
     if (!node.pathID) return;
     if (!teamId) {
       console.log("No teamId found");
       return;
-    }
-    try {
-      let activeSessionId = sessionId;
-      // create a session only once
-      if (!activeSessionId && node.id === "1") {
-        activeSessionId = await createSession(teamId, null); // prediction as empty for now
-        setSessionId(activeSessionId);
-      }
-    } catch (e) {
-      console.error("Error starting journey");
     }
   };
 

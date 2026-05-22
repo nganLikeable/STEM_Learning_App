@@ -1,8 +1,9 @@
+import { parachuteActivity } from "@/lib/activityPhaseDescriptions";
 import Instruction from "@/src/components/InstructionTemplate";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const instructionData = {
+export const instructionData = {
   instruction:
     "Design, build, and test a parachute for a small toy to reduce its landing speed and impact force. Drop the toy without a parachute and record the fall as a baseline test. Build a parachute using provided materials. Drop the toy from the same height and record the fall. Review speed and landing accuracy results. Redesign and test up to three prototypes within 20 minutes. Upload videos, results, and team reflections.",
 
@@ -32,12 +33,8 @@ const instructionData = {
     "Drag Force = Weight − Net Force",
   ],
   journeyParams: {
-    titles: ["Design 1", "Design 2", "Design 3"],
-    descriptions: [
-      "Without a parachute",
-      "Use plastic with 4 strings tied to the toy",
-      "Use plastic with 8 strings tied to the toy",
-    ],
+    titles: parachuteActivity.phases.map((p) => p.title),
+    descriptions: parachuteActivity.phases.map((p) => p.description),
     pathIDs: [
       "/screens/parachute/VideoRecorderScreen",
       "/screens/parachute/VideoRecorderScreen",
