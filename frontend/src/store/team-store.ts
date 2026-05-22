@@ -3,6 +3,7 @@ import { create } from "zustand";
 export type TeamState = {
   teamId: string | null;
   setTeamId: (id: string | null) => void;
+  clearTeamId: () => void;
 };
 
 export const useTeamStore = create<TeamState>((set) => ({

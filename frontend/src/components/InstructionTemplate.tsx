@@ -1,12 +1,14 @@
 import { Button } from "@react-navigation/elements";
+import { useRouter } from "expo-router";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useRouter } from 'expo-router';
 
 interface JourneyParams {
   titles: string[];
   descriptions: string[];
   pathIDs: string[];
 }
+
+type PredictionPath = string;
 
 interface InstructionProps {
   instruction: string;
@@ -19,6 +21,7 @@ interface InstructionProps {
   legendItems?: Array<{ color: string; label: string }>;
   formulas?: string[];
   journeyParams?: JourneyParams;
+  predictionPath?: PredictionPath;
 }
 
 export default function Instruction({
@@ -32,8 +35,8 @@ export default function Instruction({
   legendItems,
   formulas,
   journeyParams,
+  predictionPath,
 }: InstructionProps) {
-  
   const router = useRouter();
 
   return (
@@ -77,7 +80,11 @@ export default function Instruction({
             {legendItems && legendItems.length > 0 && (
               <View style={styles.legendRow}>
                 {legendItems.map((item, index) => (
-                  <LegendBadge key={index} color={item.color} label={item.label} />
+                  <LegendBadge
+                    key={index}
+                    color={item.color}
+                    label={item.label}
+                  />
                 ))}
               </View>
             )}
@@ -107,17 +114,17 @@ export default function Instruction({
 
       <Button
         onPress={() => {
-          if (!journeyParams) return;
+          if (!journeyParams || !predictionPath) return;
           router.push({
-            pathname: '/JourneyComponent',
+            pathname: predictionPath,
             params: {
               journeyData: JSON.stringify({
-                titles:       journeyParams.titles,
+                titles: journeyParams.titles,
                 descriptions: journeyParams.descriptions,
-                pathIDs:      journeyParams.pathIDs,
+                pathIDs: journeyParams.pathIDs,
               }),
             },
-          });
+          } as any);
         }}
       >
         Start Experiment

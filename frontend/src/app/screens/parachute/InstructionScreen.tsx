@@ -26,16 +26,24 @@ const instructionData = {
     { color: "#4C9BE8", label: "Weight ↓" },
   ],
 
-  formulas: ["Net Force = Weight − Drag Force", "g-force = Δv/t_contact ÷ 9.8", "Drag Force = Weight − Net Force"],
+  formulas: [
+    "Net Force = Weight − Drag Force",
+    "g-force = Δv/t_contact ÷ 9.8",
+    "Drag Force = Weight − Net Force",
+  ],
   journeyParams: {
-    titles: ['Phase 1', 'Phase 2', 'Phase 3'],
-    descriptions: ['gi do', 'gi do', 'gi do'],
-    pathIDs: [
-      '/screens/parachute/VideoRecorderScreen',
-      '/screens/parachute/VideoRecorderScreen',
-      '/screens/parachute/VideoRecorderScreen',
+    titles: ["Design 1", "Design 2", "Design 3"],
+    descriptions: [
+      "Without a parachute",
+      "Use plastic with 4 strings tied to the toy",
+      "Use plastic with 8 strings tied to the toy",
     ],
-  }
+    pathIDs: [
+      "/screens/parachute/VideoRecorderScreen",
+      "/screens/parachute/VideoRecorderScreen",
+      "/screens/parachute/VideoRecorderScreen",
+    ],
+  },
 };
 
 export default function InstructionScreen() {
@@ -52,6 +60,7 @@ export default function InstructionScreen() {
         legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}
+        predictionPath="/screens/parachute/PredictionScreen"
       />
     </SafeAreaView>
   );

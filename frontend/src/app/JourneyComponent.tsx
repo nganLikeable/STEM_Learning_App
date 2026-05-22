@@ -6,27 +6,29 @@
  * Nodes 4–10: locked — greyed out, not interactive.
  */
 
-import React, { useEffect, useState } from 'react';
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
+  Modal,
+  Pressable,
   ScrollView,
   StyleSheet,
-  Pressable,
-  Modal,
+  Text,
   TouchableOpacity,
   useWindowDimensions,
-} from 'react-native';
+  View,
+} from "react-native";
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
-  withSpring,
+  useSharedValue,
   withDelay,
   withSequence,
+  withSpring,
   withTiming,
-} from 'react-native-reanimated';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-
+} from "react-native-reanimated";
+import { createSession } from "../services/session";
+import { useSessionStore } from "../store/session-store";
+import { useTeamStore } from "../store/team-store";
 // ─────────────────────────────────────────────
 // TYPES & NODE DATA
 // ─────────────────────────────────────────────
@@ -41,8 +43,11 @@ export interface JourneyNodeData {
   pathID?: string;
 }
 
-
-function buildNodes(titles: string[], descriptions: string[], pathIDs: string[]): JourneyNodeData[] {
+function buildNodes(
+  titles: string[],
+  descriptions: string[],
+  pathIDs: string[],
+): JourneyNodeData[] {
   return Array.from({ length: 10 }, (_, i) => {
     const unlocked = i < titles.length;
     return {
@@ -59,23 +64,23 @@ function buildNodes(titles: string[], descriptions: string[], pathIDs: string[])
 // LAYOUT CONSTANTS
 // ─────────────────────────────────────────────
 
-const NODE_SIZE    = 72;
-const SLOT_W       = 96;
-const SIDE_PAD     = 32;
-const CONNECTOR_H  = 90;
-const DOT_COUNT    = 7;
-const DOT_SIZE     = 9;
+const NODE_SIZE = 72;
+const SLOT_W = 96;
+const SIDE_PAD = 32;
+const CONNECTOR_H = 90;
+const DOT_COUNT = 7;
+const DOT_SIZE = 9;
 
-type Position = 'left' | 'center' | 'right';
-const ZIGZAG: Position[] = ['left', 'center', 'right', 'center'];
+type Position = "left" | "center" | "right";
+const ZIGZAG: Position[] = ["left", "center", "right", "center"];
 
 // ─────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────
 
 function nodeCenterX(pos: Position, screenWidth: number): number {
-  if (pos === 'left')  return SIDE_PAD + SLOT_W / 2;
-  if (pos === 'right') return screenWidth - SIDE_PAD - SLOT_W / 2;
+  if (pos === "left") return SIDE_PAD + SLOT_W / 2;
+  if (pos === "right") return screenWidth - SIDE_PAD - SLOT_W / 2;
   return screenWidth / 2;
 }
 
@@ -90,16 +95,21 @@ interface ConnectorProps {
   screenWidth: number;
 }
 
-const Connector: React.FC<ConnectorProps> = ({ from, to, unlocked, screenWidth }) => {
-  const sx    = nodeCenterX(from, screenWidth);
-  const ex    = nodeCenterX(to, screenWidth);
-  const color = unlocked ? '#8DCB7A' : '#C4D9C4';
+const Connector: React.FC<ConnectorProps> = ({
+  from,
+  to,
+  unlocked,
+  screenWidth,
+}) => {
+  const sx = nodeCenterX(from, screenWidth);
+  const ex = nodeCenterX(to, screenWidth);
+  const color = unlocked ? "#8DCB7A" : "#C4D9C4";
 
   const dots = Array.from({ length: DOT_COUNT }, (_, i) => {
     const t = i / (DOT_COUNT - 1);
     return {
       left: sx + (ex - sx) * t - DOT_SIZE / 2,
-      top:  t * (CONNECTOR_H - DOT_SIZE),
+      top: t * (CONNECTOR_H - DOT_SIZE),
     };
   });
 
@@ -135,7 +145,7 @@ const NodeButton: React.FC<NodeButtonProps> = ({ node, index, onPress }) => {
   useEffect(() => {
     entryScale.value = withDelay(
       Math.min(index * 60, 400),
-      withSpring(1, { damping: 12, stiffness: 150 })
+      withSpring(1, { damping: 12, stiffness: 150 }),
     );
   }, []);
 
@@ -147,16 +157,16 @@ const NodeButton: React.FC<NodeButtonProps> = ({ node, index, onPress }) => {
     if (node.locked) return;
     pressScale.value = withSequence(
       withTiming(0.88, { duration: 70 }),
-      withSpring(1, { damping: 10, stiffness: 200 })
+      withSpring(1, { damping: 10, stiffness: 200 }),
     );
     onPress(node);
   };
 
-  const bg     = node.locked ? '#C0D4C0' : '#58CC02';
-  const border = node.locked ? '#A4BCA4' : '#46A400';
+  const bg = node.locked ? "#C0D4C0" : "#58CC02";
+  const border = node.locked ? "#A4BCA4" : "#46A400";
 
   return (
-    <Animated.View style={[{ width: SLOT_W, alignItems: 'center' }, animStyle]}>
+    <Animated.View style={[{ width: SLOT_W, alignItems: "center" }, animStyle]}>
       <Pressable
         onPress={handlePress}
         disabled={node.locked}
@@ -198,7 +208,11 @@ interface DescriptionPopupProps {
   onStart: (node: JourneyNodeData) => void;
 }
 
-const DescriptionPopup: React.FC<DescriptionPopupProps> = ({ node, onClose, onStart }) => (
+const DescriptionPopup: React.FC<DescriptionPopupProps> = ({
+  node,
+  onClose,
+  onStart,
+}) => (
   <Modal
     transparent
     animationType="fade"
@@ -238,21 +252,46 @@ const DescriptionPopup: React.FC<DescriptionPopupProps> = ({ node, onClose, onSt
 
 export default function JourneyComponent() {
   const { width } = useWindowDimensions();
-  const router    = useRouter();
+  const router = useRouter();
   const [activeNode, setActiveNode] = useState<JourneyNodeData | null>(null);
+  // get teamId
+  const { teamId } = useTeamStore();
+
+  // get sessionId
+  const { sessionId, setSessionId } = useSessionStore();
 
   const { journeyData } = useLocalSearchParams<{ journeyData: string }>();
-  const { titles = [], descriptions = [], pathIDs = [] } = journeyData
-    ? JSON.parse(journeyData as string) as { titles: string[]; descriptions: string[]; pathIDs: string[] }
+  const {
+    titles = [],
+    descriptions = [],
+    pathIDs = [],
+  } = journeyData
+    ? (JSON.parse(journeyData as string) as {
+        titles: string[];
+        descriptions: string[];
+        pathIDs: string[];
+      })
     : {};
 
   const nodes = buildNodes(titles, descriptions, pathIDs);
 
-  const handleStart = (node: JourneyNodeData) => {
+  const handleStart = async (node: JourneyNodeData) => {
     setActiveNode(null);
-    console.log(node.pathID)
-    if (node.pathID) {
-      router.push(node.pathID as never);
+    console.log(node.pathID);
+    if (!node.pathID) return;
+    if (!teamId) {
+      console.log("No teamId found");
+      return;
+    }
+    try {
+      let activeSessionId = sessionId;
+      // create a session only once
+      if (!activeSessionId && node.id === "1") {
+        activeSessionId = await createSession(teamId, null); // prediction as empty for now
+        setSessionId(activeSessionId);
+      }
+    } catch (e) {
+      console.error("Error starting journey");
     }
   };
 
@@ -264,13 +303,16 @@ export default function JourneyComponent() {
         showsVerticalScrollIndicator={false}
       >
         {nodes.map((node, i) => {
-          const pos     = ZIGZAG[i % ZIGZAG.length];
+          const pos = ZIGZAG[i % ZIGZAG.length];
           const nextPos = ZIGZAG[(i + 1) % ZIGZAG.length];
-          const isLast  = i === nodes.length - 1;
+          const isLast = i === nodes.length - 1;
 
           const justify =
-            pos === 'left'  ? 'flex-start' :
-            pos === 'right' ? 'flex-end'   : 'center';
+            pos === "left"
+              ? "flex-start"
+              : pos === "right"
+                ? "flex-end"
+                : "center";
 
           return (
             <React.Fragment key={node.id}>
@@ -279,16 +321,12 @@ export default function JourneyComponent() {
                   styles.nodeRow,
                   {
                     justifyContent: justify,
-                    paddingLeft:  pos === 'left'  ? SIDE_PAD : 0,
-                    paddingRight: pos === 'right' ? SIDE_PAD : 0,
+                    paddingLeft: pos === "left" ? SIDE_PAD : 0,
+                    paddingRight: pos === "right" ? SIDE_PAD : 0,
                   },
                 ]}
               >
-                <NodeButton
-                  node={node}
-                  index={i}
-                  onPress={setActiveNode}
-                />
+                <NodeButton node={node} index={i} onPress={setActiveNode} />
               </View>
 
               {!isLast && (
@@ -320,7 +358,7 @@ export default function JourneyComponent() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#EAF4EA', // SciTrail background
+    backgroundColor: "#EAF4EA", // SciTrail background
   },
   scrollContent: {
     paddingTop: 28,
@@ -329,7 +367,7 @@ const styles = StyleSheet.create({
 
   // Connector dot
   dot: {
-    position: 'absolute',
+    position: "absolute",
     width: DOT_SIZE,
     height: DOT_SIZE,
     borderRadius: DOT_SIZE / 2,
@@ -337,17 +375,17 @@ const styles = StyleSheet.create({
 
   // Node
   nodeRow: {
-    flexDirection: 'row',
-    width: '100%',
+    flexDirection: "row",
+    width: "100%",
   },
   nodeCircle: {
     width: NODE_SIZE,
     height: NODE_SIZE,
     borderRadius: NODE_SIZE / 2,
     borderWidth: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 8,
     elevation: 5,
@@ -356,7 +394,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
   },
   lockBadge: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -2,
     right: -2,
   },
@@ -366,30 +404,30 @@ const styles = StyleSheet.create({
   nodeLabel: {
     marginTop: 7,
     fontSize: 11,
-    fontWeight: '600',
-    color: '#1A3A1A',
-    textAlign: 'center',
+    fontWeight: "600",
+    color: "#1A3A1A",
+    textAlign: "center",
     width: SLOT_W,
     lineHeight: 15,
   },
   nodeLabelLocked: {
-    color: '#7A917A',
+    color: "#7A917A",
   },
 
   // Popup modal
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   popupCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 22,
     padding: 26,
-    width: '78%',
-    alignItems: 'center',
-    shadowColor: '#000',
+    width: "78%",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.18,
     shadowRadius: 20,
@@ -401,34 +439,34 @@ const styles = StyleSheet.create({
   },
   popupTitle: {
     fontSize: 18,
-    fontWeight: '800',
-    color: '#1A3A1A',
-    textAlign: 'center',
+    fontWeight: "800",
+    color: "#1A3A1A",
+    textAlign: "center",
     marginBottom: 10,
   },
   popupDesc: {
     fontSize: 13,
-    color: '#4A6A4A',
-    textAlign: 'center',
+    color: "#4A6A4A",
+    textAlign: "center",
     lineHeight: 20,
     marginBottom: 24,
   },
   startBtn: {
-    width: '100%',
-    backgroundColor: '#58CC02',
+    width: "100%",
+    backgroundColor: "#58CC02",
     borderRadius: 14,
     paddingVertical: 14,
-    alignItems: 'center',
-    shadowColor: '#46A400',
+    alignItems: "center",
+    shadowColor: "#46A400",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
     shadowRadius: 6,
     elevation: 4,
   },
   startBtnText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 0.4,
   },
   notNowBtn: {
@@ -436,7 +474,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   notNowText: {
-    color: '#8A9E8A',
+    color: "#8A9E8A",
     fontSize: 13,
   },
 });

@@ -14,7 +14,7 @@ import {
 import app from "./firebase";
 
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-const db = getFirestore(app);
+export const db = getFirestore(app);
 
 export const saveUserProfile = (uid, data) =>
   setDoc(doc(db, "users", uid), data, { merge: true });
@@ -61,6 +61,7 @@ export const getTeamMembers = async (teamId) => {
 export const setActivity1 = async (
   teamId,
   data,
+  prediction,
   userAnswers,
   validation,
   score,
@@ -77,7 +78,29 @@ export const setActivity1 = async (
     });
     return docRef.id;
   } catch (e) {
-    console.error("Error saving to Firestore", e);
+    console.error("Error saving activity 1 to Firestore", e);
+    throw e;
+  }
+};
+
+// activity 4 - earthquake
+export const setActivity4 = async (teamId, designNumber, result) => {
+  try {
+    const docRef = await addDoc(collection(db, "activities"), {
+      teamId: teamId,
+      designNumber: designNumber,
+      label: result.label,
+      description: result.label,
+      peakRotationRateDeg: result.peakRotationRateDeg,
+      totalRotationDeg: result.totalRotationDeg,
+      maxAcceleration: result.maxAcceleration,
+      stabilityScore: result.stabilityScore,
+      createdAt: serverTimestamp(),
+      completedAt: serverTimestamp(),
+    });
+    return docRef.id;
+  } catch (e) {
+    console.error("Error saving activity 4 to Firestore", e);
     throw e;
   }
 };

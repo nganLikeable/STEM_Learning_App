@@ -1,8 +1,9 @@
 import useGetUserAvatar from "@/hooks/user/useGetUserAvatar";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { getAuth, signOut } from "firebase/auth";
-import React, { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -14,8 +15,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getUserProfile } from "../../services/firestore";
-import { useCallback } from "react";
-import { useFocusEffect } from "@react-navigation/native";
 
 function SettingOption({
   option,
@@ -72,7 +71,7 @@ export default function SettingScreen() {
   useFocusEffect(
     useCallback(() => {
       loadProfile();
-    }, [loadProfile])
+    }, [loadProfile]),
   );
 
   /**
