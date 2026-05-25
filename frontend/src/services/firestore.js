@@ -61,7 +61,6 @@ export const getTeamMembers = async (teamId) => {
 export const setActivity1 = async (
   teamId,
   data,
-  prediction,
   userAnswers,
   validation,
   score,

@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 interface Design {
@@ -25,6 +25,9 @@ export default function PredictionTemplate({
 }: PredictionTemplateProps) {
   const [prediction, setPrediction] = useState<number | null>(null);
   const router = useRouter();
+  const { journeyData } = useLocalSearchParams<{ journeyData?: string }>();
+
+  console.log(journeyData);
 
   return (
     <View style={styles.container}>
@@ -50,8 +53,10 @@ export default function PredictionTemplate({
                 selected && styles.selectedButton,
               ]}
             >
+              <View style={styles.cardTopRow}>
+                <Text style={styles.cardNumber}>0{d.id}</Text>
+              </View>
               <Text style={styles.buttonTitle}>{d.title}</Text>
-              <Text style={styles.buttonDescription}>{d.description}</Text>
             </Pressable>
           );
         })}
@@ -109,24 +114,43 @@ const styles = StyleSheet.create({
 
   predictionButton: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 14,
+    borderColor: "#D7E0EE",
+    borderRadius: 18,
+    padding: 16,
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 18,
+    elevation: 2,
+    gap: 10,
   },
 
   selectedButton: {
     borderColor: "#3977fd",
-    backgroundColor: "#eef4ff",
+    backgroundColor: "#EFF6FF",
+    shadowOpacity: 0.12,
+    transform: [{ translateY: -1 }],
+  },
+
+  cardTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  cardNumber: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#64748B",
+    letterSpacing: 1.4,
   },
 
   buttonTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-
-  buttonDescription: {
-    fontSize: 14,
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#0F172A",
+    lineHeight: 22,
   },
 
   saveButton: {

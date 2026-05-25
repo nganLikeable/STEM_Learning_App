@@ -48,6 +48,7 @@ export default function InstructionScreen() {
         legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}
+        predictionPath="/screens/reactionBoardChallenge/PredictionScreen"
       />
     </SafeAreaView>
   );

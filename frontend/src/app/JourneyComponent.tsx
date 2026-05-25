@@ -282,6 +282,7 @@ export default function JourneyComponent() {
       console.log("No teamId found");
       return;
     }
+    router.push(node.pathID as any);
   };
 
   return (
