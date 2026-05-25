@@ -1,123 +1,134 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing, borderRadius, shadows } from '../theme';
+import { StyleSheet, Text, View } from 'react-native';
+import { borderRadius, shadows, spacing } from '../theme';
 
 interface TeamInfoCardProps {
   teamName?: string;
   teamId?: string;
   members?: string[];
-  grade?: string;
   points?: number;
   rank?: number;
 }
 
-const TeamInfoCard: React.FC<TeamInfoCardProps> = ({ teamName, teamId, members, grade, points, rank}) => {
+const TeamInfoCard: React.FC<TeamInfoCardProps> = ({ teamName, teamId, members, points, rank }) => {
   return (
-    <View style={[styles.container, shadows.medium]}>
-      {/* Team Name Header */}
+    <LinearGradient
+      colors={['#6b76ee', '#99a1f4']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.container, shadows.medium]}
+    >
+      {/* Header: team name + ID badge */}
       <View style={styles.header}>
-        <Text style={styles.teamName}>{teamName}</Text>
-        {teamId ? <Text style={styles.teamId}>ID: {teamId}</Text> : null}
+        <Text style={styles.teamName} numberOfLines={1}>{teamName || 'No Team'}</Text>
+        {teamId ? (
+          <View style={styles.idBadge}>
+            <Text style={styles.teamId}>ID: {teamId}</Text>
+          </View>
+        ) : null}
       </View>
 
-      {/* Members */}
-      <View style={styles.infoRow}>
-        <Text style={styles.label}>Members:</Text>
-        <Text style={styles.value}>{members.join(', ')}</Text>
+      {/* Members row */}
+      <View style={styles.membersRow}>
+        <MaterialCommunityIcons name="account-group" size={15} color="rgba(255,255,255,0.7)" />
+        <Text style={styles.membersText} numberOfLines={1}>
+          {members && members.length > 0 ? members.join(', ') : '—'}
+        </Text>
       </View>
 
-      {/* Grade */}
-      <View style={styles.infoRow}>
-        <Text style={styles.label}>Grade:</Text>
-        <Text style={styles.value}>{grade}</Text>
-      </View>
+      {/* Separator */}
+      <View style={styles.separator} />
 
-      {/* Points and Rank Row */}
+      {/* Stats */}
       <View style={styles.footer}>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{points} pts</Text>
+          <Text style={styles.statValue}>{points ?? '—'} pts</Text>
           <Text style={styles.statLabel}>Points</Text>
         </View>
         <View style={styles.divider} />
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>#{rank}</Text>
+          <Text style={styles.statValue}>#{rank ?? '—'}</Text>
           <Text style={styles.statLabel}>Rank</Text>
         </View>
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     padding: spacing.md,
-    marginHorizontal: spacing.lg,
     marginVertical: spacing.md,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   teamName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text,
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFFFFF',
     flex: 1,
+    marginRight: spacing.sm,
+  },
+  idBadge: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
   },
   teamId: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#1897ff',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
-  infoRow: {
+  membersRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 6,
     marginBottom: spacing.sm,
   },
-  label: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    fontWeight: '600',
+  membersText: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.8)',
+    flex: 1,
   },
-  value: {
-    fontSize: 14,
-    color: colors.text,
-    fontWeight: '500',
+  separator: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    marginVertical: spacing.sm,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    marginTop: spacing.md,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
   },
   statItem: {
     alignItems: 'center',
     flex: 1,
   },
   statValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.accent,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
   statLabel: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.65)',
+    marginTop: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
   divider: {
     width: 1,
-    height: 30,
-    backgroundColor: colors.border,
+    height: 32,
+    backgroundColor: 'rgba(255,255,255,0.25)',
     marginHorizontal: spacing.md,
   },
 });

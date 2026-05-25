@@ -2,6 +2,8 @@ import useGetUserAvatar from "@/hooks/user/useGetUserAvatar";
 import { Link } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+
+const heyjoImg = require('../../assets/images/mascot/goodJobMan.png');
 import { borderRadius, colors, spacing } from "../theme";
 
 interface HeaderProps {
@@ -27,9 +29,12 @@ const Header: React.FC<HeaderProps> = ({ userName = "User" }) => {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <View style={styles.greetingContainer}>
-          <Text style={styles.greeting}>{greeting}</Text>
-          <Text style={styles.userName}>{userName}</Text>
+        <View style={styles.leftGroup}>
+          <View style={styles.greetingContainer}>
+            <Text style={styles.greeting}>{greeting}</Text>
+            <Text style={styles.userName}>{userName}</Text>
+          </View>
+          <Image source={heyjoImg} style={styles.mascot} resizeMode="contain" />
         </View>
 
         {/* User Avatar - Link to Settings */}
@@ -64,9 +69,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  greetingContainer: {
+  leftGroup: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
+  greetingContainer: {},
   greeting: {
     fontSize: 14,
     color: colors.textSecondary,
@@ -77,6 +85,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: colors.text,
+  },
+  mascot: {
+    width: 52,
+    height: 52,
+    marginLeft: spacing.sm,
   },
   avatarButton: {
     padding: spacing.xs,
@@ -90,7 +103,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: colors.accent,
+    borderColor: "#000",
   },
   avatarText: {
     fontSize: 24,

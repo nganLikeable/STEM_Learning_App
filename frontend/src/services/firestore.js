@@ -1,4 +1,5 @@
 import {
+  arrayUnion,
   collection,
   doc,
   getDoc,
@@ -80,6 +81,11 @@ export const setActivity1 = async (
     console.error("Error saving to Firestore", e);
     throw e;
   }
+};
+
+export const markTodayAttendance = (uid) => {
+  const today = new Date().toISOString().slice(0, 10);
+  return setDoc(doc(db, 'users', uid), { attendanceDates: arrayUnion(today) }, { merge: true });
 };
 
 export const updateUserAvatar = (uid, avatarId) =>

@@ -4,12 +4,34 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { getAuth } from 'firebase/auth';
-import React, { useCallback, useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Dimensions,
+  FlatList,
+  Image,
+  ImageSourcePropType,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  ViewToken,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { getUserProfile, getTeam, getTeamMembers } from '../../services/firestore';
+import { getUserProfile, getTeam, getTeamMembers, getAllTeams, markTodayAttendance } from '../../services/firestore';
 
+// ─── Image assets ─────────────────────────────────────────────────────────────
+
+/* eslint-disable @typescript-eslint/no-var-requires */
+const parachuteImg  = require('../../../assets/images/activityCards/parachute-experiment.png') as ImageSourcePropType;
+const soundImg      = require('../../../assets/images/activityCards/sound-measurement.png') as ImageSourcePropType;
+const fanImg        = require('../../../assets/images/activityCards/air-fan-experiment.png') as ImageSourcePropType;
+const earthquakeImg = require('../../../assets/images/activityCards/vibration-platform.png') as ImageSourcePropType;
+const perfLabImg    = require('../../../assets/images/activityCards/circular-motion.png') as ImageSourcePropType;
+const reactionImg   = require('../../../assets/images/activityCards/reaction-time.png') as ImageSourcePropType;
+const breathingImg  = require('../../../assets/images/activityCards/breathing-measurement.png') as ImageSourcePropType;
+/* eslint-enable @typescript-eslint/no-var-requires */
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -18,15 +40,11 @@ interface Activity {
   title: string;
   description: string;
   nextScreen: string;
-  icon: string; // MaterialCommunityIcons name
-  iconColor: string; // icon tint colour
-  iconBg: string; // icon background circle colour
+  image: ImageSourcePropType;
 }
 
 // ─── Activity data ────────────────────────────────────────────────────────────
 
-// First 4 → Engineering Challenges section
-// Last 3  → Health & Medical Science section
 const activities: Activity[] = [
   {
     id: "1",
@@ -34,18 +52,14 @@ const activities: Activity[] = [
     description:
       "Design and test parachutes to reduce landing speed and impact force.",
     nextScreen: "parachute/InstructionScreen",
-    icon: "parachute",
-    iconColor: "#3977fd",
-    iconBg: "#DBEAFE",
+    image: parachuteImg,
   },
   {
     id: "2",
     title: "Sound Pollution Hunter",
     description: "Measure and compare sound levels. Map loud and quiet zones.",
     nextScreen: "soundPollutionHunter/InstructionScreen",
-    icon: "volume-high",
-    iconColor: "#7C3AED",
-    iconBg: "#EDE9FE",
+    image: soundImg,
   },
   {
     id: "3",
@@ -53,9 +67,7 @@ const activities: Activity[] = [
     description:
       "Test how air movement affects flexible materials with fan designs.",
     nextScreen: "handFanChallenge/InstructionScreen",
-    icon: "fan",
-    iconColor: "#0891B2",
-    iconBg: "#CFFAFE",
+    image: fanImg,
   },
   {
     id: "4",
@@ -63,9 +75,7 @@ const activities: Activity[] = [
     description:
       "Build structures that withstand vibrations simulating earthquakes.",
     nextScreen: "earthquake/InstructionScreen",
-    icon: "home-alert",
-    iconColor: "#D97706",
-    iconBg: "#FEF3C7",
+    image: earthquakeImg,
   },
   {
     id: "5",
@@ -73,9 +83,7 @@ const activities: Activity[] = [
     description:
       "Measure speed, smoothness, and coordination during stretching.",
     nextScreen: "humanPerformanceLab/InstructionScreen",
-    icon: "run-fast",
-    iconColor: "#059669",
-    iconBg: "#D1FAE5",
+    image: perfLabImg,
   },
   {
     id: "6",
@@ -83,9 +91,7 @@ const activities: Activity[] = [
     description:
       "Test reaction time and coordination with dominant and non-dominant hands.",
     nextScreen: "reactionBoardChallenge/InstructionScreen",
-    icon: "lightning-bolt",
-    iconColor: "#DC2626",
-    iconBg: "#FEE2E2",
+    image: reactionImg,
   },
   {
     id: "7",
@@ -93,84 +99,300 @@ const activities: Activity[] = [
     description:
       "Analyse breathing patterns at rest and after exercise using phone sensors. Place phone on chest to record before and after physical activities.",
     nextScreen: "breathingPaceTrainer/InstructionScreen",
-    icon: "lungs",
-    iconColor: "#0284C7",
-    iconBg: "#E0F2FE",
+    image: breathingImg,
   },
 ];
 
-// ─── Grid card component ──────────────────────────────────────────────────────
+// ─── Card dimensions ──────────────────────────────────────────────────────────
 
-// Height of a standard square grid card — used to size the tall card (activity 7)
-const CARD_H = 160;
-const GAP = 12;
+const SCREEN_W = Dimensions.get('window').width;
+const H_PADDING = 32; // 16px on each side from contentContainer
+const CARD_W = SCREEN_W - H_PADDING;
+const CARD_H = 155;
+const IMG_W = Math.round(CARD_W * 0.42);
 
-interface GridCardProps {
-  activity: Activity;
-}
+// ─── SwipeCard ────────────────────────────────────────────────────────────────
 
-/**
- * GridCard — a pressable card used in the activity grid sections.
- * Shows a coloured icon circle, title, and truncated description.
- */
-const GridCard: React.FC<GridCardProps> = ({ activity }) => {
+const SwipeCard: React.FC<{ activity: Activity }> = ({ activity }) => {
   const router = useRouter();
 
   return (
     <Pressable
-      style={({ pressed }) => [
-        gs.card,
-        { height: CARD_H },
-        pressed && { opacity: 0.75 },
-      ]}
+      style={({ pressed }) => [sc.card, pressed && { opacity: 0.82 }]}
       onPress={() => router.navigate(`./screens/${activity.nextScreen}`)}
     >
-      {/* Coloured icon circle */}
-      <View style={[gs.iconCircle, { backgroundColor: activity.iconBg }]}>
-        <MaterialCommunityIcons
-          name={activity.icon as any}
-          size={24}
-          color={activity.iconColor}
-        />
-      </View>
+      {/* Left: image fills the full left column */}
+      <Image source={activity.image} style={sc.image} resizeMode="cover" />
 
-      {/* Activity title */}
-      <Text style={gs.cardTitle} numberOfLines={2}>
-        {activity.title}
-      </Text>
+      {/* Right: text content */}
+      <View style={sc.textBlock}>
+        <Text style={sc.title} numberOfLines={2}>{activity.title}</Text>
+        <Text style={sc.desc} numberOfLines={4}>{activity.description}</Text>
 
-      {/* Truncated description */}
-      <Text style={gs.cardDesc} numberOfLines={2}>
-        {activity.description}
-      </Text>
-
-      {/* Bottom arrow */}
-      <View style={gs.arrowRow}>
-        <MaterialCommunityIcons name="arrow-right" size={16} color="#9CA3AF" />
+        {/* Arrow pinned to bottom-right */}
+        <View style={sc.arrowRow}>
+          <MaterialCommunityIcons name="arrow-right-circle" size={26} color="#6C63FF" />
+        </View>
       </View>
     </Pressable>
   );
 };
 
+const sc = StyleSheet.create({
+  card: {
+    width: CARD_W,
+    height: CARD_H,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.10,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  image: {
+    width: IMG_W,
+    height: CARD_H,
+  },
+  textBlock: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 18,
+    justifyContent: 'flex-start',
+  },
+  title: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1F2937',
+    marginBottom: 8,
+    lineHeight: 21,
+  },
+  desc: {
+    fontSize: 12,
+    color: '#6B7280',
+    lineHeight: 17,
+    flex: 1,
+  },
+  arrowRow: {
+    alignItems: 'flex-end',
+    marginTop: 6,
+  },
+});
 
+// ─── ActivityCarousel ─────────────────────────────────────────────────────────
+
+const ActivityCarousel: React.FC<{ activities: Activity[] }> = ({ activities: items }) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const onViewRef = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    if (viewableItems.length > 0 && viewableItems[0].index != null) {
+      setActiveIndex(viewableItems[0].index);
+    }
+  });
+
+  const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 50 });
+
+  return (
+    <View>
+      <FlatList
+        data={items}
+        keyExtractor={(item) => item.id}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={CARD_W}
+        decelerationRate="fast"
+        onViewableItemsChanged={onViewRef.current}
+        viewabilityConfig={viewConfigRef.current}
+        renderItem={({ item }) => <SwipeCard activity={item} />}
+      />
+
+      {/* Dot indicators */}
+      {items.length > 1 && (
+        <View style={carousel.dots}>
+          {items.map((_, i) => (
+            <View
+              key={i}
+              style={[carousel.dot, i === activeIndex && carousel.dotActive]}
+            />
+          ))}
+        </View>
+      )}
+    </View>
+  );
+};
+
+const carousel = StyleSheet.create({
+  dots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    gap: 6,
+  },
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#D1D5DB',
+  },
+  dotActive: {
+    backgroundColor: '#6C63FF',
+    width: 18,
+  },
+});
+
+// ─── Weekly Calendar ──────────────────────────────────────────────────────────
+
+const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+function getWeekDays(): { label: string; dateStr: string; dayNum: number }[] {
+  const today = new Date();
+  const dow = today.getDay(); // 0=Sun … 6=Sat
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((dow + 6) % 7));
+
+  return DAY_LABELS.map((label, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return {
+      label,
+      dateStr: d.toISOString().slice(0, 10),
+      dayNum: d.getDate(),
+    };
+  });
+}
+
+const WeeklyCalendar: React.FC<{ attendanceDates: string[] }> = ({ attendanceDates }) => {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const weekDays = getWeekDays();
+
+  return (
+    <View style={wc.card}>
+      <View style={wc.row}>
+        {weekDays.map(({ label, dateStr, dayNum }) => {
+          const isAttended = attendanceDates.includes(dateStr);
+          const isToday = dateStr === todayStr;
+          const isFuture = dateStr > todayStr;
+
+          const circleStyle = isAttended
+            ? wc.circleAttended
+            : isToday
+            ? wc.circleToday
+            : isFuture
+            ? wc.circleFuture
+            : wc.circlePast;
+
+          const numStyle = isAttended || isToday
+            ? wc.numWhite
+            : isFuture
+            ? wc.numFuture
+            : wc.numPast;
+
+          return (
+            <View key={dateStr} style={wc.dayCol}>
+              <Text style={[wc.dayLabel, isFuture && wc.dayLabelFuture]}>
+                {label}
+              </Text>
+              <View style={[wc.circle, circleStyle]}>
+                <Text style={[wc.dayNum, numStyle]}>{dayNum}</Text>
+              </View>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+};
+
+const wc = StyleSheet.create({
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginTop: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  heading: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#9CA3AF',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  dayCol: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 6,
+  },
+  dayLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  dayLabelFuture: {
+    color: '#D1D5DB',
+  },
+  circle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  circleAttended: {
+    backgroundColor: '#4ADE80',
+  },
+  circleToday: {
+    backgroundColor: '#6C63FF',
+  },
+  circlePast: {
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+  },
+  circleFuture: {
+    // no border, transparent
+  },
+  dayNum: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  numWhite: {
+    color: '#fff',
+  },
+  numPast: {
+    color: '#9CA3AF',
+  },
+  numFuture: {
+    color: '#D1D5DB',
+  },
+});
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
-/**
- * HomeScreen — main landing screen with two activity sections:
- *   1. Engineering Challenges  (activities 1–4) — 2 × 2 grid
- *   2. Health & Medical Science (activities 5–7) — 2-col row + 1 tall full-width card
- */
 export default function HomeScreen() {
   const engineering = activities.slice(0, 4);
-  const health = activities.slice(4, 6);
-  const healthTall = activities[6];
+  const health = activities.slice(4);
 
   const [userName, setUserName] = useState('');
   const [teamName, setTeamName] = useState('');
   const [teamId, setTeamId] = useState('');
   const [memberNames, setMemberNames] = useState<string[]>([]);
-  const [grade, setGrade] = useState('');
+  const [points, setPoints] = useState<number>(0);
+  const [rank, setRank] = useState<number | null>(null);
+  const [attendanceDates, setAttendanceDates] = useState<string[]>([]);
 
   const loadProfile = useCallback(async () => {
     const user = getAuth().currentUser;
@@ -181,24 +403,37 @@ export default function HomeScreen() {
 
     const profile = profileSnap.data();
     setUserName(profile.name);
-    setGrade(`Year ${profile.grade}`);
+    setAttendanceDates(profile.attendanceDates ?? []);
+    markTodayAttendance(user.uid);
 
     if (profile.teamId) {
       setTeamId(profile.teamId);
 
-      const [teamSnap, teamMembers] = await Promise.all([
+      const [teamSnap, teamMembers, allTeams] = await Promise.all([
         getTeam(profile.teamId),
         getTeamMembers(profile.teamId),
+        getAllTeams(),
       ]);
 
-      if (teamSnap.exists()) setTeamName(teamSnap.data().name);
+      if (teamSnap.exists()) {
+        const teamData = teamSnap.data();
+        setTeamName(teamData.name);
+        setPoints(teamData.points ?? 0);
+      }
+
       setMemberNames(teamMembers.map((m: any) => m.name));
+
+      const sorted = [...allTeams].sort((a: any, b: any) => (b.points ?? 0) - (a.points ?? 0));
+      const idx = sorted.findIndex((t: any) => t.id === profile.teamId);
+      setRank(idx >= 0 ? idx + 1 : null);
       return;
     }
 
     setTeamId("");
     setTeamName("");
     setMemberNames([]);
+    setPoints(0);
+    setRank(null);
   }, []);
 
   useEffect(() => {
@@ -224,97 +459,27 @@ export default function HomeScreen() {
           teamName={teamName}
           teamId={teamId}
           members={memberNames}
-          grade={grade}
-          points={450}
-          rank={12}
+          points={points}
+          rank={rank ?? undefined}
         />
+
+        <WeeklyCalendar attendanceDates={attendanceDates} />
 
         {/* ── Section 1: Engineering Challenges ── */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Engineering Challenges</Text>
-
-          {/* Row 1: activities 1 & 2 */}
-          <View style={styles.gridRow}>
-            <GridCard activity={engineering[0]} />
-            <GridCard activity={engineering[1]} />
-          </View>
-
-          {/* Row 2: activities 3 & 4 */}
-          <View style={styles.gridRow}>
-            <GridCard activity={engineering[2]} />
-            <GridCard activity={engineering[3]} />
-          </View>
+          <ActivityCarousel activities={engineering} />
         </View>
 
         {/* ── Section 2: Health & Medical Science ── */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Health & Medical Science</Text>
-
-          {/* Row 1: activities 5 & 6 side by side */}
-          <View style={styles.gridRow}>
-            {/* {health.map((a) => <GridCard key={a.id} activity={a} />)} */}
-            <GridCard activity={health[0]} />
-            <GridCard activity={health[1]} />
-          </View>
-
-          {/* Row 2: activity 7 full-width */}
-          <GridCard activity={healthTall} />
+          <ActivityCarousel activities={health} />
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-// ─── Grid card styles ─────────────────────────────────────────────────────────
-
-const gs = StyleSheet.create({
-  // Card container — flex:1 so both cards in a row split the width equally
-  card: {
-    flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 14,
-    justifyContent: "flex-start",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-
-  // Rounded icon background circle
-  iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-
-  // Card title — bold, allows 2 lines
-  cardTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 6,
-    lineHeight: 18,
-  },
-
-  // Card description — muted, small
-  cardDesc: {
-    fontSize: 11,
-    color: "#6B7280",
-    lineHeight: 15,
-    flex: 1,
-  },
-
-  // Arrow pinned to the bottom-right
-  arrowRow: {
-    alignItems: "flex-end",
-    marginTop: 6,
-  },
-});
 
 // ─── Screen styles ────────────────────────────────────────────────────────────
 
@@ -330,24 +495,13 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     paddingHorizontal: 16,
   },
-
-  // Section wrapper with bottom margin
   section: {
     marginTop: 24,
   },
-
-  // Bold section heading
   sectionTitle: {
     fontSize: 18,
     fontWeight: "800",
     color: "#1F2937",
     marginBottom: 12,
-  },
-
-  // Two-card row with a gap between cards
-  gridRow: {
-    flexDirection: "row",
-    gap: GAP,
-    marginBottom: GAP,
   },
 });

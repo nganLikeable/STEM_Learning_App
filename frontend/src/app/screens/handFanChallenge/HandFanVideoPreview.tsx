@@ -19,7 +19,7 @@ interface Props {
 interface Point { x: number; y: number }
 
 // Which action the next tap on the video will perform
-type PendingMode = 'A' | 'B' | 'CAL_1' | 'CAL_2' | null;
+type PendingMode = 'A' | 'B' | 'C' | 'CAL_1' | 'CAL_2' | null;
 
 const CROSS = 18;     // half-arm length for measurement crosshairs
 const CROSS_CAL = 13; // half-arm length for calibration crosshairs
@@ -47,6 +47,7 @@ export default function HandFanVideoPreview({ videoUri, onRetake }: Props) {
   // Measurement points
   const [ptA, setPtA] = useState<Point | null>(null);
   const [ptB, setPtB] = useState<Point | null>(null);
+  const [ptC, setPtC] = useState<Point | null>(null);
 
   // Which button was last pressed — determines what the next tap does
   const [pending, setPending] = useState<PendingMode>(null);
@@ -73,24 +74,31 @@ export default function HandFanVideoPreview({ videoUri, onRetake }: Props) {
   }
 
   // ── Distance ────────────────────────────────────────────────────────────────
-  const rawPx = ptA && ptB
+  const rawAB = ptA && ptB
     ? Math.sqrt((ptB.x - ptA.x) ** 2 + (ptB.y - ptA.y) ** 2)
     : null;
 
-  const distText = rawPx !== null
-    ? pxPerCm
-      ? `${(rawPx / pxPerCm).toFixed(2)} cm`
-      : `${rawPx.toFixed(1)} px — calibrate for cm`
+  const rawBC = ptB && ptC
+    ? Math.sqrt((ptC.x - ptB.x) ** 2 + (ptC.y - ptB.y) ** 2)
     : null;
+
+  function fmtDist(px: number | null) {
+    if (px === null) return null;
+    return pxPerCm ? `${(px / pxPerCm).toFixed(2)} cm` : `${px.toFixed(1)} px`;
+  }
+
+  const distABText = fmtDist(rawAB);
+  const distBCText = fmtDist(rawBC);
 
   // ── HUD instruction ─────────────────────────────────────────────────────────
   const hudText =
-    pending === 'A'     ? 'Tap video to place  A' :
-    pending === 'B'     ? 'Tap video to place  B' :
+    pending === 'A'     ? 'Tap video to place A' :
+    pending === 'B'     ? 'Tap video to place B' :
+    pending === 'C'     ? 'Tap video to place C' :
     pending === 'CAL_1' ? 'Tap calibration point 1' :
     pending === 'CAL_2' ? 'Tap calibration point 2' :
-    distText            ? `📏  ${distText}` :
-    'Press  Set A  or  Set B  to begin';
+    distABText          ? `A→B: ${distABText}${distBCText ? `   B→C: ${distBCText}` : ''}` :
+    'Press Set A / Set B / Set C to begin';
 
   // ── Calibration apply ───────────────────────────────────────────────────────
   function applyCalibration() {
@@ -108,6 +116,7 @@ export default function HandFanVideoPreview({ videoUri, onRetake }: Props) {
     switch (pending) {
       case 'A':     setPtA(pt);      setPending(null);    break;
       case 'B':     setPtB(pt);      setPending(null);    break;
+      case 'C':     setPtC(pt);      setPending(null);    break;
       case 'CAL_1': setCalPt1(pt);   setCalPt2(null);  setPending('CAL_2'); break;
       case 'CAL_2': setCalPt2(pt);   setPending(null);   setShowCalModal(true); break;
     }
@@ -121,15 +130,21 @@ export default function HandFanVideoPreview({ videoUri, onRetake }: Props) {
       {/* ── Video ── */}
       <VideoView player={player} style={styles.video} contentFit="contain" />
 
-      {/* ── SVG: dashed yellow line between A and B ── */}
-      {ptA && ptB && (
-        <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
+      {/* ── SVG: dashed yellow line between A and B, green between B and C ── */}
+      <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
+        {ptA && ptB && (
           <Line
             x1={ptA.x} y1={ptA.y} x2={ptB.x} y2={ptB.y}
             stroke="#facc15" strokeWidth={2} strokeDasharray="6,4"
           />
-        </Svg>
-      )}
+        )}
+        {ptB && ptC && (
+          <Line
+            x1={ptB.x} y1={ptB.y} x2={ptC.x} y2={ptC.y}
+            stroke="#4ade80" strokeWidth={2} strokeDasharray="6,4"
+          />
+        )}
+      </Svg>
 
       {/* ── SVG: dashed cyan line between calibration points ── */}
       {calPt1 && calPt2 && (
@@ -144,6 +159,7 @@ export default function HandFanVideoPreview({ videoUri, onRetake }: Props) {
       {/* ── Crosshair markers ── */}
       {ptA    && <Crosshair pt={ptA}    label="A"  color="#ef4444" size={CROSS}     />}
       {ptB    && <Crosshair pt={ptB}    label="B"  color="#ef4444" size={CROSS}     />}
+      {ptC    && <Crosshair pt={ptC}    label="C"  color="#4ade80" size={CROSS}     />}
       {calPt1 && <Crosshair pt={calPt1} label="C1" color="#22d3ee" size={CROSS_CAL} />}
       {calPt2 && <Crosshair pt={calPt2} label="C2" color="#22d3ee" size={CROSS_CAL} />}
 
@@ -177,6 +193,13 @@ export default function HandFanVideoPreview({ videoUri, onRetake }: Props) {
         </TouchableOpacity>
 
         <TouchableOpacity
+          style={[styles.sideBtn, pending === 'C' && styles.sideBtnC]}
+          onPress={() => setPending(p => p === 'C' ? null : 'C')}
+        >
+          <Text style={styles.sideBtnText}>Set C</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={[styles.sideBtn, isCalPending && styles.sideBtnCal]}
           onPress={() => {
             setCalPt1(null);
@@ -197,7 +220,7 @@ export default function HandFanVideoPreview({ videoUri, onRetake }: Props) {
 
         <TouchableOpacity
           style={styles.btnSecondary}
-          onPress={() => { setPtA(null); setPtB(null); setPending(null); }}
+          onPress={() => { setPtA(null); setPtB(null); setPtC(null); setPending(null); }}
         >
           <Text style={styles.btnSecondaryText}>Clear</Text>
         </TouchableOpacity>
@@ -306,6 +329,7 @@ const styles = StyleSheet.create({
   },
   sideBtnA:   { backgroundColor: '#ef4444', borderColor: '#ef4444' },
   sideBtnB:   { backgroundColor: '#ef4444', borderColor: '#ef4444' },
+  sideBtnC:   { backgroundColor: '#16a34a', borderColor: '#4ade80' },
   sideBtnCal: { backgroundColor: '#0891b2', borderColor: '#22d3ee' },
   sideBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 
