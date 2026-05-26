@@ -371,7 +371,18 @@ export default function JourneyComponent() {
       console.log("No teamId found");
       return;
     }
-    router.push(node.pathID as any);
+
+    if (!journeyData) {
+      router.push(node.pathID as any);
+      return;
+    }
+
+    const separator = node.pathID.includes("?") ? "&" : "?";
+    router.push(
+      `${node.pathID}${separator}journeyData=${encodeURIComponent(
+        journeyData,
+      )}` as any,
+    );
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────

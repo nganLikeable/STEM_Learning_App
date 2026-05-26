@@ -1,6 +1,6 @@
 import BaseCamera from "@/src/features/parachute/components/BaseCamera";
 import BaseVideoPreview from "@/src/features/parachute/components/BaseVideoPreview";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -9,6 +9,7 @@ export default function VideoRecorderScreen() {
   const [video, setVideo] = useState<string | null>(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const router = useRouter();
+  const { journeyData } = useLocalSearchParams<{ journeyData?: string }>();
 
   // if theres a record, show preview
   if (video) {
@@ -21,7 +22,10 @@ export default function VideoRecorderScreen() {
             console.log("Marked time: ", markedTime);
             router.push({
               pathname: "./CalculationScreen",
-              params: { markedTime: markedTime.toFixed(2) }, // passed to next screen,
+              params: {
+                markedTime: markedTime.toFixed(2),
+                ...(journeyData ? { journeyData } : {}),
+              }, // passed to next screen, so that finish at the end of calculation screen can navigate back to the right journey component
             });
           }}
           onRetake={() => setVideo(null)}
