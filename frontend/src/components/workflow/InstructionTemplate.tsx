@@ -51,25 +51,38 @@ export default function Instruction({
   const router = useRouter();
   const { teamId } = useTeamStore();
   const { setSessionId } = useSessionStore();
-  const [hasActiveSession, setHasActiveSession] = useState(false);
+  const [hasProgress, setHasProgress] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     const loadActiveSession = async () => {
       if (!teamId || !activityId) {
-        setHasActiveSession(false);
+        setHasProgress(false);
         return;
       }
 
       try {
-        const activeSession = await getActiveSessionByActivity(teamId, activityId);
+        const activeSession = await getActiveSessionByActivity(
+          teamId,
+          activityId,
+        );
         if (!cancelled) {
-          setHasActiveSession(Boolean(activeSession?.id));
+          // to track progress and show the appropriate screen
+          // if predictions are made but no phases completed yet -> show path
+          // if session started but no predictions made => show prediction screen instead
+          setHasProgress(
+            Boolean(
+              activeSession &&
+              ((activeSession.currentPhase ?? 1) > 1 ||
+                activeSession.prediction != null ||
+                (activeSession.designs?.length ?? 0) > 0),
+            ),
+          );
         }
       } catch (e) {
         console.error(e);
-        if (!cancelled) setHasActiveSession(false);
+        if (!cancelled) setHasProgress(false);
       }
     };
 
@@ -95,8 +108,12 @@ export default function Instruction({
         activeSessionId = activeSession.id;
         setSessionId(activeSessionId);
 
-        // Resume directly from journey when user already passed prediction.
-        if ((activeSession.currentPhase ?? 1) > 1) {
+        const hasJourneyProgress =
+          (activeSession.currentPhase ?? 1) > 1 ||
+          activeSession.prediction != null;
+
+        // Resume directly from the journey once the session has real progress.
+        if (hasJourneyProgress) {
           router.push({
             pathname: "/JourneyComponent" as any,
             params: {
@@ -215,7 +232,7 @@ export default function Instruction({
       </SectionCard>
 
       <Button onPress={handleStartExperiment}>
-        {hasActiveSession ? "Resume Experiment" : "Start Experiment"}
+        {hasProgress ? "Resume Experiment" : "Start Experiment"}
       </Button>
 
       {/* ── Safety Note ──
