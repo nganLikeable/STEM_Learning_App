@@ -38,6 +38,7 @@ export default function InstructionScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Instruction
+        activityId={6}
         instruction={instructionData.instruction}
         title="Reaction Board Challenge"
         subtitle="Neuroscience + Mathematics"
@@ -48,6 +49,7 @@ export default function InstructionScreen() {
         legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}
+        predictionPath="/screens/reactionBoardChallenge/PredictionScreen"
       />
     </SafeAreaView>
   );

@@ -24,22 +24,27 @@ const instructionData = {
     { color: "#7C5CBF", label: "Material Stiffness" },
   ],
 
-  formulas: ["F ≈ k · θ", "k = stiffness coefficient", "θ = bend angle (radians)"],
+  formulas: [
+    "F ≈ k · θ",
+    "k = stiffness coefficient",
+    "θ = bend angle (radians)",
+  ],
   journeyParams: {
-    titles: ['Phase 1', 'Phase 2', 'Phase 3'],
-    descriptions: ['gi do', 'gi do', 'gi do'],
+    titles: ["Phase 1", "Phase 2", "Phase 3"],
+    descriptions: ["gi do", "gi do", "gi do"],
     pathIDs: [
-      '/screens/handFanChallenge/handFanTracking',
-      '/screens/handFanChallenge/handFanTracking',
-      '/screens/handFanChallenge/handFanTracking',
+      "/screens/handFanChallenge/HandFanTrackingScreen",
+      "/screens/handFanChallenge/HandFanTrackingScreen",
+      "/screens/handFanChallenge/HandFanTrackingScreen",
     ],
-  }
+  },
 };
 
 export default function InstructionScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Instruction
+        activityId={3}
         instruction={instructionData.instruction}
         title="Hand Fan Challenge"
         subtitle="Physics – Air Movement"
@@ -50,6 +55,7 @@ export default function InstructionScreen() {
         legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}
+        predictionPath="/screens/handFanChallenge/PredictionScreen"
       />
     </SafeAreaView>
   );

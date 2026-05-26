@@ -1,7 +1,6 @@
 import Instruction from "@/src/components/InstructionTemplate";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import JourneyComponent from "../../JourneyComponent";
 
 const instructionData = {
   instruction:
@@ -25,20 +24,21 @@ const instructionData = {
     "Respiratory Rate increases with activity",
   ],
   journeyParams: {
-    titles: ['Phase 1', 'Phase 2', 'Phase 3'],
-    descriptions: ['gi do', 'gi do', 'gi do'],
+    titles: ["Phase 1", "Phase 2", "Phase 3"],
+    descriptions: ["gi do", "gi do", "gi do"],
     pathIDs: [
-      '/screens/breathingPaceTrainer/BreathTrackerScreen',
-      '/screens/breathingPaceTrainer/BreathTrackerScreen',
-      '/screens/breathingPaceTrainer/BreathTrackerScreen',
+      "/screens/breathingPaceTrainer/BreathTrackerScreen",
+      "/screens/breathingPaceTrainer/BreathTrackerScreen",
+      "/screens/breathingPaceTrainer/BreathTrackerScreen",
     ],
-  }
+  },
 };
 
 export default function InstructionScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Instruction
+        activityId={7}
         instruction={instructionData.instruction}
         title="Breathing Pace Trainer"
         subtitle="Medical Science"
@@ -49,6 +49,7 @@ export default function InstructionScreen() {
         legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}
+        predictionPath="/screens/breathingPaceTrainer/PredictionScreen"
       />
     </SafeAreaView>
   );
