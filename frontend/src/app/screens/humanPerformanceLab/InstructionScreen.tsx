@@ -41,6 +41,7 @@ export default function InstructionScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Instruction
+        activityId={5}
         instruction={instructionData.instruction}
         title="Human Performance Lab"
         subtitle="Medical Science + Biomechanics"

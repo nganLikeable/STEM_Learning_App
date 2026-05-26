@@ -47,6 +47,7 @@ export default function InstructionScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Instruction
+        activityId={1}
         instruction={instructionData.instruction}
         title="Parachute Drop Challenge"
         subtitle="Engineering + Physics"

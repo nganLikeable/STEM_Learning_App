@@ -1,5 +1,6 @@
 // useEarthquakeTest.ts
 import { setActivity4 } from "@/src/services/firestore";
+import { advanceActiveSession } from "@/src/services/session";
 import { useTeamStore } from "@/src/store/team-store";
 import { useNavigation } from "expo-router";
 import { useRef, useState } from "react";
@@ -125,6 +126,7 @@ export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
       }
 
       await setActivity4(teamId, designNumber, result);
+      await advanceActiveSession(teamId, 4);
       console.log("Saved successfully");
     } catch (e) {
       console.error("Failed to save:", e);

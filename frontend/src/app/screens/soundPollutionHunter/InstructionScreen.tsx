@@ -48,6 +48,7 @@ export default function InstructionScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Instruction
+        activityId={2}
         instruction={instructionData.instruction}
         title="Sound Pollution Hunter"
         subtitle="Environmental Science"

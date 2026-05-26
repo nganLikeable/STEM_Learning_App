@@ -38,6 +38,7 @@ export default function InstructionScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Instruction
+        activityId={6}
         instruction={instructionData.instruction}
         title="Reaction Board Challenge"
         subtitle="Neuroscience + Mathematics"

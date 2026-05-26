@@ -45,6 +45,7 @@ export default function InstructionScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Instruction
+        activityId={4}
         instruction={instructionData.instruction}
         title="Earthquake-Resistant Structure"
         subtitle="Engineering + Earth Science"

@@ -38,6 +38,7 @@ export default function InstructionScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Instruction
+        activityId={7}
         instruction={instructionData.instruction}
         title="Breathing Pace Trainer"
         subtitle="Medical Science"

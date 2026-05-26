@@ -7,6 +7,7 @@
  */
 
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
   Modal,
@@ -26,6 +27,10 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+import {
+  getActiveSessionByActivity,
+  updateSessionPhase,
+} from "../services/session";
 import { useSessionStore } from "../store/session-store";
 import { useTeamStore } from "../store/team-store";
 // ─────────────────────────────────────────────
@@ -36,6 +41,7 @@ export interface JourneyNodeData {
   id: string;
   title: string;
   locked: boolean;
+  completed: boolean;
   /** Short description shown in the popup (unlocked nodes only). */
   description?: string;
   /** Expo Router pathname to push when the user taps "Start". */
@@ -46,6 +52,7 @@ function buildNodes(
   titles: string[],
   descriptions: string[],
   pathIDs: string[],
+  completedUpTo: number,
 ): JourneyNodeData[] {
   return Array.from({ length: 10 }, (_, i) => {
     const unlocked = i < titles.length;
@@ -53,6 +60,7 @@ function buildNodes(
       id: String(i + 1),
       title: unlocked ? titles[i] : `Phase ${i + 1}`,
       locked: !unlocked,
+      completed: unlocked && i < completedUpTo,
       description: unlocked ? descriptions[i] : undefined,
       pathID: unlocked ? pathIDs[i] : undefined,
     };
@@ -161,8 +169,12 @@ const NodeButton: React.FC<NodeButtonProps> = ({ node, index, onPress }) => {
     onPress(node);
   };
 
-  const bg = node.locked ? "#C0D4C0" : "#58CC02";
-  const border = node.locked ? "#A4BCA4" : "#46A400";
+  const bg = node.locked ? "#C0D4C0" : node.completed ? "#2FA84F" : "#58CC02";
+  const border = node.locked
+    ? "#A4BCA4"
+    : node.completed
+      ? "#1F7A37"
+      : "#46A400";
 
   return (
     <Animated.View style={[{ width: SLOT_W, alignItems: "center" }, animStyle]}>
@@ -229,11 +241,17 @@ const DescriptionPopup: React.FC<DescriptionPopupProps> = ({
           <Text style={styles.popupDesc}>{node.description}</Text>
 
           <TouchableOpacity
-            onPress={() => onStart(node)}
-            style={styles.startBtn}
+            onPress={() => {
+              if (node.completed) return;
+              onStart(node);
+            }}
+            style={[styles.startBtn, node.completed && styles.startBtnDisabled]}
+            disabled={node.completed}
             activeOpacity={0.85}
           >
-            <Text style={styles.startBtnText}>Start →</Text>
+            <Text style={styles.startBtnText}>
+              {node.completed ? "Completed" : "Start →"}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={onClose} style={styles.notNowBtn}>
@@ -258,25 +276,60 @@ export default function JourneyComponent() {
 
   // get sessionId
   const { sessionId, setSessionId } = useSessionStore();
+  const [completedUpTo, setCompletedUpTo] = useState(0);
 
   const { journeyData } = useLocalSearchParams<{ journeyData: string }>();
   const {
     titles = [],
     descriptions = [],
     pathIDs = [],
+    activityId,
   } = journeyData
     ? (JSON.parse(journeyData as string) as {
         titles: string[];
         descriptions: string[];
         pathIDs: string[];
+        activityId?: number;
       })
     : {};
 
-  const nodes = buildNodes(titles, descriptions, pathIDs);
+  const activityNo = Number(activityId);
 
-  const handleStart = (node: JourneyNodeData) => {
+  const loadActiveSession = React.useCallback(async () => {
+    if (!teamId || !Number.isFinite(activityNo) || activityNo <= 0) return;
+
+    try {
+      const activeSession = await getActiveSessionByActivity(teamId, activityNo);
+
+      if (!activeSession) {
+        setCompletedUpTo(0);
+        return;
+      }
+
+      setSessionId(activeSession.id);
+      const doneCount = Math.max((activeSession.currentPhase ?? 1) - 1, 0);
+      setCompletedUpTo(doneCount);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [teamId, activityNo, setSessionId]);
+
+  useEffect(() => {
+    loadActiveSession();
+  }, [loadActiveSession]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadActiveSession();
+      return undefined;
+    }, [loadActiveSession]),
+  );
+
+  const nodes = buildNodes(titles, descriptions, pathIDs, completedUpTo);
+
+  const handleStart = async (node: JourneyNodeData) => {
     setActiveNode(null);
-    console.log(node.pathID);
+
     if (!node.pathID) return;
     if (!teamId) {
       console.log("No teamId found");
@@ -452,6 +505,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 6,
     elevation: 4,
+  },
+  startBtnDisabled: {
+    backgroundColor: "#A4BCA4",
+    shadowOpacity: 0,
+    elevation: 0,
   },
   startBtnText: {
     color: "#fff",

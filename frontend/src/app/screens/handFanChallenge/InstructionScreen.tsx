@@ -44,6 +44,7 @@ export default function InstructionScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Instruction
+        activityId={3}
         instruction={instructionData.instruction}
         title="Hand Fan Challenge"
         subtitle="Physics – Air Movement"

@@ -1,5 +1,6 @@
 import { parachuteCalculate } from "@/lib/parachute";
 import { setActivity1 } from "@/src/services/firestore";
+import { advanceActiveSession } from "@/src/services/session";
 import { useTeamStore } from "@/src/store/team-store";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
@@ -269,6 +270,10 @@ export default function CalculationFlow() {
 
     // save to firestore
     try {
+      if (!teamId) {
+        throw new Error("Missing teamId. Join or create a team before saving Activity 1.");
+      }
+
       await setActivity1(
         teamId,
         { time: t, distance: d, mass: m },
@@ -281,6 +286,7 @@ export default function CalculationFlow() {
         validationMap,
         correctCount,
       );
+      await advanceActiveSession(teamId, 1);
       console.log("Saved successfully");
     } catch (e) {
       console.error("Failed to save:", e);

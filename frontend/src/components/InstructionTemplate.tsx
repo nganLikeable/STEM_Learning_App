@@ -1,7 +1,7 @@
 import { Button } from "@react-navigation/elements";
 import { useRouter } from "expo-router";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
-import { createSession } from "../services/session";
+import { createSession, getActiveSessionByActivity } from "../services/session";
 import { useSessionStore } from "../store/session-store";
 import { useTeamStore } from "../store/team-store";
 
@@ -14,6 +14,7 @@ interface JourneyParams {
 type PredictionPath = string;
 
 interface InstructionProps {
+  activityId?: number;
   instruction: string;
   title?: string;
   subtitle?: string;
@@ -28,6 +29,7 @@ interface InstructionProps {
 }
 
 export default function Instruction({
+  activityId,
   instruction,
   title = "STEM Activity",
   subtitle = "Science & Engineering",
@@ -42,20 +44,43 @@ export default function Instruction({
 }: InstructionProps) {
   const router = useRouter();
   const { teamId } = useTeamStore();
-  const { sessionId, setSessionId } = useSessionStore();
+  const { setSessionId } = useSessionStore();
 
   const handleStartExperiment = async () => {
-    if (!teamId) return;
+    if (!teamId || !activityId) return;
+    if (!journeyParams) return;
 
     try {
-      let activeSessionId = sessionId;
+      let activeSessionId: string | null = null;
+
+      const activeSession = await getActiveSessionByActivity(teamId, activityId);
+      if (activeSession?.id) {
+        activeSessionId = activeSession.id;
+        setSessionId(activeSessionId);
+
+        // Resume directly from journey when user already passed prediction.
+        if ((activeSession.currentPhase ?? 1) > 1) {
+          router.push({
+            pathname: "/JourneyComponent" as any,
+            params: {
+              journeyData: JSON.stringify({
+                titles: journeyParams.titles,
+                descriptions: journeyParams.descriptions,
+                pathIDs: journeyParams.pathIDs,
+                activityId,
+              }),
+            },
+          });
+          return;
+        }
+      }
 
       if (!activeSessionId) {
-        activeSessionId = await createSession(teamId, null);
+        activeSessionId = await createSession(teamId, activityId, null);
         // persist the newly created session id into the global store
         setSessionId(activeSessionId);
       }
-      if (!journeyParams || !predictionPath) return;
+      if (!predictionPath) return;
 
       router.push({
         pathname: predictionPath as any,
@@ -64,6 +89,7 @@ export default function Instruction({
             titles: journeyParams.titles,
             descriptions: journeyParams.descriptions,
             pathIDs: journeyParams.pathIDs,
+            activityId,
           }),
         },
       });
