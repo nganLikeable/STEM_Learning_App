@@ -1,5 +1,5 @@
 import { humanPerformanceActivity } from "@/lib/activityPhaseDescriptions";
-import Instruction from "@/src/components/InstructionTemplate";
+import Instruction from "@/src/components/workflow/InstructionTemplate";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -26,9 +26,7 @@ const instructionData = {
   ],
   journeyParams: {
     titles: humanPerformanceActivity.phases.map((phase) => phase.title),
-    descriptions: humanPerformanceActivity.phases.map(
-      (phase) => phase.description,
-    ),
+    descriptions: humanPerformanceActivity.phases.map((phase) => phase.title),
     pathIDs: [
       "/screens/humanPerformanceLab/HumanPerformanceScreen?phase=1",
       "/screens/humanPerformanceLab/HumanPerformanceScreen?phase=2",

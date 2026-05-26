@@ -2,18 +2,18 @@ export const parachuteActivity = {
   phases: [
     {
       id: 1,
-      title: "Minimal canopy",
-      description: "A bare setup with little surface area to slow the fall",
+      title: "Without parachute ",
+      // description: "A bare setup with little surface area to slow the fall",
     },
     {
       id: 2,
-      title: "Balanced canopy",
-      description: "A mid-sized canopy with a simple support layout",
+      title: "With parachute - 4 strings tied to the toy",
+      // description: "A mid-sized canopy with a simple support layout",
     },
     {
       id: 3,
-      title: "Wide canopy",
-      description: "A broader canopy and denser support pattern for more drag",
+      title: "With parachute - 8 strings tied to the toy",
+      // description: "A broader canopy and denser support pattern for more drag",
     },
   ],
 };
@@ -23,20 +23,20 @@ export const soundPollutionActivity = {
     {
       id: 1,
       title: "Drop a book on the table",
-      description:
-        "A softer event that should stay close to the lower end of the meter",
+      // description:
+      //   "A softer event that should stay close to the lower end of the meter",
     },
     {
       id: 2,
       title: "Drop a book on the ground",
-      description:
-        "A clearer event that may sit in the middle of the expected range",
+      // description:
+      //   "A clearer event that may sit in the middle of the expected range",
     },
     {
       id: 3,
-      title: "Drop a full bottle of water on the table",
-      description:
-        "A stronger event that is likely to push the reading toward the top end",
+      title: "Drop a bottle full of water on the table",
+      // description:
+      //   "A stronger event that is likely to push the reading toward the top end",
     },
   ],
 };
@@ -46,20 +46,20 @@ export const handFanActivity = {
     {
       id: 1,
       title: "Far setup",
-      description:
-        "The airflow is weaker here, so the material may only move slightly",
+      // description:
+      //   "The airflow is weaker here, so the material may only move slightly",
     },
     {
       id: 2,
       title: "Middle setup",
-      description:
-        "The airflow is stronger here and may create a noticeable bend",
+      // description:
+      //   "The airflow is stronger here and may create a noticeable bend",
     },
     {
       id: 3,
       title: "Close setup",
-      description:
-        "The airflow is strongest here, but the stiffer material may still resist movement",
+      // description:
+      //   "The airflow is strongest here, but the stiffer material may still resist movement",
     },
   ],
 };
@@ -68,20 +68,20 @@ export const earthquakeActivity = {
   phases: [
     {
       id: 1,
-      title: "Light frame",
-      description: "A simpler build that may shift more when vibration starts",
+      title: "4 folds + 4 pillars",
+      // description: "A simpler build that may shift more when vibration starts",
     },
     {
       id: 2,
-      title: "Reinforced frame",
-      description:
-        "A build with added support that should reduce the motion somewhat",
+      title: "10 folds + 4 pillars",
+      // description:
+      //   "A build with added support that should reduce the motion somewhat",
     },
     {
       id: 3,
-      title: "Stabilized frame",
-      description:
-        "A wider base and extra bracing that should hold the structure best",
+      title: "10 folds + 10 pillars",
+      // description:
+      //   "A wider base and extra bracing that should hold the structure best",
     },
   ],
 };
@@ -91,18 +91,18 @@ export const reactionBoardActivity = {
     {
       id: 1,
       title: "Fast start",
-      description: "A phase where the response may feel familiar and immediate",
+      // description: "A phase where the response may feel familiar and immediate",
     },
     {
       id: 2,
       title: "Steady control",
-      description: "A phase where accuracy may matter more than raw speed",
+      // description: "A phase where accuracy may matter more than raw speed",
     },
     {
       id: 3,
       title: "Tracking challenge",
-      description:
-        "A phase that may demand the most focus because the target keeps changing",
+      // description:
+      //   "A phase that may demand the most focus because the target keeps changing",
     },
   ],
 };
@@ -111,21 +111,21 @@ export const breathingPaceActivity = {
   phases: [
     {
       id: 1,
-      title: "Settled breathing",
-      description:
-        "A calm baseline where the body is still easing into the test",
+      title: "Breathing at rest",
+      // description:
+      //   "A calm baseline where the body is still easing into the test",
     },
     {
       id: 2,
-      title: "Raised breathing",
-      description:
-        "A phase where the rhythm may become noticeably faster after movement",
+      title: "Breathing after light excercise (jogging for 1 minute)",
+      // description:
+      //   "A phase where the rhythm may become noticeably faster after movement",
     },
     {
       id: 3,
-      title: "Peak breathing",
-      description:
-        "A phase where the breathing rate is likely to be at its highest",
+      title: "Breathing after 100 star jumps",
+      // description:
+      //   "A phase where the breathing rate is likely to be at its highest",
     },
   ],
 };
@@ -134,21 +134,21 @@ export const humanPerformanceActivity = {
   phases: [
     {
       id: 1,
-      title: "Controlled motion",
-      description:
-        "A gentler movement pattern that may keep the sensor reading lower",
+      title: "Moving the phone in circle",
+      // description:
+      //   "A gentler movement pattern that may keep the sensor reading lower",
     },
     {
       id: 2,
-      title: "Mixed motion",
-      description:
-        "A middle-ground movement pattern that may create a moderate response",
+      title: "Moving the phone upside down",
+      // description:
+      //   "A middle-ground movement pattern that may create a moderate response",
     },
     {
       id: 3,
-      title: "Dynamic motion",
-      description:
-        "A faster movement pattern that may create the largest sensor response",
+      title: "Moving the phone sideways",
+      // description:
+      //   "A faster movement pattern that may create the largest sensor response",
     },
   ],
 };

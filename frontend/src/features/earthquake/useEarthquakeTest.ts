@@ -122,7 +122,9 @@ export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
     // save to firestore
     try {
       if (!teamId) {
-        throw new Error("Missing teamId. Join or create a team before saving Activity 4.");
+        throw new Error(
+          "Missing teamId. Join or create a team before saving Activity 4.",
+        );
       }
 
       await setActivity4(teamId, designNumber, result);

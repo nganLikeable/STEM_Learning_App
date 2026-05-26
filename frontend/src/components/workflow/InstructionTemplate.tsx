@@ -1,9 +1,13 @@
 import { Button } from "@react-navigation/elements";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
-import { createSession, getActiveSessionByActivity } from "../services/session";
-import { useSessionStore } from "../store/session-store";
-import { useTeamStore } from "../store/team-store";
+import {
+  createSession,
+  getActiveSessionByActivity,
+} from "../../services/session";
+import { useSessionStore } from "../../store/session-store";
+import { useTeamStore } from "../../store/team-store";
 
 interface JourneyParams {
   titles: string[];
@@ -25,6 +29,7 @@ interface InstructionProps {
   legendItems?: Array<{ color: string; label: string }>;
   formulas?: string[];
   journeyParams?: JourneyParams;
+  setupPath?: PredictionPath; // for activities with user designn inputs work flow
   predictionPath?: PredictionPath;
 }
 
@@ -40,11 +45,40 @@ export default function Instruction({
   legendItems,
   formulas,
   journeyParams,
+  setupPath,
   predictionPath,
 }: InstructionProps) {
   const router = useRouter();
   const { teamId } = useTeamStore();
   const { setSessionId } = useSessionStore();
+  const [hasActiveSession, setHasActiveSession] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadActiveSession = async () => {
+      if (!teamId || !activityId) {
+        setHasActiveSession(false);
+        return;
+      }
+
+      try {
+        const activeSession = await getActiveSessionByActivity(teamId, activityId);
+        if (!cancelled) {
+          setHasActiveSession(Boolean(activeSession?.id));
+        }
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) setHasActiveSession(false);
+      }
+    };
+
+    loadActiveSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [teamId, activityId]);
 
   const handleStartExperiment = async () => {
     if (!teamId || !activityId) return;
@@ -53,7 +87,10 @@ export default function Instruction({
     try {
       let activeSessionId: string | null = null;
 
-      const activeSession = await getActiveSessionByActivity(teamId, activityId);
+      const activeSession = await getActiveSessionByActivity(
+        teamId,
+        activityId,
+      );
       if (activeSession?.id) {
         activeSessionId = activeSession.id;
         setSessionId(activeSessionId);
@@ -82,8 +119,15 @@ export default function Instruction({
       }
       if (!predictionPath) return;
 
+      const shouldResumePrediction =
+        activityId === 2 && (activeSession?.designs?.length ?? 0) === 3;
+
+      const nextPath = shouldResumePrediction
+        ? predictionPath
+        : (setupPath ?? predictionPath);
+
       router.push({
-        pathname: predictionPath as any,
+        pathname: nextPath as any,
         params: {
           journeyData: JSON.stringify({
             titles: journeyParams.titles,
@@ -170,7 +214,9 @@ export default function Instruction({
         <Text style={styles.bodyText}>{instruction}</Text>
       </SectionCard>
 
-      <Button onPress={handleStartExperiment}>Start Experiment</Button>
+      <Button onPress={handleStartExperiment}>
+        {hasActiveSession ? "Resume Experiment" : "Start Experiment"}
+      </Button>
 
       {/* ── Safety Note ──
       <View style={styles.safetyBanner}>

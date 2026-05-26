@@ -1,5 +1,5 @@
 import { parachuteActivity } from "@/lib/activityPhaseDescriptions";
-import Instruction from "@/src/components/InstructionTemplate";
+import Instruction from "@/src/components/workflow/InstructionTemplate";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -34,7 +34,7 @@ export const instructionData = {
   ],
   journeyParams: {
     titles: parachuteActivity.phases.map((p) => p.title),
-    descriptions: parachuteActivity.phases.map((p) => p.description),
+    descriptions: parachuteActivity.phases.map((p) => p.title),
     pathIDs: [
       "/screens/parachute/VideoRecorderScreen",
       "/screens/parachute/VideoRecorderScreen",

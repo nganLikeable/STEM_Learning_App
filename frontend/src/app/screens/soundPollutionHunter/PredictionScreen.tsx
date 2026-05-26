@@ -1,5 +1,5 @@
 import { soundPollutionActivity } from "@/lib/activityPhaseDescriptions";
-import PredictionTemplate from "@/src/components/PredictionTemplate";
+import PredictionTemplate from "@/src/components/workflow/PredictionTemplate";
 import { updateSession } from "@/src/services/session";
 import { useSessionStore } from "@/src/store/session-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -18,7 +18,7 @@ export default function PredictionScreen() {
       router.replace("/screens/soundPollutionHunter/InstructionScreen");
       return;
     }
-    console.log(journeyData);
+
     router.replace({
       pathname: "/JourneyComponent",
       params: { journeyData },
@@ -27,12 +27,13 @@ export default function PredictionScreen() {
 
   return (
     <PredictionTemplate
-      activityNo={2}
+      activityId={2}
       activityName="Sound Pollution Hunter"
       title="Which sound source will be loudest?"
       description="Pick the sound source you think will create the highest dB reading in the room."
+      fallbackDesigns={soundPollutionActivity.phases}
+      titleOnly
       onSave={handleSave}
-      designs={soundPollutionActivity.phases}
     />
   );
 }

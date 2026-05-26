@@ -1,5 +1,5 @@
 import { humanPerformanceActivity } from "@/lib/activityPhaseDescriptions";
-import PredictionTemplate from "@/src/components/PredictionTemplate";
+import PredictionTemplate from "@/src/components/workflow/PredictionTemplate";
 import { updateSession } from "@/src/services/session";
 import { useSessionStore } from "@/src/store/session-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -27,7 +27,7 @@ export default function PredictionScreen() {
 
   return (
     <PredictionTemplate
-      activityNo={5}
+      activityId={5}
       activityName="Human Performance Lab"
       title="Which movement will create the strongest sensor response?"
       description="Pick the movement style you think will produce the most noticeable vibration changes."

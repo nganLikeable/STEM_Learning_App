@@ -1,5 +1,5 @@
 import { reactionBoardActivity } from "@/lib/activityPhaseDescriptions";
-import PredictionTemplate from "@/src/components/PredictionTemplate";
+import PredictionTemplate from "@/src/components/workflow/PredictionTemplate";
 import { updateSession } from "@/src/services/session";
 import { useSessionStore } from "@/src/store/session-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -27,7 +27,7 @@ export default function PredictionScreen() {
 
   return (
     <PredictionTemplate
-      activityNo={6}
+      activityId={6}
       activityName="Reaction Board Challenge"
       title="Which challenge will be fastest?"
       description="Choose the test you think will produce the quickest reaction time and strongest focus."

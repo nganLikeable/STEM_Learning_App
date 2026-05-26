@@ -1,5 +1,5 @@
 import { handFanActivity } from "@/lib/activityPhaseDescriptions";
-import PredictionTemplate from "@/src/components/PredictionTemplate";
+import PredictionTemplate from "@/src/components/workflow/PredictionTemplate";
 import { updateSession } from "@/src/services/session";
 import { useSessionStore } from "@/src/store/session-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -27,7 +27,7 @@ export default function PredictionScreen() {
 
   return (
     <PredictionTemplate
-      activityNo={3}
+      activityId={3}
       activityName="Hand Fan Challenge"
       title="Which fan setup will make the paper move the most?"
       description="Pick the combination of material, fan distance, and airflow that you think will create the biggest bend."

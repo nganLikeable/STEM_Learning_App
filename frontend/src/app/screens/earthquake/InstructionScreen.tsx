@@ -1,4 +1,4 @@
-import Instruction from "@/src/components/InstructionTemplate";
+import Instruction from "@/src/components/workflow/InstructionTemplate";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -56,6 +56,7 @@ export default function InstructionScreen() {
         legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}
+        setupPath="/screens/earthquake/DesignInputScreen"
         predictionPath="/screens/earthquake/PredictionScreen"
       />
     </SafeAreaView>

@@ -1,38 +1,96 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { getActiveSessionByActivity } from "@/src/services/session";
+import { useTeamStore } from "@/src/store/team-store";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 interface Design {
   id: number;
   title: string;
-  description: string;
+  description?: string; // applied to hardcoded (predefined ones)
 }
 interface PredictionTemplateProps {
-  activityNo: number;
+  activityId: number;
   activityName: string;
   title: string;
   description: string;
-  designs: Design[];
+  designs?: Design[]; // applied to activities requiring user inputs for designs
+  fallbackDesigns?: Design[]; // applied too activities with predefined acts
   onSave: (prediction: number) => void;
+  titleOnly?: boolean;
 }
 
 export default function PredictionTemplate({
-  activityNo,
+  activityId,
   activityName,
   title,
   description,
   designs,
+  fallbackDesigns,
   onSave,
+  titleOnly = false,
 }: PredictionTemplateProps) {
   const [prediction, setPrediction] = useState<number | null>(null);
-  const router = useRouter();
-  const { journeyData } = useLocalSearchParams<{ journeyData?: string }>();
+  const { teamId } = useTeamStore();
+  const [resolvedDesigns, setResolvedDesigns] = useState<Design[]>(
+    designs ?? fallbackDesigns ?? [],
+  );
 
-  console.log(journeyData);
+  // fetch design inputs if applicable
+  useEffect(() => {
+    if (designs) {
+      setResolvedDesigns(designs);
+      return;
+    }
+
+    if (!fallbackDesigns) {
+      setResolvedDesigns([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadDesigns = async () => {
+      if (!teamId) {
+        setResolvedDesigns(fallbackDesigns);
+        return;
+      }
+
+      try {
+        // get active session to fetch the right inputs by teamId and activityId
+        const activeSession = await getActiveSessionByActivity(
+          teamId,
+          activityId,
+        );
+        const savedDesigns = activeSession?.designs ?? [];
+
+        if (cancelled) return;
+
+        if (savedDesigns.length === 3) {
+          setResolvedDesigns(
+            savedDesigns.map((design) => ({
+              id: design.id,
+              title: design.title,
+            })),
+          );
+        } else {
+          setResolvedDesigns(fallbackDesigns);
+        }
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) setResolvedDesigns(fallbackDesigns);
+      }
+    };
+
+    loadDesigns();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activityId, designs, fallbackDesigns, teamId]);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.activityText}>Activity {activityNo}</Text>
+        <Text style={styles.activityText}>Activity {activityId}</Text>
         <Text style={styles.activityName}>{activityName}</Text>
       </View>
 
@@ -42,7 +100,7 @@ export default function PredictionTemplate({
       </View>
 
       <View style={styles.buttonContainer}>
-        {designs.map((d, index) => {
+        {resolvedDesigns.map((d, index) => {
           const selected = prediction === d.id;
           return (
             <Pressable
@@ -54,9 +112,12 @@ export default function PredictionTemplate({
               ]}
             >
               <View style={styles.cardTopRow}>
-                <Text style={styles.cardNumber}>0{d.id}</Text>
+                <Text style={styles.cardNumber}>Design {d.id}</Text>
               </View>
               <Text style={styles.buttonTitle}>{d.title}</Text>
+              {!titleOnly && d.description ? (
+                <Text style={styles.buttonSubtitle}>{d.description}</Text>
+              ) : null}
             </Pressable>
           );
         })}
@@ -151,6 +212,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#0F172A",
     lineHeight: 22,
+  },
+
+  buttonSubtitle: {
+    fontSize: 14,
+    color: "#475569",
+    lineHeight: 20,
   },
 
   saveButton: {

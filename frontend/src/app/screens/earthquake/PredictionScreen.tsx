@@ -1,5 +1,5 @@
 import { earthquakeActivity } from "@/lib/activityPhaseDescriptions";
-import PredictionTemplate from "@/src/components/PredictionTemplate";
+import PredictionTemplate from "@/src/components/workflow/PredictionTemplate";
 import { updateSession } from "@/src/services/session";
 import { useSessionStore } from "@/src/store/session-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -27,12 +27,12 @@ export default function PredictionScreen() {
 
   return (
     <PredictionTemplate
-      activityNo={4}
+      activityId={4}
       activityName="Earthquake-Resistant Structure"
       title="Which structure will survive the vibration best?"
       description="Choose the design you think will move the least during the earthquake test."
       onSave={handleSave}
-      designs={earthquakeActivity.phases}
+      fallbackDesigns={earthquakeActivity.phases}
     />
   );
 }

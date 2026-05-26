@@ -10,6 +10,12 @@ import {
 } from "firebase/firestore";
 import { db } from "./firestore";
 
+// for activity that requires user's own designs
+export interface SessionDesignInput {
+  id: number;
+  title: string;
+}
+
 export interface SessionDoc {
   id: string;
   teamId: string;
@@ -17,6 +23,7 @@ export interface SessionDoc {
   prediction: number | null;
   currentPhase: number;
   completed: boolean;
+  designs?: SessionDesignInput[];
 }
 
 // create a new session when starting a path
@@ -32,6 +39,7 @@ export const createSession = async (
       prediction,
       currentPhase: 1,
       completed: false,
+      designs: [],
       createdAt: serverTimestamp(),
     });
     return docRef.id; // sessionId
@@ -65,6 +73,16 @@ export const getActiveSessionByActivity = async (
           currentPhase:
             typeof data.currentPhase === "number" ? data.currentPhase : 1,
           completed: Boolean(data.completed),
+          designs: Array.isArray(data.designs)
+            ? data.designs
+                .map((design: any) => ({
+                  id: Number(design.id),
+                  title: String(design.title ?? ""),
+                }))
+                .filter(
+                  (design: SessionDesignInput) => !Number.isNaN(design.id),
+                )
+            : [],
           createdAtMillis:
             typeof data.createdAt?.toMillis === "function"
               ? data.createdAt.toMillis()
@@ -89,9 +107,22 @@ export const getActiveSessionByActivity = async (
       prediction: active.prediction,
       currentPhase: active.currentPhase,
       completed: active.completed,
+      designs: active.designs,
     };
   } catch (e) {
     console.error("Error fetching active session", e);
+    throw e;
+  }
+};
+
+export const updateSessionDesigns = async (
+  sessionId: string,
+  designs: SessionDesignInput[],
+) => {
+  try {
+    await updateDoc(doc(db, "sessions", sessionId), { designs });
+  } catch (e) {
+    console.error("Error updating session designs", e);
     throw e;
   }
 };

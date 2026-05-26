@@ -1,4 +1,4 @@
-import Instruction from "@/src/components/InstructionTemplate";
+import Instruction from "@/src/components/workflow/InstructionTemplate";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 

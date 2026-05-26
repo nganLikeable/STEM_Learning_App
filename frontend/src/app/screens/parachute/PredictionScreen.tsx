@@ -1,5 +1,5 @@
 import { parachuteActivity } from "@/lib/activityPhaseDescriptions";
-import PredictionTemplate from "@/src/components/PredictionTemplate";
+import PredictionTemplate from "@/src/components/workflow/PredictionTemplate";
 import { updateSession } from "@/src/services/session";
 import { useSessionStore } from "@/src/store/session-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -35,7 +35,7 @@ export default function PredictionScreen() {
 
   return (
     <PredictionTemplate
-      activityNo={1}
+      activityId={1}
       activityName="Parachute Drop Challenge"
       title="Which parachute design is the best?"
       description="Pick a parachute design that will land slower and safer."

@@ -1,4 +1,4 @@
-import Instruction from "@/src/components/InstructionTemplate";
+import Instruction from "@/src/components/workflow/InstructionTemplate";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -29,7 +29,7 @@ const instructionData = {
     titles: [
       "Phase 1: Drop a book on the table (20cm)",
       "Phase 2: Drop a book on the ground (1m)",
-      "Phase 3: Drop a full filled of bottle of water on the table (20cm)",
+      "Phase 3: Drop a bottle full of water on the table (20cm)",
     ],
     descriptions: [
       "Place the phone on the table, then gently drop a book from approximately 20cm near the phone to measure the sound dB level.",
@@ -37,7 +37,7 @@ const instructionData = {
       "Place the phone close to the table, then drop a full bottle of water from approximately 20cm onto the table to measure the sound dB level.",
     ],
     pathIDs: [
-      "/SoundMeasureTrackingScreen",
+      "/screens/soundPollutionHunter/SoundMeasureTrackingScreen",
       "/screens/soundPollutionHunter/SoundMeasureTrackingScreen",
       "/screens/soundPollutionHunter/SoundMeasureTrackingScreen",
     ],

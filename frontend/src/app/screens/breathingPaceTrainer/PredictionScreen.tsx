@@ -1,5 +1,5 @@
 import { breathingPaceActivity } from "@/lib/activityPhaseDescriptions";
-import PredictionTemplate from "@/src/components/PredictionTemplate";
+import PredictionTemplate from "@/src/components/workflow/PredictionTemplate";
 import { updateSession } from "@/src/services/session";
 import { useSessionStore } from "@/src/store/session-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -27,7 +27,7 @@ export default function PredictionScreen() {
 
   return (
     <PredictionTemplate
-      activityNo={7}
+      activityId={7}
       activityName="Breathing Pace Trainer"
       title="When will breathing be fastest?"
       description="Choose the phase where you expect the breathing rate to increase the most."

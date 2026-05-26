@@ -84,6 +84,9 @@ export const setActivity1 = async (
   }
 };
 
+// activity 2 - sound
+export const setActivity2 = {};
+
 // activity 4 - earthquake
 export const setActivity4 = async (teamId, designNumber, result) => {
   try {
