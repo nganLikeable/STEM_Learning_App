@@ -4,7 +4,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const instructionData = {
   instruction:
-    "Test how air movement affects flexible materials. Stand paper upright on a table. Fan air from 30 cm away and observe movement. Repeat with different fan designs and fan distances (15cm, 30cm, 45cm). Repeat with cardboard instead of paper.",
+`Find out how fan design and distance affect how much a material bends.
+  What you'll do:
+- Stand paper upright on a table
+- Fan air from 30 cm away and observe how it moves
+- Try different fan designs and distances (15 cm, 30 cm, 45 cm)
+- Swap paper for cardboard and repeat
+- Record and compare your results each time`,
 
   tools: [
     "Paper and cardboard",
@@ -12,16 +18,6 @@ const instructionData = {
     "Mobile phone",
     "Sticky Tape",
     "STEMM Mobile App",
-  ],
-
-  diagramImage:
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png",
-
-  diagramTitle: "Fan Force Diagram",
-
-  legendItems: [
-    { color: "#4C9BE8", label: "Air Force →" },
-    { color: "#7C5CBF", label: "Material Stiffness" },
   ],
 
   formulas: [
@@ -50,9 +46,6 @@ export default function InstructionScreen() {
         subtitle="Physics – Air Movement"
         emoji="💨"
         tools={instructionData.tools}
-        diagramImage={instructionData.diagramImage}
-        diagramTitle={instructionData.diagramTitle}
-        legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}
         predictionPath="/screens/handFanChallenge/PredictionScreen"

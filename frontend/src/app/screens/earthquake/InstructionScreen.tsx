@@ -4,7 +4,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const instructionData = {
   instruction:
-    "Design structures that withstand vibration, simulating earthquakes. Build an anti-vibration layer by folding paper/cardboard. Place a flat cardboard platform on top. Place the phone in the center and activate vibration mode on the STEMM App. Modify the structure to reduce movement by adding more pillars or folds.",
+`Build a structure that can survive a simulated earthquake — then improve it.
+  What you'll do:
+- Fold paper or cardboard to create an anti-vibration base layer
+- Place a flat cardboard platform on top
+- Put the phone in the centre and activate vibration mode in the app
+- Modify your structure (add pillars or folds) to reduce movement
+- Redesign and retest — up to 3 prototypes`,
 
   tools: [
     "Cardboard",
@@ -13,16 +19,6 @@ const instructionData = {
     "Sticky tape",
     "Plastic/paper cups",
     "Mobile phone with vibration sensor",
-  ],
-
-  diagramImage:
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png",
-
-  diagramTitle: "Vibration Damping Structure",
-
-  legendItems: [
-    { color: "#E87C4C", label: "Support Pillars" },
-    { color: "#4CBF7C", label: "Damping Layer" },
   ],
 
   formulas: [
@@ -51,9 +47,6 @@ export default function InstructionScreen() {
         subtitle="Engineering + Earth Science"
         emoji="🌍"
         tools={instructionData.tools}
-        diagramImage={instructionData.diagramImage}
-        diagramTitle={instructionData.diagramTitle}
-        legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}
         setupPath="/screens/earthquake/DesignInputScreen"

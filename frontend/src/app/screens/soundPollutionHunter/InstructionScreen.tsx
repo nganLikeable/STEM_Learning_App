@@ -4,20 +4,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const instructionData = {
   instruction:
-    "Measure and compare sound levels in different classroom activities. Measure noise from different actions (dropping objects, talking, walking, stamping your feet). Record sound levels and locations. Map loud and quiet zones.",
+`Hunt for loud and quiet zones in your classroom by measuring real sound levels.
+  What you'll do:
+- Drop a book from 20 cm onto the table and record the sound level
+- Drop the same book from 1 m onto the floor and record again
+- Drop a full water bottle from 20 cm onto the table
+- Compare all three readings and see what's safe or harmful`,
 
   tools: ["Mobile phone with STEMM Lab app"],
-
-  diagramImage:
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png",
-
-  diagramTitle: "Sound Levels and Risk",
-
-  legendItems: [
-    { color: "#4CBF7C", label: "Safe (0-60 dB)" },
-    { color: "#E8B44C", label: "Caution (60-85 dB)" },
-    { color: "#E84C7C", label: "Harmful (85+ dB)" },
-  ],
 
   formulas: [
     "Sound Level (dB)",
@@ -54,9 +48,6 @@ export default function InstructionScreen() {
         subtitle="Environmental Science"
         emoji="🔊"
         tools={instructionData.tools}
-        diagramImage={instructionData.diagramImage}
-        diagramTitle={instructionData.diagramTitle}
-        legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}
         predictionPath="/screens/soundPollutionHunter/PredictionScreen"

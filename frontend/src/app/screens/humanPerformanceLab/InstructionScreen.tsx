@@ -5,19 +5,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const instructionData = {
   instruction:
-    "Investigate how the human body moves by measuring speed, smoothness, and coordination during controlled stretching activities. Hold the phone firmly in one hand and activate the vibration sensor. Perform guided movements slowly as shown in the app and record the vibration. Review speed, smoothness, and range-of-motion data.",
+`Discover how your body moves by measuring speed, smoothness, and coordination.
+  What you'll do:
+- Hold the phone firmly in one hand and activate the vibration sensor
+- Perform the guided stretching movements slowly and steadily
+- Record the vibration data for each movement
+- Review your speed, smoothness, and range-of-motion results`,
 
   tools: ["Mobile phone with STEMM Lab app", "Open space to move safely"],
-
-  diagramImage:
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png",
-
-  diagramTitle: "Movement Patterns",
-
-  legendItems: [
-    { color: "#4C9BE8", label: "Smooth Movement" },
-    { color: "#E84C7C", label: "Jerky Movement" },
-  ],
 
   formulas: [
     "Vibration = Movement smoothness",
@@ -45,9 +40,6 @@ export default function InstructionScreen() {
         subtitle="Medical Science + Biomechanics"
         emoji="🏃"
         tools={instructionData.tools}
-        diagramImage={instructionData.diagramImage}
-        diagramTitle={instructionData.diagramTitle}
-        legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}
         predictionPath="/screens/humanPerformanceLab/PredictionScreen"

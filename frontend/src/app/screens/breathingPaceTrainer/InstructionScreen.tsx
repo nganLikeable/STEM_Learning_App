@@ -4,19 +4,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const instructionData = {
   instruction:
-    "Analyse breathing patterns at rest and after exercise. Place the phone gently on your chest and record your breathing at rest. Perform light exercise (jog one minute on the spot or do 100 star jumps). Record your breathing again and compare the results.",
+`Measure how your breathing changes before and after exercise — and see the science in your own lungs.
+  What you'll do:
+- Place the phone on your chest and record your breathing at rest
+- Do 1 minute of light exercise (jog on the spot or 100 star jumps)
+- Record your breathing again with the phone on your chest
+- Compare your rest and exercise breathing rates`,
 
   tools: ["Mobile phone with STEMM Lab app", "Flat surface or mat"],
-
-  diagramImage:
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png",
-
-  diagramTitle: "Breathing Rate Response",
-
-  legendItems: [
-    { color: "#4C9BE8", label: "Resting Rate" },
-    { color: "#E84C7C", label: "After Exercise" },
-  ],
 
   formulas: [
     "Breathing at Rest: ~6-12 breaths/min",
@@ -44,9 +39,6 @@ export default function InstructionScreen() {
         subtitle="Medical Science"
         emoji="🫁"
         tools={instructionData.tools}
-        diagramImage={instructionData.diagramImage}
-        diagramTitle={instructionData.diagramTitle}
-        legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}
         predictionPath="/screens/breathingPaceTrainer/PredictionScreen"

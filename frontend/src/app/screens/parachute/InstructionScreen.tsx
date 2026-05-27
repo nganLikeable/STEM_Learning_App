@@ -4,8 +4,14 @@ import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export const instructionData = {
-  instruction:
-    "Design, build, and test a parachute for a small toy to reduce its landing speed and impact force. Drop the toy without a parachute and record the fall as a baseline test. Build a parachute using provided materials. Drop the toy from the same height and record the fall. Review speed and landing accuracy results. Redesign and test up to three prototypes within 20 minutes. Upload videos, results, and team reflections.",
+  instruction: 
+`Drop a toy from a set height, build a parachute, and see how much you can slow it down.
+  What you'll do:
+- Drop the toy without a parachute to record a baseline
+- Build a parachute from provided materials
+- Drop from the same height and compare the results
+- Redesign and retest — up to 3 prototypes in 20 minutes
+- Upload your videos, results, and team reflections`,
 
   tools: [
     "Mobile phone with STEMM Lab app",

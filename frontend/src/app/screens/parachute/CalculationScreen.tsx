@@ -4,44 +4,34 @@ import { advanceActiveSession } from "@/src/services/session";
 import { useTeamStore } from "@/src/store/team-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Button, StyleSheet, Text, TextInput, View } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// for rendering the corresponding stage
 type Step = "INPUT" | "CALCULATE" | "RESULT";
+
+const NAVY = "#1A2F5A";
+const BLUE = "#3977fd";
+const SLATE = "#64748B";
+const BG = "#F4F6F9";
 
 export default function CalculationFlow() {
   const router = useRouter();
-  // get teamId to store
   const { teamId } = useTeamStore();
-  console.log("teamId from store:", teamId);
 
-  // read params markedTime to prefill
   const { markedTime, journeyData } = useLocalSearchParams<{
     markedTime?: string | string[];
     journeyData?: string;
   }>();
-  const markedTimeValue = Array.isArray(markedTime)
-    ? markedTime[0]
-    : markedTime;
+  const markedTimeValue = Array.isArray(markedTime) ? markedTime[0] : markedTime;
+
   useEffect(() => {
     if (markedTime !== undefined) {
-      setInput((prev) => ({
-        ...prev,
-        time: markedTime.toString(),
-      }));
+      setInput((prev) => ({ ...prev, time: markedTime.toString() }));
     }
   }, [markedTime]);
-  // user input of experiment units
-  const [input, setInput] = useState({
-    mass: "",
-    time: markedTimeValue ?? "",
-    distance: "",
-  });
 
-  // stage of flow, starting with entering parameters
-  const [step, setStep] = useState("INPUT");
+  const [input, setInput] = useState({ mass: "", time: markedTimeValue ?? "", distance: "" });
+  const [step, setStep] = useState<Step>("INPUT");
   const [error, setError] = useState("");
 
   const [userCalculation, setUserCalculation] = useState({
@@ -51,7 +41,6 @@ export default function CalculationFlow() {
     dragForce: "",
   });
 
-  // for counting correct/incorrect answers
   const [fieldResults, setFieldResults] = useState({
     velocity: null as boolean | null,
     acceleration: null as boolean | null,
@@ -59,169 +48,20 @@ export default function CalculationFlow() {
     dragForce: null as boolean | null,
   });
 
-  // correct answers
   const [correct, setCorrect] = useState(0);
 
-  // validate input - not empty
-  const isExperimentInputValid = () => {
-    return (
-      input.time !== "" &&
-      input.distance !== "" &&
-      input.mass !== "" &&
-      input.time !== "0" &&
-      input.distance !== "0" &&
-      input.mass !== "0"
-    );
-  };
+  const isExperimentInputValid = () =>
+    input.time !== "" && input.distance !== "" && input.mass !== "" &&
+    input.time !== "0" && input.distance !== "0" && input.mass !== "0";
 
-  const isCaculationInputValid = () => {
-    return (
-      userCalculation.acceleration !== "" &&
-      userCalculation.dragForce !== "" &&
-      userCalculation.netForce !== "" &&
-      userCalculation.velocity !== ""
-    );
-  };
+  const isCaculationInputValid = () =>
+    userCalculation.acceleration !== "" && userCalculation.dragForce !== "" &&
+    userCalculation.netForce !== "" && userCalculation.velocity !== "";
 
-  // INPUT step: data entry
-  if (step === "INPUT") {
-    return (
-      <SafeAreaView style={styles.safeArea} edges={["top"]}>
-        <ScrollView>
-          <View style={styles.container}>
-            <Text style={styles.header}>
-              Step 1: Enter Experiment Parameters
-            </Text>
-            <Text style={styles.text}>
-              Based on your experiment set up, please enter the following
-              parameters:{" "}
-            </Text>
-            <Text style={styles.label}>Time (s)</Text>
-            <TextInput
-              style={styles.input}
-              value={input.time}
-              onChangeText={(t) => {
-                setInput({ ...input, time: t });
-                setError("");
-              }}
-              keyboardType="numeric"
-            />
-            <Text style={styles.label}>Mass (kg)</Text>
-
-            <TextInput
-              style={styles.input}
-              onChangeText={(t) => {
-                setInput({ ...input, mass: t });
-                setError("");
-              }}
-              keyboardType="numeric"
-            />
-            <Text style={styles.label}>Distance (m)</Text>
-
-            <TextInput
-              style={styles.input}
-              onChangeText={(t) => {
-                setInput({ ...input, distance: t });
-                setError("");
-              }}
-              keyboardType="numeric"
-            />
-            {error && <Text style={styles.error}>{error}</Text>}
-            <Button
-              title="Next step"
-              onPress={() => {
-                if (!isExperimentInputValid()) {
-                  setError("Please fill in all the fields!");
-                  return;
-                }
-                setStep("CALCULATE");
-                setError("");
-              }}
-            />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
-
-  // Step 2: Calculate
-  if (step === "CALCULATE") {
-    return (
-      <SafeAreaView style={styles.container} edges={["top"]}>
-        <ScrollView>
-          <Text style={styles.header}>Step 2: Calculate</Text>
-          <Text style={styles.text}>
-            Please calculate these units and enter your answers. Click on
-            Instruction to view the Formulas
-          </Text>
-          <SafeAreaView style={styles.summaryBox}>
-            <Text>
-              Mass: {input.mass}kg | Dist: {input.distance}m | Time:{" "}
-              {input.time}s
-            </Text>
-          </SafeAreaView>
-
-          <Text style={styles.header}>Velocity (m/s)</Text>
-          <TextInput
-            style={styles.input}
-            onChangeText={(t) => {
-              setUserCalculation({ ...userCalculation, velocity: t });
-              setError("");
-            }}
-            keyboardType="numeric"
-          />
-
-          <Text style={styles.header}>Acceleration (m/s²)</Text>
-          <TextInput
-            style={styles.input}
-            onChangeText={(t) => {
-              setUserCalculation({ ...userCalculation, acceleration: t });
-              setError("");
-            }}
-            keyboardType="numeric"
-          />
-
-          <Text style={styles.header}>Net Force (N)</Text>
-          <TextInput
-            style={styles.input}
-            onChangeText={(t) => {
-              setUserCalculation({ ...userCalculation, netForce: t });
-              setError("");
-            }}
-            keyboardType="numeric"
-          />
-
-          <Text style={styles.header}>Drag Force (N)</Text>
-          <TextInput
-            style={styles.input}
-            onChangeText={(t) => {
-              setUserCalculation({ ...userCalculation, dragForce: t });
-              setError("");
-            }}
-            keyboardType="numeric"
-          />
-          {error && <Text style={styles.error}>{error}</Text>}
-          <Button
-            title="Submit & Check your answers"
-            onPress={() => {
-              if (!isCaculationInputValid()) {
-                setError("Please fill in all the calculations!");
-                return;
-              }
-              validate();
-              setStep("RESULT");
-            }}
-          />
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
-
-  const result = () => {
+  const getResult = () => {
     const t = parseFloat(input.time);
     const d = parseFloat(input.distance);
     const m = parseFloat(input.mass);
-
     return parachuteCalculate({ time: t, distance: d, mass: m });
   };
 
@@ -229,55 +69,24 @@ export default function CalculationFlow() {
     const t = parseFloat(input.time);
     const d = parseFloat(input.distance);
     const m = parseFloat(input.mass);
+    const calculated = parachuteCalculate({ time: t, distance: d, mass: m });
 
-    const result = parachuteCalculate({ time: t, distance: d, mass: m });
-
-    const entered = {
-      velocity: parseFloat(userCalculation.velocity),
-      acceleration: parseFloat(userCalculation.acceleration),
-      netForce: parseFloat(userCalculation.netForce),
-      dragForce: parseFloat(userCalculation.dragForce),
-    };
-
-    // accept small rounding differences
     const EPS = 0.05;
-    // function to check if answer is correct or not
     const nearlyEqual = (a: number, b: number) => Math.abs(a - b) <= EPS;
 
     const validationMap = {
-      velocity: nearlyEqual(
-        parseFloat(userCalculation.velocity),
-        result.velocity,
-      ),
-      acceleration: nearlyEqual(
-        parseFloat(userCalculation.acceleration),
-        result.acceleration,
-      ),
-      netForce: nearlyEqual(
-        parseFloat(userCalculation.netForce),
-        result.netForce,
-      ),
-      dragForce: nearlyEqual(
-        parseFloat(userCalculation.dragForce),
-        result.dragForce,
-      ),
+      velocity: nearlyEqual(parseFloat(userCalculation.velocity), calculated.velocity),
+      acceleration: nearlyEqual(parseFloat(userCalculation.acceleration), calculated.acceleration),
+      netForce: nearlyEqual(parseFloat(userCalculation.netForce), calculated.netForce),
+      dragForce: nearlyEqual(parseFloat(userCalculation.dragForce), calculated.dragForce),
     };
 
     setFieldResults(validationMap);
-
-    const correctCount = Object.values(validationMap).filter(
-      (f) => f === true,
-    ).length;
+    const correctCount = Object.values(validationMap).filter((f) => f === true).length;
     setCorrect(correctCount);
 
-    // save to firestore
     try {
-      if (!teamId) {
-        throw new Error(
-          "Missing teamId. Join or create a team before saving Activity 1.",
-        );
-      }
-
+      if (!teamId) throw new Error("Missing teamId.");
       await setActivity1(
         teamId,
         { time: t, distance: d, mass: m },
@@ -291,78 +100,422 @@ export default function CalculationFlow() {
         correctCount,
       );
       await advanceActiveSession(teamId, 1);
-      console.log("Saved successfully");
     } catch (e) {
       console.error("Failed to save:", e);
     }
   }
 
-  if (step === "RESULT") {
-    const correctValues = result();
+  // ── INPUT ─────────────────────────────────────────────────────────────────
+  if (step === "INPUT") {
     return (
-      <SafeAreaView style={styles.container}>
-        <ScrollView>
-          <Text style={styles.header}>Score: {correct} / 4</Text>
+      <SafeAreaView style={styles.safe} edges={["top"]}>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+          <PageHeader stepNum={1} subtitle="Enter Experiment Parameters" />
 
-          <View style={styles.summaryBox}>
-            <Text>
-              Velocity: {userCalculation.velocity} (Correct:{" "}
-              {correctValues.velocity.toFixed(2)})
-            </Text>
-            <Text>
-              Acceleration: {userCalculation.acceleration} (Correct:{" "}
-              {correctValues.acceleration.toFixed(2)})
-            </Text>
-            <Text>
-              Net Force: {userCalculation.netForce} (Correct:{" "}
-              {correctValues.netForce.toFixed(2)})
-            </Text>
-            <Text>
-              Drag Force: {userCalculation.dragForce} (Correct:{" "}
-              {correctValues.dragForce.toFixed(2)})
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Experiment Parameters</Text>
+            <Text style={styles.cardSub}>Based on your experiment setup, enter the values below.</Text>
+
+            <InputField
+              label="Time (s)"
+              value={input.time}
+              onChangeText={(t) => { setInput({ ...input, time: t }); setError(""); }}
+              prefilled={!!markedTimeValue}
+            />
+            <InputField
+              label="Mass (kg)"
+              onChangeText={(t) => { setInput({ ...input, mass: t }); setError(""); }}
+            />
+            <InputField
+              label="Distance (m)"
+              onChangeText={(t) => { setInput({ ...input, distance: t }); setError(""); }}
+            />
+
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          </View>
+
+          <Pressable
+            style={styles.primaryBtn}
+            onPress={() => {
+              if (!isExperimentInputValid()) {
+                setError("Please fill in all the fields.");
+                return;
+              }
+              setStep("CALCULATE");
+              setError("");
+            }}
+          >
+            <Text style={styles.primaryBtnText}>Continue →</Text>
+          </Pressable>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // ── CALCULATE ─────────────────────────────────────────────────────────────
+  if (step === "CALCULATE") {
+    return (
+      <SafeAreaView style={styles.safe} edges={["top"]}>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+          <PageHeader stepNum={2} subtitle="Calculate & Verify" />
+
+          <View style={styles.summaryPill}>
+            <SummaryChip label="Mass" value={`${input.mass} kg`} />
+            <View style={styles.pillDivider} />
+            <SummaryChip label="Dist" value={`${input.distance} m`} />
+            <View style={styles.pillDivider} />
+            <SummaryChip label="Time" value={`${input.time} s`} />
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Your Calculations</Text>
+            <Text style={styles.cardSub}>Use the formulas from the instruction screen.</Text>
+
+            <InputField
+              label="Velocity (m/s)"
+              onChangeText={(t) => { setUserCalculation({ ...userCalculation, velocity: t }); setError(""); }}
+            />
+            <InputField
+              label="Acceleration (m/s²)"
+              onChangeText={(t) => { setUserCalculation({ ...userCalculation, acceleration: t }); setError(""); }}
+            />
+            <InputField
+              label="Net Force (N)"
+              onChangeText={(t) => { setUserCalculation({ ...userCalculation, netForce: t }); setError(""); }}
+            />
+            <InputField
+              label="Drag Force (N)"
+              onChangeText={(t) => { setUserCalculation({ ...userCalculation, dragForce: t }); setError(""); }}
+            />
+
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          </View>
+
+          <Pressable
+            style={styles.primaryBtn}
+            onPress={async () => {
+              if (!isCaculationInputValid()) {
+                setError("Please fill in all the calculations.");
+                return;
+              }
+              await validate();
+              setStep("RESULT");
+            }}
+          >
+            <Text style={styles.primaryBtnText}>Submit & Check Answers</Text>
+          </Pressable>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // ── RESULT ────────────────────────────────────────────────────────────────
+  if (step === "RESULT") {
+    const correctValues = getResult();
+    const scoreColor = correct === 4 ? "#16a34a" : correct >= 2 ? "#d97706" : "#dc2626";
+
+    const fields: {
+      key: keyof typeof fieldResults;
+      label: string;
+      unit: string;
+      correctVal: number;
+      userVal: string;
+    }[] = [
+      { key: "velocity", label: "Velocity", unit: "m/s", correctVal: correctValues.velocity, userVal: userCalculation.velocity },
+      { key: "acceleration", label: "Acceleration", unit: "m/s²", correctVal: correctValues.acceleration, userVal: userCalculation.acceleration },
+      { key: "netForce", label: "Net Force", unit: "N", correctVal: correctValues.netForce, userVal: userCalculation.netForce },
+      { key: "dragForce", label: "Drag Force", unit: "N", correctVal: correctValues.dragForce, userVal: userCalculation.dragForce },
+    ];
+
+    return (
+      <SafeAreaView style={styles.safe} edges={["top"]}>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+          <View style={[styles.scoreBanner, { borderColor: scoreColor }]}>
+            <Text style={styles.scoreBannerLabel}>YOUR SCORE</Text>
+            <Text style={[styles.scoreBannerScore, { color: scoreColor }]}>{correct} / 4</Text>
+            <Text style={styles.scoreBannerSub}>
+              {correct === 4
+                ? "Perfect — all answers correct!"
+                : `${4 - correct} answer${4 - correct > 1 ? "s" : ""} need${4 - correct === 1 ? "s" : ""} review.`}
             </Text>
           </View>
-          <Button
-            title="Finish"
+
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Results Breakdown</Text>
+            {fields.map(({ key, label, unit, correctVal, userVal }) => {
+              const isCorrect = fieldResults[key];
+              return (
+                <View
+                  key={key}
+                  style={[styles.resultRow, isCorrect ? styles.resultRowCorrect : styles.resultRowWrong]}
+                >
+                  <View style={styles.resultRowLeft}>
+                    <Text style={styles.resultLabel}>{label}</Text>
+                    <Text style={styles.resultYourAnswer}>Your answer: {userVal} {unit}</Text>
+                    {!isCorrect && (
+                      <Text style={styles.resultCorrectAnswer}>
+                        Correct: {correctVal.toFixed(2)} {unit}
+                      </Text>
+                    )}
+                  </View>
+                  <Text style={[styles.resultIcon, { color: isCorrect ? "#16a34a" : "#dc2626" }]}>
+                    {isCorrect ? "✓" : "✗"}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+
+          <Pressable
+            style={styles.primaryBtn}
             onPress={() => {
               if (journeyData) {
-                router.replace({
-                  pathname: "/JourneyComponent",
-                  params: { journeyData },
-                } as any);
+                router.replace({ pathname: "/JourneyComponent", params: { journeyData } } as any);
                 return;
               }
               router.replace("/screens/parachute/InstructionScreen");
             }}
-          />
+          >
+            <Text style={styles.primaryBtnText}>Finish</Text>
+          </Pressable>
         </ScrollView>
       </SafeAreaView>
     );
   }
 }
 
+// ── Sub-components ───────────────────────────────────────────────────────────
+
+function PageHeader({ stepNum, subtitle }: { stepNum: number; subtitle: string }) {
+  return (
+    <View style={styles.pageHeader}>
+      <View style={styles.stepBadge}>
+        <Text style={styles.stepBadgeText}>STEP {stepNum} OF 2</Text>
+      </View>
+      <Text style={styles.pageEmoji}>🪂</Text>
+      <Text style={styles.pageHeading}>{subtitle}</Text>
+      <Text style={styles.pageSub}>Parachute Drop Challenge</Text>
+    </View>
+  );
+}
+
+function InputField({
+  label,
+  value,
+  onChangeText,
+  prefilled,
+}: {
+  label: string;
+  value?: string;
+  onChangeText: (t: string) => void;
+  prefilled?: boolean;
+}) {
+  return (
+    <View style={styles.inputGroup}>
+      <Text style={styles.inputLabel}>{label}</Text>
+      <TextInput
+        style={[styles.inputBox, prefilled && styles.inputBoxPrefilled]}
+        value={value}
+        onChangeText={onChangeText}
+        keyboardType="numeric"
+        placeholder="0.00"
+        placeholderTextColor="#94A3B8"
+      />
+      {prefilled && <Text style={styles.prefilledNote}>Pre-filled from your video</Text>}
+    </View>
+  );
+}
+
+function SummaryChip({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.chip}>
+      <Text style={styles.chipLabel}>{label}</Text>
+      <Text style={styles.chipValue}>{value}</Text>
+    </View>
+  );
+}
+
+// ── Styles ───────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
+  safe: { flex: 1, backgroundColor: BG },
+  scroll: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 48, gap: 16 },
+
+  pageHeader: {
+    backgroundColor: NAVY,
+    borderRadius: 20,
+    paddingVertical: 28,
+    paddingHorizontal: 20,
+    alignItems: "center",
   },
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    gap: 12,
-  },
-  input: {
+  stepBadge: {
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    borderColor: "rgba(255,255,255,0.25)",
   },
-  label: {},
-  text: {},
-  header: {},
-  summaryBox: {},
-  error: {
-    color: "red",
+  stepBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 2,
+  },
+  pageEmoji: { fontSize: 44, marginBottom: 8 },
+  pageHeading: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    textAlign: "center",
+  },
+  pageSub: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.6)",
+    marginTop: 4,
+  },
+
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: NAVY,
+    marginBottom: 4,
+  },
+  cardSub: {
+    fontSize: 13,
+    color: SLATE,
+    marginBottom: 16,
+  },
+
+  summaryPill: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  pillDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: "#E2E8F0",
+    marginHorizontal: 12,
+  },
+  chip: { flex: 1, alignItems: "center" },
+  chipLabel: { fontSize: 11, color: SLATE, fontWeight: "600", letterSpacing: 0.5 },
+  chipValue: { fontSize: 15, fontWeight: "700", color: NAVY, marginTop: 2 },
+
+  inputGroup: { marginBottom: 14 },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: NAVY,
+    marginBottom: 6,
+  },
+  inputBox: {
+    borderWidth: 1.5,
+    borderColor: "#D7E0EE",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    fontSize: 15,
+    color: "#0F172A",
+    backgroundColor: "#F8FAFC",
+  },
+  inputBoxPrefilled: {
+    borderColor: BLUE,
+    backgroundColor: "#EFF6FF",
+  },
+  prefilledNote: {
+    fontSize: 11,
+    color: BLUE,
+    marginTop: 4,
+  },
+
+  errorText: {
+    color: "#dc2626",
+    fontSize: 13,
+    marginTop: 4,
+  },
+
+  primaryBtn: {
+    backgroundColor: BLUE,
+    borderRadius: 12,
+    paddingVertical: 15,
+    alignItems: "center",
+  },
+  primaryBtnText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+
+  scoreBanner: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 24,
+    alignItems: "center",
+    borderWidth: 2,
+  },
+  scoreBannerLabel: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: SLATE,
+    letterSpacing: 2,
+  },
+  scoreBannerScore: {
+    fontSize: 56,
+    fontWeight: "800",
+    marginVertical: 4,
+  },
+  scoreBannerSub: {
+    fontSize: 14,
+    color: SLATE,
+    textAlign: "center",
+  },
+
+  resultRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 10,
+    borderWidth: 1,
+  },
+  resultRowCorrect: {
+    backgroundColor: "#F0FDF4",
+    borderColor: "#86EFAC",
+  },
+  resultRowWrong: {
+    backgroundColor: "#FFF1F2",
+    borderColor: "#FCA5A5",
+  },
+  resultRowLeft: { flex: 1, gap: 2 },
+  resultLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  resultYourAnswer: {
+    fontSize: 13,
+    color: SLATE,
+  },
+  resultCorrectAnswer: {
+    fontSize: 13,
+    color: "#16a34a",
+    fontWeight: "600",
+  },
+  resultIcon: {
+    fontSize: 22,
+    fontWeight: "700",
+    marginLeft: 12,
   },
 });

@@ -1,7 +1,7 @@
 import { Button } from "@react-navigation/elements";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, ImageSourcePropType, ScrollView, StyleSheet, Text, View } from "react-native";
 import {
   createSession,
   getActiveSessionByActivity,
@@ -167,7 +167,7 @@ export default function Instruction({
       {/* Tools */}
       <SectionCard
         title="Tools Required"
-        characterRight={require('../../assets/images/mascot/ontheRight.png')}
+        characterRight={require('../../../assets/images/mascot/ontheRight.png')}
       >
         <View>
           {tools && tools.length > 0 ? (
@@ -186,7 +186,7 @@ export default function Instruction({
       {/* Formulas */}
       <SectionCard
         title="Key Formulas"
-        characterLeft={require('../../assets/images/mascot/ontheLeft.png')}
+        characterLeft={require('../../../assets/images/mascot/ontheLeft.png')}
       >
         <View style={styles.formulaBox}>
           {formulas && formulas.length > 0 ? (
@@ -202,7 +202,12 @@ export default function Instruction({
       </SectionCard>
 
       {/* Instructions */}
-      <SectionCard title="Instructions">
+      <SectionCard
+        title="Instructions"
+        characterTop={require('../../../assets/images/mascot/holdingDown.png')}
+        characterTopOffset={-35}
+        gapTop={50}
+      >
         <Text style={styles.bodyText}>{instruction}</Text>
       </SectionCard>
 
@@ -210,14 +215,6 @@ export default function Instruction({
         {hasProgress ? "Resume Experiment" : "Start Experiment"}
       </Button>
 
-      {/* ── Safety Note ──
-      <View style={styles.safetyBanner}>
-        <Text style={styles.safetyIcon}>⚠️</Text>
-        <Text style={styles.safetyText}>
-          Always conduct this experiment under teacher supervision in a safe
-          open area.
-        </Text>
-      </View> */}
     </ScrollView>
   );
 }
@@ -227,13 +224,22 @@ function SectionCard({
   children,
   characterRight,
   characterLeft,
+  characterTop,
+  characterTopOffset,
+  gapTop,
 }: {
   title: string;
   children: React.ReactNode;
   characterRight?: ImageSourcePropType;
   characterLeft?: ImageSourcePropType;
+  characterTop?: ImageSourcePropType;
+  characterTopOffset?: number;
+  gapTop?: number;
 }) {
   const hasCharacter = !!(characterRight || characterLeft);
+  const topOffset = characterTopOffset ?? -40;
+  const wrapperPaddingTop = Math.max(0, -topOffset);
+
   return (
     <View style={[styles.cardWrapper, hasCharacter && styles.cardWrapperRow]}>
       {/* Character on the left — separate from the white card */}
@@ -243,13 +249,21 @@ function SectionCard({
         </View>
       )}
 
-      {/* White card — 2/3 when character present, full width otherwise */}
-      <View style={[styles.sectionCard, { flex: hasCharacter ? 2 : 1 }]}>
-        <View style={styles.sectionInner}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{title}</Text>
+      {/* White card wrapper — allows absolutely-positioned top mascot without affecting siblings */}
+      <View style={[styles.sectionCardWrapper, { flex: hasCharacter ? 2 : 1, paddingTop: wrapperPaddingTop, marginTop: gapTop ?? 0 }]}>
+        {characterTop && (
+          <View style={[styles.characterTopAbsoluteContainer, { top: topOffset }]} pointerEvents="none">
+            <Image source={characterTop} style={styles.characterTopImage} resizeMode="contain" />
           </View>
-          <View>{children}</View>
+        )}
+
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionInner}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{title}</Text>
+            </View>
+            <View>{children}</View>
+          </View>
         </View>
       </View>
 
@@ -359,6 +373,24 @@ const styles = StyleSheet.create({
   characterImage: {
     width: "100%",
     height: 120,
+  },
+
+  characterTopWrapper: {
+    alignItems: "center",
+  },
+  characterTopImage: {
+    width: 120,
+    height: 120,
+  },
+  sectionCardWrapper: {
+    position: "relative",
+  },
+  characterTopAbsoluteContainer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 10,
   },
 
   // Body text

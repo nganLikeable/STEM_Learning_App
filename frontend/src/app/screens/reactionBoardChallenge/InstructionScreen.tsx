@@ -4,19 +4,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const instructionData = {
   instruction:
-    "Measure reaction time, coordination, and improvement through digital and physical challenges. Phase 1: Tap the screen as quickly as the hidden button appears and record reaction time. Phase 2: Repeat using your non-dominant hand. Phase 3: Trace a moving shape on the screen and review accuracy and delay.",
+`Test how fast your brain and body respond — and see if switching hands makes a difference.
+  What you'll do:
+- Tap the screen as fast as you can when the hidden button appears (dominant hand)
+- Repeat the same test using your non-dominant hand
+- Trace a moving shape on the screen and review your accuracy and delay
+- Compare all three rounds to see how you improve`,
 
   tools: ["Mobile phone with STEMM Lab app", "Clear working space"],
-
-  diagramImage:
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png",
-
-  diagramTitle: "Reaction Performance",
-
-  legendItems: [
-    { color: "#4CBF7C", label: "Dominant Hand" },
-    { color: "#E87C4C", label: "Non-Dominant Hand" },
-  ],
 
   formulas: [
     "Reaction Time (ms)",
@@ -44,9 +39,6 @@ export default function InstructionScreen() {
         subtitle="Neuroscience + Mathematics"
         emoji="⚡"
         tools={instructionData.tools}
-        diagramImage={instructionData.diagramImage}
-        diagramTitle={instructionData.diagramTitle}
-        legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}
         predictionPath="/screens/reactionBoardChallenge/PredictionScreen"
