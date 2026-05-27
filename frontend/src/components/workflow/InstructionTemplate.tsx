@@ -1,6 +1,13 @@
 import { Button } from "@react-navigation/elements";
-import { Image, ImageSourcePropType, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useRouter } from 'expo-router';
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  createSession,
+  getActiveSessionByActivity,
+} from "../../services/session";
+import { useSessionStore } from "../../store/session-store";
+import { useTeamStore } from "../../store/team-store";
 
 interface JourneyParams {
   titles: string[];
@@ -8,7 +15,10 @@ interface JourneyParams {
   pathIDs: string[];
 }
 
+type PredictionPath = string;
+
 interface InstructionProps {
+  activityId?: number;
   instruction: string;
   title?: string;
   subtitle?: string;
@@ -16,9 +26,12 @@ interface InstructionProps {
   tools?: string[];
   formulas?: string[];
   journeyParams?: JourneyParams;
+  setupPath?: PredictionPath; // for activities with user designn inputs work flow
+  predictionPath?: PredictionPath;
 }
 
 export default function Instruction({
+  activityId,
   instruction,
   title = "STEM Activity",
   subtitle = "Science & Engineering",
@@ -26,9 +39,119 @@ export default function Instruction({
   tools,
   formulas,
   journeyParams,
+  setupPath,
+  predictionPath,
 }: InstructionProps) {
   const router = useRouter();
+  const { teamId } = useTeamStore();
+  const { setSessionId } = useSessionStore();
+  const [hasProgress, setHasProgress] = useState(false);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadActiveSession = async () => {
+      if (!teamId || !activityId) {
+        setHasProgress(false);
+        return;
+      }
+
+      try {
+        const activeSession = await getActiveSessionByActivity(
+          teamId,
+          activityId,
+        );
+        if (!cancelled) {
+          // to track progress and show the appropriate screen
+          // if predictions are made but no phases completed yet -> show path
+          // if session started but no predictions made => show prediction screen instead
+          setHasProgress(
+            Boolean(
+              activeSession &&
+              ((activeSession.currentPhase ?? 1) > 1 ||
+                activeSession.prediction != null ||
+                (activeSession.designs?.length ?? 0) > 0),
+            ),
+          );
+        }
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) setHasProgress(false);
+      }
+    };
+
+    loadActiveSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [teamId, activityId]);
+
+  const handleStartExperiment = async () => {
+    if (!teamId || !activityId) return;
+    if (!journeyParams) return;
+
+    try {
+      let activeSessionId: string | null = null;
+
+      const activeSession = await getActiveSessionByActivity(
+        teamId,
+        activityId,
+      );
+      if (activeSession?.id) {
+        activeSessionId = activeSession.id;
+        setSessionId(activeSessionId);
+
+        const hasJourneyProgress =
+          (activeSession.currentPhase ?? 1) > 1 ||
+          activeSession.prediction != null;
+
+        // Resume directly from the journey once the session has real progress.
+        if (hasJourneyProgress) {
+          router.push({
+            pathname: "/JourneyComponent" as any,
+            params: {
+              journeyData: JSON.stringify({
+                titles: journeyParams.titles,
+                descriptions: journeyParams.descriptions,
+                pathIDs: journeyParams.pathIDs,
+                activityId,
+              }),
+            },
+          });
+          return;
+        }
+      }
+
+      if (!activeSessionId) {
+        activeSessionId = await createSession(teamId, activityId, null);
+        // persist the newly created session id into the global store
+        setSessionId(activeSessionId);
+      }
+      if (!predictionPath) return;
+
+      const shouldResumePrediction =
+        activityId === 2 && (activeSession?.designs?.length ?? 0) === 3;
+
+      const nextPath = shouldResumePrediction
+        ? predictionPath
+        : (setupPath ?? predictionPath);
+
+      router.push({
+        pathname: nextPath as any,
+        params: {
+          journeyData: JSON.stringify({
+            titles: journeyParams.titles,
+            descriptions: journeyParams.descriptions,
+            pathIDs: journeyParams.pathIDs,
+            activityId,
+          }),
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       {/* Header */}
@@ -83,25 +206,18 @@ export default function Instruction({
         <Text style={styles.bodyText}>{instruction}</Text>
       </SectionCard>
 
-      <View style={styles.buttonWrapper}>
-        <Button
-          onPress={() => {
-            if (!journeyParams) return;
-            router.push({
-              pathname: '/JourneyComponent',
-              params: {
-                journeyData: JSON.stringify({
-                  titles:       journeyParams.titles,
-                  descriptions: journeyParams.descriptions,
-                  pathIDs:      journeyParams.pathIDs,
-                }),
-              },
-            });
-          }}
-        >
-          Start Experiment
-        </Button>
-      </View>
+      <Button onPress={handleStartExperiment}>
+        {hasProgress ? "Resume Experiment" : "Start Experiment"}
+      </Button>
+
+      {/* ── Safety Note ──
+      <View style={styles.safetyBanner}>
+        <Text style={styles.safetyIcon}>⚠️</Text>
+        <Text style={styles.safetyText}>
+          Always conduct this experiment under teacher supervision in a safe
+          open area.
+        </Text>
+      </View> */}
     </ScrollView>
   );
 }

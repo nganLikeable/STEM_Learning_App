@@ -1,4 +1,5 @@
 import {
+  addDoc,
   arrayUnion,
   collection,
   doc,
@@ -15,7 +16,7 @@ import {
 import app from "./firebase";
 
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-const db = getFirestore(app);
+export const db = getFirestore(app);
 
 export const saveUserProfile = (uid, data) =>
   setDoc(doc(db, "users", uid), data, { merge: true });
@@ -78,14 +79,43 @@ export const setActivity1 = async (
     });
     return docRef.id;
   } catch (e) {
-    console.error("Error saving to Firestore", e);
+    console.error("Error saving activity 1 to Firestore", e);
+    throw e;
+  }
+};
+
+// activity 2 - sound
+export const setActivity2 = {};
+
+// activity 4 - earthquake
+export const setActivity4 = async (teamId, designNumber, result) => {
+  try {
+    const docRef = await addDoc(collection(db, "activities"), {
+      teamId: teamId,
+      designNumber: designNumber,
+      label: result.label,
+      description: result.label,
+      peakRotationRateDeg: result.peakRotationRateDeg,
+      totalRotationDeg: result.totalRotationDeg,
+      maxAcceleration: result.maxAcceleration,
+      stabilityScore: result.stabilityScore,
+      createdAt: serverTimestamp(),
+      completedAt: serverTimestamp(),
+    });
+    return docRef.id;
+  } catch (e) {
+    console.error("Error saving activity 4 to Firestore", e);
     throw e;
   }
 };
 
 export const markTodayAttendance = (uid) => {
   const today = new Date().toISOString().slice(0, 10);
-  return setDoc(doc(db, 'users', uid), { attendanceDates: arrayUnion(today) }, { merge: true });
+  return setDoc(
+    doc(db, "users", uid),
+    { attendanceDates: arrayUnion(today) },
+    { merge: true },
+  );
 };
 
 export const updateUserAvatar = (uid, avatarId) =>

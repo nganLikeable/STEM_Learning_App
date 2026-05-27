@@ -1,7 +1,8 @@
 import { parachuteCalculate } from "@/lib/parachute";
 import { setActivity1 } from "@/src/services/firestore";
+import { advanceActiveSession } from "@/src/services/session";
 import { useTeamStore } from "@/src/store/team-store";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Button, StyleSheet, Text, TextInput, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
@@ -11,13 +12,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 type Step = "INPUT" | "CALCULATE" | "RESULT";
 
 export default function CalculationFlow() {
+  const router = useRouter();
   // get teamId to store
   const { teamId } = useTeamStore();
   console.log("teamId from store:", teamId);
 
   // read params markedTime to prefill
-  const { markedTime } = useLocalSearchParams<{
+  const { markedTime, journeyData } = useLocalSearchParams<{
     markedTime?: string | string[];
+    journeyData?: string;
   }>();
   const markedTimeValue = Array.isArray(markedTime)
     ? markedTime[0]
@@ -269,6 +272,12 @@ export default function CalculationFlow() {
 
     // save to firestore
     try {
+      if (!teamId) {
+        throw new Error(
+          "Missing teamId. Join or create a team before saving Activity 1.",
+        );
+      }
+
       await setActivity1(
         teamId,
         { time: t, distance: d, mass: m },
@@ -281,6 +290,7 @@ export default function CalculationFlow() {
         validationMap,
         correctCount,
       );
+      await advanceActiveSession(teamId, 1);
       console.log("Saved successfully");
     } catch (e) {
       console.error("Failed to save:", e);
@@ -312,25 +322,17 @@ export default function CalculationFlow() {
               {correctValues.dragForce.toFixed(2)})
             </Text>
           </View>
-
-          {/* for debugging  */}
           <Button
-            title="Try Again"
+            title="Finish"
             onPress={() => {
-              setFieldResults({
-                velocity: null,
-                acceleration: null,
-                netForce: null,
-                dragForce: null,
-              });
-              setUserCalculation({
-                velocity: "",
-                acceleration: "",
-                netForce: "",
-                dragForce: "",
-              });
-              setInput({ time: "", mass: "", distance: "" });
-              setStep("INPUT");
+              if (journeyData) {
+                router.replace({
+                  pathname: "/JourneyComponent",
+                  params: { journeyData },
+                } as any);
+                return;
+              }
+              router.replace("/screens/parachute/InstructionScreen");
             }}
           />
         </ScrollView>

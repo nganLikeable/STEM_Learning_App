@@ -1,4 +1,4 @@
-import Instruction from "@/src/components/InstructionTemplate";
+import Instruction from "@/src/components/workflow/InstructionTemplate";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -33,7 +33,11 @@ const instructionData = {
   journeyParams: {
     titles: ["Phase 1", "Phase 2", "Phase 3"],
     descriptions: ["gi do", "gi do", "gi do"],
-    pathIDs: ["", "", ""],
+    pathIDs: [
+      "/screens/earthquake/EarthquakeScreen?design=1",
+      "/screens/earthquake/EarthquakeScreen?design=2",
+      "/screens/earthquake/EarthquakeScreen?design=3",
+    ],
   },
 };
 
@@ -41,6 +45,7 @@ export default function InstructionScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Instruction
+        activityId={4}
         instruction={instructionData.instruction}
         title="Earthquake-Resistant Structure"
         subtitle="Engineering + Earth Science"
@@ -51,6 +56,8 @@ export default function InstructionScreen() {
         legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}
+        setupPath="/screens/earthquake/DesignInputScreen"
+        predictionPath="/screens/earthquake/PredictionScreen"
       />
     </SafeAreaView>
   );
