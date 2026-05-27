@@ -26,23 +26,23 @@ const SLIDES: Slide[] = [
   {
     title: 'STEMMission',
     subtitle: 'Your lab is everywhere.\nLet\'s get experimenting!',
-    bg: ['#3b80db', '#6380ff'],
+    bg: ['#ffffff', '#ffffffe1'],
   },
   {
     mascot: require('../../assets/images/mascot/heyjo.png'),
-    title: 'Hello, Explorer!',
+    title: 'Hello,\nExplorer!',
     subtitle: 'Science adventures made for curious minds like yours',
     bg: ['#F0EEFF', '#E0D8FF'],
   },
   {
     mascot: require('../../assets/images/mascot/deokinhCool.png'),
-    title: '7 Epic Challenges',
+    title: '7 Epic\nChallenges',
     subtitle: 'Build parachutes, hunt sound pollution, train your breathing and more',
     bg: ['#E6F4FE', '#C8E6FF'],
   },
   {
     mascot: require('../../assets/images/mascot/nhayVuiMung.png'),
-    title: 'Team Up & Compete',
+    title: 'Team Up\n& Compete',
     subtitle: 'Join friends, earn points and top the leaderboard together',
     bg: ['#E8F9EF', '#C8F0DA'],
   },
@@ -52,7 +52,6 @@ const SLIDES: Slide[] = [
 
 export default function IntroScreen() {
   const [index, setIndex] = useState(0);
-  // One opacity value per slide — slide 0 starts visible, rest hidden
   const opacities = useRef(
     SLIDES.map((_, i) => new Animated.Value(i === 0 ? 1 : 0))
   ).current;
@@ -61,7 +60,7 @@ export default function IntroScreen() {
 
   const goTo = (next: number) => {
     const prev = index;
-    setIndex(next); // update immediately so buttons/pointerEvents flip at once
+    setIndex(next);
     Animated.parallel([
       Animated.timing(opacities[prev], { toValue: 0, duration: 240, useNativeDriver: true }),
       Animated.timing(opacities[next], { toValue: 1, duration: 240, useNativeDriver: true }),
@@ -76,7 +75,6 @@ export default function IntroScreen() {
   return (
     <View style={styles.root}>
 
-      {/* All slides pre-rendered — only active one is visible */}
       {SLIDES.map((slide, i) => (
         <Animated.View
           key={i}
@@ -84,17 +82,26 @@ export default function IntroScreen() {
           pointerEvents={i === index ? 'auto' : 'none'}
         >
           <LinearGradient colors={slide.bg} style={styles.gradient}>
-            <SafeAreaView edges={['top']} style={styles.slideContent}>
-              {slide.mascot && (
-                <Image source={slide.mascot} style={styles.mascot} resizeMode="contain" />
-              )}
-              <Text style={[styles.title, !slide.mascot && styles.heroTitle]}>
-                {slide.title}
-              </Text>
-              <Text style={[styles.subtitle, !slide.mascot && styles.heroSubtitle]}>
-                {slide.subtitle}
-              </Text>
-            </SafeAreaView>
+            {slide.mascot ? (
+              // ── Mascot slides: illustration top, text bottom-left ──────────
+              <SafeAreaView edges={['top']} style={styles.slideContent}>
+                <View style={styles.mascotArea}>
+                  <Image source={slide.mascot} style={styles.mascot} resizeMode="contain" />
+                </View>
+
+                <View style={styles.textArea}>
+                  <Text style={styles.title}>{slide.title}</Text>
+                  <Text style={styles.subtitle}>{slide.subtitle}</Text>
+
+                </View>
+              </SafeAreaView>
+            ) : (
+              // ── Hero slide: centered brand intro ───────────────────────────
+              <SafeAreaView edges={['top']} style={styles.heroContent}>
+                <Text style={styles.heroTitle}>{slide.title}</Text>
+                <Text style={styles.heroSubtitle}>{slide.subtitle}</Text>
+              </SafeAreaView>
+            )}
           </LinearGradient>
         </Animated.View>
       ))}
@@ -137,37 +144,93 @@ export default function IntroScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  gradient: {
-    flex: 1,
-  },
-  slideContent: {
+  root: { flex: 1 },
+  gradient: { flex: 1 },
+
+  // ── Hero slide ──────────────────────────────────────────────────────────────
+  heroContent: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
-    paddingBottom: 140, // leave room for buttons overlay
+    paddingBottom: 140,
   },
-  mascot: {
-    width: 220,
-    height: 220,
+  heroTitle: {
+    fontSize: 42,
+    fontWeight: '800',
+    color: '#5500ff',
+    letterSpacing: 1,
+    textAlign: 'center',
     marginBottom: 16,
   },
-  title: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: '#1F2937',
+  heroSubtitle: {
+    fontSize: 20,
+    fontWeight:'700',
+    color: 'rgba(0, 0, 0, 0.8)',
     textAlign: 'center',
-    marginBottom: 14,
+    lineHeight: 26,
+  },
+
+  // ── Mascot slides ───────────────────────────────────────────────────────────
+  slideContent: {
+    flex: 1,
+    paddingBottom: 130,
+  },
+
+  // Top ~60% — illustration centered
+  mascotArea: {
+    flex: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mascot: {
+    width: 280,
+    height: 280,
+  },
+
+  // Bottom ~40% — title left, subtitle left, dots
+  textArea: {
+    flex: 2,
+    paddingHorizontal: 32,
+    justifyContent: 'flex-start',
+    paddingTop: 4,
+  },
+  title: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: '#1A1A2E',
+    lineHeight: 44,
+    marginBottom: 10,
+    textAlign: 'left',
   },
   subtitle: {
     fontSize: 15,
     color: '#6B7280',
-    textAlign: 'center',
     lineHeight: 23,
+    textAlign: 'left',
+    marginBottom: 20,
   },
+
+  // Pagination dots
+  dots: {
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'center',
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(0,0,0,0.15)',
+  },
+  dotActive: {
+    width: 22,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#3977FD',
+  },
+
+  // ── Buttons ─────────────────────────────────────────────────────────────────
   buttonOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
@@ -191,9 +254,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  btnFull: {
-    flex: 1,
-  },
+  btnFull: { flex: 1 },
   btnOutline: {
     flex: 1,
     height: 54,
@@ -213,16 +274,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#3977FD',
   },
-  pressed: {
-    opacity: 0.75,
-  },
-  heroTitle: {
-    fontSize: 40,
-    color: '#fff',
-    letterSpacing: 1,
-  },
-  heroSubtitle: {
-    color: 'rgba(255,255,255,0.75)',
-    fontSize: 17,
-  },
+  pressed: { opacity: 0.75 },
 });
