@@ -1,5 +1,5 @@
 import { Button } from "@react-navigation/elements";
-import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, ImageSourcePropType, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter } from 'expo-router';
 
 interface JourneyParams {
@@ -14,9 +14,6 @@ interface InstructionProps {
   subtitle?: string;
   emoji?: string;
   tools?: string[];
-  diagramImage?: string; // url
-  diagramTitle?: string;
-  legendItems?: Array<{ color: string; label: string }>;
   formulas?: string[];
   journeyParams?: JourneyParams;
 }
@@ -27,18 +24,14 @@ export default function Instruction({
   subtitle = "Science & Engineering",
   emoji = "🔬",
   tools,
-  diagramImage,
-  diagramTitle = "Diagram",
-  legendItems,
   formulas,
   journeyParams,
 }: InstructionProps) {
-  
   const router = useRouter();
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      {/* ── Header ── */}
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerBadge}>
           <Text style={styles.headerBadgeText}>STEM LAB</Text>
@@ -48,13 +41,16 @@ export default function Instruction({
         <Text style={styles.headerSub}>{subtitle}</Text>
       </View>
 
-      {/* ── Tools ── */}
-      <SectionCard accent="#4C9BE8" icon="🧰" title="Tools Required">
+      {/* Tools */}
+      <SectionCard
+        title="Tools Required"
+        characterRight={require('../../assets/images/mascot/ontheRight.png')}
+      >
         <View>
           {tools && tools.length > 0 ? (
             tools.map((tool, index) => (
               <View key={index} style={styles.listItem}>
-                <Text style={styles.listBullet}>•</Text>
+                <View style={styles.listDot} />
                 <Text style={styles.listItemText}>{tool}</Text>
               </View>
             ))
@@ -64,29 +60,11 @@ export default function Instruction({
         </View>
       </SectionCard>
 
-      {/* ── Diagram ── */}
-      {diagramImage && (
-        <SectionCard accent="#7C5CBF" icon="📐" title={diagramTitle}>
-          <View style={styles.diagramWrapper}>
-            <Image
-              source={{ uri: diagramImage }}
-              style={styles.diagram}
-              resizeMode="contain"
-              accessibilityLabel={diagramTitle}
-            />
-            {legendItems && legendItems.length > 0 && (
-              <View style={styles.legendRow}>
-                {legendItems.map((item, index) => (
-                  <LegendBadge key={index} color={item.color} label={item.label} />
-                ))}
-              </View>
-            )}
-          </View>
-        </SectionCard>
-      )}
-
-      {/* ── Formula ── */}
-      <SectionCard accent="#E87C4C" icon="🔢" title="Key Formulas">
+      {/* Formulas */}
+      <SectionCard
+        title="Key Formulas"
+        characterLeft={require('../../assets/images/mascot/ontheLeft.png')}
+      >
         <View style={styles.formulaBox}>
           {formulas && formulas.length > 0 ? (
             formulas.map((formula, index) => (
@@ -100,111 +78,105 @@ export default function Instruction({
         </View>
       </SectionCard>
 
-      {/* ── Instructions ── */}
-      <SectionCard accent="#4CBF7C" icon="📋" title="Instructions">
+      {/* Instructions */}
+      <SectionCard title="Instructions">
         <Text style={styles.bodyText}>{instruction}</Text>
       </SectionCard>
 
-      <Button
-        onPress={() => {
-          if (!journeyParams) return;
-          router.push({
-            pathname: '/JourneyComponent',
-            params: {
-              journeyData: JSON.stringify({
-                titles:       journeyParams.titles,
-                descriptions: journeyParams.descriptions,
-                pathIDs:      journeyParams.pathIDs,
-              }),
-            },
-          });
-        }}
-      >
-        Start Experiment
-      </Button>
-
-      {/* ── Safety Note ──
-      <View style={styles.safetyBanner}>
-        <Text style={styles.safetyIcon}>⚠️</Text>
-        <Text style={styles.safetyText}>
-          Always conduct this experiment under teacher supervision in a safe
-          open area.
-        </Text>
-      </View> */}
+      <View style={styles.buttonWrapper}>
+        <Button
+          onPress={() => {
+            if (!journeyParams) return;
+            router.push({
+              pathname: '/JourneyComponent',
+              params: {
+                journeyData: JSON.stringify({
+                  titles:       journeyParams.titles,
+                  descriptions: journeyParams.descriptions,
+                  pathIDs:      journeyParams.pathIDs,
+                }),
+              },
+            });
+          }}
+        >
+          Start Experiment
+        </Button>
+      </View>
     </ScrollView>
   );
 }
 
-// ── Helper components ──────────────────────────────────────────────────────────
-
 function SectionCard({
-  accent,
-  icon,
   title,
   children,
+  characterRight,
+  characterLeft,
 }: {
-  accent: string;
-  icon: string;
   title: string;
   children: React.ReactNode;
+  characterRight?: ImageSourcePropType;
+  characterLeft?: ImageSourcePropType;
 }) {
+  const hasCharacter = !!(characterRight || characterLeft);
   return (
-    <View style={styles.sectionCard}>
-      <View style={[styles.sectionAccent, { backgroundColor: accent }]} />
-      <View style={styles.sectionInner}>
-        <View style={styles.sectionHeader}>
-          <View style={[styles.iconCircle, { backgroundColor: accent + "22" }]}>
-            <Text style={styles.sectionIcon}>{icon}</Text>
-          </View>
-          <Text style={styles.sectionTitle}>{title}</Text>
+    <View style={[styles.cardWrapper, hasCharacter && styles.cardWrapperRow]}>
+      {/* Character on the left — separate from the white card */}
+      {characterLeft && (
+        <View style={styles.characterColumn}>
+          <Image source={characterLeft} style={styles.characterImage} resizeMode="contain" />
         </View>
-        <View style={styles.sectionBody}>{children}</View>
+      )}
+
+      {/* White card — 2/3 when character present, full width otherwise */}
+      <View style={[styles.sectionCard, { flex: hasCharacter ? 2 : 1 }]}>
+        <View style={styles.sectionInner}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{title}</Text>
+          </View>
+          <View>{children}</View>
+        </View>
       </View>
+
+      {/* Character on the right — separate from the white card */}
+      {characterRight && (
+        <View style={styles.characterColumn}>
+          <Image source={characterRight} style={styles.characterImage} resizeMode="contain" />
+        </View>
+      )}
     </View>
   );
 }
 
-function LegendBadge({ color, label }: { color: string; label: string }) {
-  return (
-    <View
-      style={[
-        styles.legendBadge,
-        { backgroundColor: color + "18", borderColor: color },
-      ]}
-    >
-      <View style={[styles.legendDot, { backgroundColor: color }]} />
-      <Text style={[styles.legendLabel, { color }]}>{label}</Text>
-    </View>
-  );
-}
-
-// ── Styles ─────────────────────────────────────────────────────────────────────
+const NAVY = "#1A2F5A";
+const SLATE = "#64748B";
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#F0F4F8",
+    backgroundColor: "#F4F6F9",
   },
   content: {
     padding: 16,
     paddingBottom: 48,
   },
 
-  // ── Header
+  // Header
   header: {
     alignItems: "center",
-    backgroundColor: "#1A2F5A",
+    backgroundColor: NAVY,
     borderRadius: 20,
     paddingVertical: 32,
     paddingHorizontal: 20,
     marginBottom: 20,
   },
   headerBadge: {
-    backgroundColor: "#4C9BE8",
+    backgroundColor: "rgba(255,255,255,0.15)",
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 4,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.25)",
   },
   headerBadgeText: {
     color: "#FFFFFF",
@@ -222,29 +194,27 @@ const styles = StyleSheet.create({
   },
   headerSub: {
     fontSize: 13,
-    color: "#A8C0E8",
+    color: "rgba(255,255,255,0.6)",
     marginTop: 6,
     letterSpacing: 0.5,
   },
 
-  // ── Section card
-  sectionCard: {
+  cardWrapper: {
+    marginBottom: 14,
+  },
+  cardWrapperRow: {
     flexDirection: "row",
+    alignItems: "stretch",
+    gap: 8,
+  },
+
+  // White card
+  sectionCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    marginBottom: 16,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.07,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
-  },
-  sectionAccent: {
-    width: 5,
   },
   sectionInner: {
-    flex: 1,
     padding: 16,
   },
   sectionHeader: {
@@ -259,104 +229,69 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#EEF1F7",
   },
   sectionIcon: { fontSize: 18 },
-  sectionTitle: { fontSize: 16, fontWeight: "700", color: "#1A2F5A" },
-  sectionBody: {},
+  sectionTitle: { fontSize: 16, fontWeight: "700", color: NAVY },
 
-  // ── Body text
+  // Character column — 1/3 of card width, stretches to card height
+  characterColumn: {
+    flex: 1,
+    alignSelf: "stretch",
+    justifyContent: "flex-end",
+  },
+  characterImage: {
+    width: "100%",
+    height: 120,
+  },
+
+  // Body text
   bodyText: {
     fontSize: 14,
-    color: "#2D3748",
+    color: "#4A5568",
     lineHeight: 24,
   },
 
-  // ── Diagram
-  diagramWrapper: { alignItems: "center" },
-  diagram: {
-    width: "100%",
-    height: 220,
-    borderRadius: 10,
-    backgroundColor: "#F8F9FA",
-    marginBottom: 14,
-  },
-  legendRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  legendBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  legendDot: { width: 8, height: 8, borderRadius: 4 },
-  legendLabel: { fontSize: 12, fontWeight: "600" },
-
-  // ── Formula
+  // Formula
   formulaBox: {
-    backgroundColor: "#F0F7FF",
+    backgroundColor: "#F8F9FB",
     borderRadius: 10,
     padding: 14,
     borderWidth: 1,
-    borderColor: "#C8E0F8",
-  },
-  formulaText: {
-    fontSize: 15,
-    fontWeight: "700",
-    fontFamily: "monospace",
-    color: "#1A2F5A",
-    lineHeight: 30,
+    borderColor: "#E2E8F0",
   },
   formulaItem: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#1A2F5A",
+    color: NAVY,
     lineHeight: 24,
-    marginBottom: 8,
+    marginBottom: 6,
+    fontFamily: "monospace",
   },
 
-  // ── List Items
+  // List items
   listItem: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     marginBottom: 10,
     gap: 12,
   },
-  listBullet: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#4C9BE8",
-    marginTop: 2,
+  listDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: SLATE,
+    marginTop: 1,
   },
   listItemText: {
     fontSize: 14,
-    color: "#2D3748",
+    color: "#4A5568",
     lineHeight: 20,
     flex: 1,
   },
 
-  // ── Safety
-  safetyBanner: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
-    backgroundColor: "#FFFBEB",
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: "#FCD34D",
+  // Button
+  buttonWrapper: {
     marginTop: 4,
-  },
-  safetyIcon: { fontSize: 18, marginTop: 1 },
-  safetyText: {
-    flex: 1,
-    fontSize: 13,
-    color: "#92400E",
-    lineHeight: 20,
-    fontWeight: "500",
   },
 });

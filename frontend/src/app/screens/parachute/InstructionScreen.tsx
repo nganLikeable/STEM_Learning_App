@@ -16,16 +16,6 @@ const instructionData = {
     "Tape",
   ],
 
-  diagramImage:
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png",
-
-  diagramTitle: "Forces Acting on the Toy",
-
-  legendItems: [
-    { color: "#E84C7C", label: "Drag Force ↑" },
-    { color: "#4C9BE8", label: "Weight ↓" },
-  ],
-
   formulas: ["Net Force = Weight − Drag Force", "g-force = Δv/t_contact ÷ 9.8", "Drag Force = Weight − Net Force"],
   journeyParams: {
     titles: ['Phase 1', 'Phase 2', 'Phase 3'],
@@ -47,9 +37,6 @@ export default function InstructionScreen() {
         subtitle="Engineering + Physics"
         emoji="🪂"
         tools={instructionData.tools}
-        diagramImage={instructionData.diagramImage}
-        diagramTitle={instructionData.diagramTitle}
-        legendItems={instructionData.legendItems}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}
       />

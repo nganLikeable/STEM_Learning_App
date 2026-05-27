@@ -33,7 +33,7 @@ const TOP3_CARD_BACKGROUND: Record<number, string> = {
   3: '#fdc8a2d7',
 };
 
-const USER_TEAM_CARD_BACKGROUND = '#b8d4fabd';
+const USER_TEAM_CARD_BACKGROUND = '#b2aaf3';
 
 // ─── List row ─────────────────────────────────────────────────────────────────
 
@@ -243,7 +243,7 @@ const s = StyleSheet.create({
 
   rowName: { fontSize: 14, fontWeight: '800', color: '#1A1A1A' },
   ptsRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
-  rowPts: { fontSize: 12, color: '#888', fontWeight: '600' },
+  rowPts: { fontSize: 12, color: '#000000', fontWeight: '600' },
 });
 
 export default Leaderboard;
