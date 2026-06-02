@@ -1,21 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { getAuth } from "firebase/auth";
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
   ActivityIndicator,
+  Image,
   ScrollView,
-} from 'react-native';
-import { getAuth } from 'firebase/auth';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { getUserProfile, getTeam, getTeamMembers } from '../../services/firestore';
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  getTeam,
+  getTeamMembers,
+  getUserProfile,
+} from "../../services/firestore";
+import { getAvatarSource } from "../constants/avatars";
 
 export default function TeamScreen() {
   const [loading, setLoading] = useState(true);
   const [team, setTeam] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -26,13 +32,13 @@ export default function TeamScreen() {
 
         const profileSnap = await getUserProfile(user.uid);
         if (!profileSnap.exists()) {
-          setError('Profile not found.');
+          setError("Profile not found.");
           return;
         }
 
         const { teamId } = profileSnap.data();
         if (!teamId) {
-          setError('You are not in a team yet.');
+          setError("You are not in a team yet.");
           return;
         }
 
@@ -42,14 +48,14 @@ export default function TeamScreen() {
         ]);
 
         if (!teamSnap.exists()) {
-          setError('Team not found.');
+          setError("Team not found.");
           return;
         }
 
         setTeam({ id: teamSnap.id, ...teamSnap.data() });
         setMembers(teamMembers);
       } catch (e: any) {
-        setError(e.message ?? 'Failed to load team.');
+        setError(e.message ?? "Failed to load team.");
       } finally {
         setLoading(false);
       }
@@ -69,7 +75,11 @@ export default function TeamScreen() {
   if (error) {
     return (
       <SafeAreaView style={s.centered}>
-        <MaterialCommunityIcons name="alert-circle-outline" size={40} color="#9CA3AF" />
+        <MaterialCommunityIcons
+          name="alert-circle-outline"
+          size={40}
+          color="#9CA3AF"
+        />
         <Text style={s.errorText}>{error}</Text>
       </SafeAreaView>
     );
@@ -83,7 +93,18 @@ export default function TeamScreen() {
         {/* ── Team info card ── */}
         <View style={s.teamCard}>
           <View style={s.teamIconBox}>
-            <MaterialCommunityIcons name="account-group" size={28} color="#3977fd" />
+            {team?.avatarId ? (
+              <Image
+                source={getAvatarSource(team.avatarId)}
+                style={s.teamAvatarImage}
+              />
+            ) : (
+              <MaterialCommunityIcons
+                name="account-group"
+                size={28}
+                color="#3977fd"
+              />
+            )}
           </View>
           <View style={s.teamInfo}>
             <Text style={s.teamName}>{team.name}</Text>
@@ -100,11 +121,28 @@ export default function TeamScreen() {
           members.map((m) => (
             <View key={m.uid} style={s.memberCard}>
               <View style={s.avatar}>
-                <Text style={s.avatarText}>{m.name?.[0]?.toUpperCase() ?? '?'}</Text>
+                {m.avatarId ? (
+                  (() => {
+                    const src = getAvatarSource(m.avatarId);
+                    return src ? (
+                      <Image source={src} style={s.memberAvatarImage} />
+                    ) : (
+                      <Text style={s.avatarText}>
+                        {m.name?.[0]?.toUpperCase() ?? "?"}
+                      </Text>
+                    );
+                  })()
+                ) : (
+                  <Text style={s.avatarText}>
+                    {m.name?.[0]?.toUpperCase() ?? "?"}
+                  </Text>
+                )}
               </View>
               <View style={s.memberInfo}>
                 <Text style={s.memberName}>{m.name}</Text>
-                <Text style={s.memberMeta}>Grade {m.grade} · {m.email}</Text>
+                <Text style={s.memberMeta}>
+                  Grade {m.grade} · {m.email}
+                </Text>
               </View>
             </View>
           ))
@@ -117,33 +155,33 @@ export default function TeamScreen() {
 const s = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F8F4EF',
+    backgroundColor: "#F8F4EF",
     padding: 20,
   },
 
   centered: {
     flex: 1,
-    backgroundColor: '#F8F4EF',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F8F4EF",
+    justifyContent: "center",
+    alignItems: "center",
     gap: 12,
   },
 
   pageTitle: {
     fontSize: 28,
-    fontWeight: '800',
-    color: '#1F2937',
+    fontWeight: "800",
+    color: "#1F2937",
     marginBottom: 20,
   },
 
   teamCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderRadius: 16,
     padding: 16,
     marginBottom: 24,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07,
     shadowRadius: 8,
@@ -152,12 +190,18 @@ const s = StyleSheet.create({
   },
 
   teamIconBox: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    backgroundColor: '#EFF6FF',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "transparent",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  teamAvatarImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
   },
 
   teamInfo: {
@@ -166,33 +210,33 @@ const s = StyleSheet.create({
 
   teamName: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: "700",
+    color: "#1F2937",
     marginBottom: 2,
   },
 
   teamId: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: "#9CA3AF",
   },
 
   sectionTitle: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#9CA3AF',
-    textTransform: 'uppercase',
+    fontWeight: "700",
+    color: "#9CA3AF",
+    textTransform: "uppercase",
     letterSpacing: 0.8,
     marginBottom: 12,
   },
 
   memberCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderRadius: 14,
     padding: 14,
     marginBottom: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -204,15 +248,15 @@ const s = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#3977fd',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#3977fd",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   avatarText: {
     fontSize: 18,
-    fontWeight: '800',
-    color: '#fff',
+    fontWeight: "800",
+    color: "#fff",
   },
 
   memberInfo: {
@@ -221,26 +265,31 @@ const s = StyleSheet.create({
 
   memberName: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontWeight: "600",
+    color: "#1F2937",
     marginBottom: 2,
   },
 
   memberMeta: {
     fontSize: 13,
-    color: '#6B7280',
+    color: "#6B7280",
+  },
+  memberAvatarImage: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
   },
 
   errorText: {
     fontSize: 15,
-    color: '#6B7280',
-    textAlign: 'center',
+    color: "#6B7280",
+    textAlign: "center",
   },
 
   emptyText: {
     fontSize: 14,
-    color: '#9CA3AF',
-    textAlign: 'center',
+    color: "#9CA3AF",
+    textAlign: "center",
     marginTop: 20,
   },
 });

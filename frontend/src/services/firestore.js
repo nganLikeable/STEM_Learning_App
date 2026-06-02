@@ -42,6 +42,15 @@ export const createTeam = async (data) => {
   return teamId;
 };
 
+// team avatar
+export const updateTeamAvatar = (teamId, avatarId) =>
+  setDoc(doc(db, "teams", teamId), { avatarId }, { merge: true });
+
+export const getTeamAvatar = async (teamId) => {
+  const snap = await getDoc(doc(db, "teams", teamId));
+  return snap.data()?.avatarId ?? null;
+};
+
 export const getAllTeams = async () => {
   const snap = await getDocs(collection(db, "teams"));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));

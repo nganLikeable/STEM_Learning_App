@@ -1,28 +1,28 @@
-import { useRouter } from "expo-router";
-import { getAuth } from "firebase/auth";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import AvatarPicker from "../components/AvatarPicker";
-import { saveUserProfile } from "../services/firestore";
+import AvatarPicker from "../../../components/Avatar/AvatarPicker";
+import { updateTeamAvatar } from "../../../services/firestore";
 
-export default function PickAvatarScreen() {
-  const [selected, setSelected] = useState("");
-  const [loading, setLoading] = useState(false);
+export default function PickTeamAvatarScreen() {
+  const params = useLocalSearchParams<{ teamId?: string }>();
+  const teamId = params.teamId as string | undefined;
   const router = useRouter();
 
-  const handleSelect = (id: string) => {
-    setSelected(id);
-  };
+  const [selected, setSelected] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSelect = (id: string) => setSelected(id);
 
   const handleSave = async () => {
-    if (!selected) return;
+    if (!selected || !teamId) return;
     try {
       setLoading(true);
-      const user = getAuth().currentUser;
-      await saveUserProfile(user?.uid, { avatarId: selected });
-      router.replace("./(tabs)");
+      await updateTeamAvatar(teamId, selected);
+      // After saving team avatar, navigate to user avatar picker
+      router.replace("/screens/profile/PickUserAvatarScreen");
     } catch (e) {
-      console.error("Error saving profile", e);
+      console.error("Error saving team avatar", e);
     } finally {
       setLoading(false);
     }
@@ -30,7 +30,12 @@ export default function PickAvatarScreen() {
 
   return (
     <View style={styles.container}>
-      <AvatarPicker selected={selected} onSelect={handleSelect} />
+      <AvatarPicker
+        selected={selected}
+        onSelect={handleSelect}
+        category={"teamAvatar"}
+        title="Select Team Avatar"
+      />
       <View style={styles.footer}>
         <Pressable
           onPress={handleSave}
@@ -38,7 +43,9 @@ export default function PickAvatarScreen() {
           style={[styles.saveBtn, !selected && styles.saveBtnDisabled]}
         >
           <Text style={styles.saveBtnText}>
-            {selected ? "Confirm Avatar" : "Pick an avatar to continue"}
+            {selected
+              ? "Confirm Team Avatar"
+              : "Pick your team avatar to continue"}
           </Text>
         </Pressable>
       </View>

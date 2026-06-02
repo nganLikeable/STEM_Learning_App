@@ -1,5 +1,5 @@
 // TracingGame.tsx
-import { SHAPES } from "@/src/constants/shapes";
+import { SHAPES } from "@/src/app/constants/shapes";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, {

@@ -2,9 +2,9 @@ import useGetUserAvatar from "@/hooks/user/useGetUserAvatar";
 import { Link } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-
-const heyjoImg = require('../../assets/images/mascot/goodJobMan.png');
 import { borderRadius, colors, spacing } from "../theme";
+
+const heyjoImg = require("../../assets/images/mascot/goodJobMan.png");
 
 interface HeaderProps {
   userName?: string;
@@ -37,21 +37,23 @@ const Header: React.FC<HeaderProps> = ({ userName = "User" }) => {
           <Image source={heyjoImg} style={styles.mascot} resizeMode="contain" />
         </View>
 
-        {/* User Avatar - Link to Settings */}
-        <Link href="../../setting" asChild>
-          <Pressable style={styles.avatarButton}>
-            <View style={styles.avatar}>
-              {avatar ? (
-                <Image
-                  source={avatar}
-                  style={{ width: 48, height: 48, borderRadius: 24 }}
-                />
-              ) : (
-                <Text style={styles.avatarText}>☺️</Text>
-              )}
-            </View>
-          </Pressable>
-        </Link>
+        <View style={styles.avatarGroup}>
+          {/* User Avatar - Link to Settings */}
+          <Link href="../../setting" asChild>
+            <Pressable style={styles.avatarButton}>
+              <View style={styles.avatar}>
+                {avatar ? (
+                  <Image
+                    source={avatar}
+                    style={{ width: 48, height: 48, borderRadius: 24 }}
+                  />
+                ) : (
+                  <Text style={styles.avatarText}>☺️</Text>
+                )}
+              </View>
+            </Pressable>
+          </Link>
+        </View>
       </View>
     </View>
   );
@@ -71,8 +73,8 @@ const styles = StyleSheet.create({
   },
   leftGroup: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   greetingContainer: {},
   greeting: {
@@ -90,6 +92,36 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     marginLeft: spacing.sm,
+  },
+  avatarGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  teamAvatarButton: {
+    padding: spacing.xs,
+    borderRadius: borderRadius.lg,
+  },
+  teamAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.surface,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#6C63FF",
+    overflow: "hidden",
+  },
+  teamAvatarImage: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+  },
+  teamAvatarText: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#6C63FF",
   },
   avatarButton: {
     padding: spacing.xs,

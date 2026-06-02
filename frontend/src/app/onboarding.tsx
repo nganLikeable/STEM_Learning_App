@@ -142,7 +142,14 @@ export default function OnboardingScreen() {
         avatarId: "", // initialize as empty string, update later
       });
 
-      router.replace("/pickAvatar");
+      // If the user just created a new team, send them to pick a team avatar first.
+      if (!inTeam) {
+        router.replace(
+          `/screens/profile/PickTeamAvatarScreen?teamId=${resolvedTeamId}`,
+        );
+      } else {
+        router.replace("/screens/profile/PickUserAvatarScreen");
+      }
     } catch (e: any) {
       setError(e.message ?? "Failed to save profile. Please try again.");
     } finally {

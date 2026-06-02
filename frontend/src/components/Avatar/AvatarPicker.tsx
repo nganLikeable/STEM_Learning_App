@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Image,
   Pressable,
@@ -7,64 +6,38 @@ import {
   Text,
   View,
 } from "react-native";
-import { AVATARS } from "../app/constants/avatars";
+import { AVATARS } from "../../app/constants/avatars";
 
 interface AvatarPickerProps {
   selected: string | null;
   onSelect: (id: string) => void;
+  category?: AvatarCategory;
+  title?: string;
 }
 
-// for avatar tab switching
-type avatarCategory = "adventurer" | "neutral";
+type AvatarCategory = "alien" | "teamAvatar";
+
+const CATEGORY_LABEL: Record<AvatarCategory, string> = {
+  alien: "Alien",
+  teamAvatar: "Team",
+};
 
 export default function AvatarPicker({
   selected,
   onSelect,
+  category = "alien",
+  title = "Select Your Avatar",
 }: AvatarPickerProps) {
-  const [activeTab, setActiveTab] = useState<avatarCategory>("adventurer"); //
+  const currentAvatars = AVATARS[category];
+  const shouldFillAvatar = category === "teamAvatar";
 
-  // get list of avatar group
-  const currentAvatars = AVATARS[activeTab];
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Select your avatar</Text>
+        <Text style={styles.title}>{title}</Text>
       </View>
-      {/* catgory toggle buttons*/}
-      <View style={styles.tabContainer}>
-        <Pressable
-          style={[
-            styles.tabButton,
-            activeTab === "adventurer" && styles.activeTab,
-          ]}
-          onPress={() => setActiveTab("adventurer")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "adventurer" && styles.activeTabText,
-            ]}
-          >
-            Adventurer
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[
-            styles.tabButton,
-            activeTab === "neutral" && styles.activeTab,
-          ]}
-          onPress={() => setActiveTab("neutral")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "neutral" && styles.activeTabText,
-            ]}
-          >
-            Neutral
-          </Text>
-        </Pressable>
-      </View>
+
+      {/* No tabs — single category picker */}
 
       {/* grid layout */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -79,10 +52,15 @@ export default function AvatarPicker({
                 style={[
                   styles.avatarRing,
                   selected === a.id && styles.avatarRingSelected,
-                  activeTab === "adventurer" && styles.advImage,
                 ]}
               >
-                <Image style={styles.avatarImage} source={a.source} />
+                <Image
+                  style={[
+                    styles.avatarImage,
+                    shouldFillAvatar && styles.avatarImageFill,
+                  ]}
+                  source={a.source}
+                />
                 {selected === a.id && (
                   <View style={styles.checkOverlay}>
                     <Text style={styles.checkMark}>✓</Text>
@@ -149,6 +127,12 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
     borderRadius: 100,
   },
+  avatarImageFill: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+    borderRadius: 0,
+  },
   selectedAvatar: {
     transform: [{ scale: 1.1 }],
   },
@@ -178,6 +162,7 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     borderRadius: 75,
+    overflow: "hidden",
     borderWidth: 3,
     borderColor: "transparent",
     position: "relative",

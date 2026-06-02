@@ -105,7 +105,7 @@ export default function SettingScreen() {
 
   // open profile editor
   const handleChangeAvatar = () => {
-    router.push("/changeProfile");
+    router.push("/screens/profile/ChangeProfileScreen");
   };
 
   // change preferences - sound and such

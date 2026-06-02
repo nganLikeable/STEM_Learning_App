@@ -1,7 +1,7 @@
 import useGetUserAvatar from "@/hooks/user/useGetUserAvatar";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation, useRouter } from "expo-router";
-import { getAuth, verifyBeforeUpdateEmail } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import React, { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -18,7 +18,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getUserProfile, saveUserProfile } from "../services/firestore";
+import { getUserProfile, saveUserProfile } from "../../../services/firestore";
 
 const GRADE_OPTIONS = ["5", "6", "7", "8", "9", "10", "11", "12"];
 
@@ -138,7 +138,7 @@ export default function ChangeProfile() {
   };
 
   const handleChangeAvatar = () => {
-    router.push("/pickAvatar");
+    router.push("/screens/profile/PickUserAvatarScreen");
   };
 
   if (loading) {

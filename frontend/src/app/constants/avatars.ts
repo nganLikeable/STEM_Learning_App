@@ -6,178 +6,91 @@ type AvatarItem = {
 // define avatars - src: dicebear
 export const AVATARS = {
   // group by category
-  adventurer: [
-    {
-      id: "adv_1",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777468732396.png"),
-    },
-    {
-      id: "adv_2",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470393256.png"),
-    },
-    {
-      id: "adv_3",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470400112.png"),
-    },
-    {
-      id: "adv_4",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470402929.png"),
-    },
-    {
-      id: "adv_5",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470408051.png"),
-    },
-    {
-      id: "adv_6",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470410824.png"),
-    },
-    {
-      id: "adv_7",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470413339.png"),
-    },
-    {
-      id: "adv_8",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470462158.png"),
-    },
-    {
-      id: "adv_9",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470471376.png"),
-    },
-    {
-      id: "adv_10",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470475526.png"),
-    },
-    {
-      id: "adv_11",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470498406.png"),
-    },
-    {
-      id: "adv_12",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470512968.png"),
-    },
-    {
-      id: "adv_13",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470523581.png"),
-    },
-    {
-      id: "adv_14",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470530861.png"),
-    },
-    {
-      id: "adv_15",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470694910.png"),
-    },
-    {
-      id: "adv_16",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470698417.png"),
-    },
-    {
-      id: "adv_17",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470702306.png"),
-    },
-    {
-      id: "adv_18",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470707513.png"),
-    },
-    {
-      id: "adv_19",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470723104.png"),
-    },
-    {
-      id: "adv_20",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470736021.png"),
-    },
-    {
-      id: "adv_21",
-      source: require("@/assets/images/avatars/adventurer/adventurer-1777470749040.png"),
-    },
+  alien: [
+    // generated from files in assets/images/avatars/alien
+    { id: "alien_0", source: require("@/assets/images/avatars/alien/0.png") },
+    { id: "alien_1", source: require("@/assets/images/avatars/alien/1.png") },
+    { id: "alien_2", source: require("@/assets/images/avatars/alien/2.png") },
+    { id: "alien_3", source: require("@/assets/images/avatars/alien/3.png") },
+    { id: "alien_4", source: require("@/assets/images/avatars/alien/4.png") },
+    { id: "alien_5", source: require("@/assets/images/avatars/alien/5.png") },
+    { id: "alien_6", source: require("@/assets/images/avatars/alien/6.png") },
+    { id: "alien_7", source: require("@/assets/images/avatars/alien/7.png") },
+    { id: "alien_8", source: require("@/assets/images/avatars/alien/8.png") },
+    { id: "alien_9", source: require("@/assets/images/avatars/alien/9.png") },
+    { id: "alien_10", source: require("@/assets/images/avatars/alien/10.png") },
+    { id: "alien_11", source: require("@/assets/images/avatars/alien/11.png") },
+    { id: "alien_12", source: require("@/assets/images/avatars/alien/12.png") },
+    { id: "alien_13", source: require("@/assets/images/avatars/alien/13.png") },
+    { id: "alien_14", source: require("@/assets/images/avatars/alien/14.png") },
+    { id: "alien_15", source: require("@/assets/images/avatars/alien/15.png") },
+    { id: "alien_16", source: require("@/assets/images/avatars/alien/16.png") },
+    { id: "alien_17", source: require("@/assets/images/avatars/alien/17.png") },
+    { id: "alien_18", source: require("@/assets/images/avatars/alien/18.png") },
+    { id: "alien_19", source: require("@/assets/images/avatars/alien/19.png") },
   ],
-  neutral: [
+  teamAvatar: [
     {
-      id: "neu_1",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471230118.png"),
+      id: "team_0",
+      source: require("@/assets/images/avatars/teamAvatar/0.png"),
     },
     {
-      id: "neu_2",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471232877.png"),
+      id: "team_1",
+      source: require("@/assets/images/avatars/teamAvatar/1.png"),
     },
     {
-      id: "neu_3",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471235109.png"),
+      id: "team_2",
+      source: require("@/assets/images/avatars/teamAvatar/2.png"),
     },
     {
-      id: "neu_4",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471237290.png"),
+      id: "team_3",
+      source: require("@/assets/images/avatars/teamAvatar/3.png"),
     },
     {
-      id: "neu_5",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471240109.png"),
+      id: "team_4",
+      source: require("@/assets/images/avatars/teamAvatar/4.png"),
     },
     {
-      id: "neu_6",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471243476.png"),
+      id: "team_5",
+      source: require("@/assets/images/avatars/teamAvatar/5.png"),
     },
     {
-      id: "neu_7",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471245544.png"),
+      id: "team_6",
+      source: require("@/assets/images/avatars/teamAvatar/6.png"),
     },
     {
-      id: "neu_8",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471247522.png"),
+      id: "team_7",
+      source: require("@/assets/images/avatars/teamAvatar/7.png"),
     },
     {
-      id: "neu_9",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471252188.png"),
+      id: "team_8",
+      source: require("@/assets/images/avatars/teamAvatar/8.png"),
     },
     {
-      id: "neu_10",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471255339.png"),
+      id: "team_9",
+      source: require("@/assets/images/avatars/teamAvatar/9.png"),
     },
     {
-      id: "neu_11",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471257912.png"),
+      id: "team_10",
+      source: require("@/assets/images/avatars/teamAvatar/10.png"),
     },
     {
-      id: "neu_12",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471260374.png"),
+      id: "team_11",
+      source: require("@/assets/images/avatars/teamAvatar/11.png"),
     },
     {
-      id: "neu_13",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471264295.png"),
+      id: "team_12",
+      source: require("@/assets/images/avatars/teamAvatar/12.png"),
     },
     {
-      id: "neu_14",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471267355.png"),
-    },
-    {
-      id: "neu_15",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471269042.png"),
-    },
-    {
-      id: "neu_16",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471272244.png"),
-    },
-    {
-      id: "neu_17",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471274592.png"),
-    },
-    {
-      id: "neu_18",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471276608.png"),
-    },
-    {
-      id: "neu_19",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471279008.png"),
-    },
-    {
-      id: "neu_20",
-      source: require("@/assets/images/avatars/neutral/adventurerNeutral-1777471281048.png"),
+      id: "team_alien",
+      source: require("@/assets/images/avatars/teamAvatar/12.png"),
     },
   ],
 };
 
 // get avatar by id - name of image
 export const getAvatarSource = (id: string) => {
-  const allAvatars = [...AVATARS.adventurer, ...AVATARS.neutral];
+  const allAvatars = [...AVATARS.teamAvatar, ...AVATARS.alien];
   return allAvatars.find((avatar) => avatar.id === id)?.source ?? null;
 };
