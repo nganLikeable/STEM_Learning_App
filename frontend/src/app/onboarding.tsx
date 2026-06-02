@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { getCurrentUser } from "../services/auth";
 import {
+  addTeamNotification,
   createTeam,
   getTeam,
   saveUserProfile,
@@ -141,6 +142,20 @@ export default function OnboardingScreen() {
         createdAt: serverTimestamp(),
         avatarId: "", // initialize as empty string, update later
       });
+
+      // Notify existing teammates when someone joins an existing team
+      if (inTeam) {
+        await addTeamNotification(
+          resolvedTeamId,
+          {
+            type: "teammate_joined",
+            title: "New teammate joined!",
+            body: `${name.trim()} just joined your team!`,
+            seen: false,
+          },
+          user!.uid,
+        );
+      }
 
       // If the user just created a new team, send them to pick a team avatar first.
       if (!inTeam) {

@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const instructionData = {
   instruction:
 `Find out how fan design and distance affect how much a material bends.
-  What you'll do:
+What you'll do:
 - Stand paper upright on a table
 - Fan air from 30 cm away and observe how it moves
 - Try different fan designs and distances (15 cm, 30 cm, 45 cm)

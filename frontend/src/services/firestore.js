@@ -12,6 +12,7 @@ import {
   setDoc,
   updateDoc,
   where,
+  writeBatch,
 } from "firebase/firestore";
 import app from "./firebase";
 
@@ -86,6 +87,12 @@ export const setActivity1 = async (
       createdAt: serverTimestamp(),
       completedAt: serverTimestamp(),
     });
+    await addTeamNotification(teamId, {
+      type: "activity_score",
+      title: "Activity completed!",
+      body: `Your team just completed the Parachute activity and scored ${score} point${score !== 1 ? "s" : ""}!`,
+      seen: false,
+    });
     return docRef.id;
   } catch (e) {
     console.error("Error saving activity 1 to Firestore", e);
@@ -111,6 +118,12 @@ export const setActivity4 = async (teamId, designNumber, result) => {
       createdAt: serverTimestamp(),
       completedAt: serverTimestamp(),
     });
+    await addTeamNotification(teamId, {
+      type: "activity_score",
+      title: "Activity completed!",
+      body: `Your team just completed the Earthquake activity with a stability score of ${result.stabilityScore}!`,
+      seen: false,
+    });
     return docRef.id;
   } catch (e) {
     console.error("Error saving activity 4 to Firestore", e);
@@ -133,6 +146,37 @@ export const updateUserAvatar = (uid, avatarId) =>
 export const getUserAvatar = async (uid) => {
   const snap = await getDoc(doc(db, "users", uid));
   return snap.data()?.avatarId ?? null;
+};
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+export const addNotification = (uid, data) =>
+  addDoc(collection(db, "users", uid, "notifications"), {
+    ...data,
+    createdAt: serverTimestamp(),
+  });
+
+/** @param {string | null} [excludeUid] */
+export const addTeamNotification = async (teamId, data, excludeUid = null) => {
+  const members = await getTeamMembers(teamId);
+  await Promise.all(
+    members
+      .filter((m) => m.uid !== excludeUid)
+      .map((m) => addNotification(m.uid, data)),
+  );
+};
+
+export const markAllNotificationsSeen = async (uid) => {
+  const snap = await getDocs(
+    query(
+      collection(db, "users", uid, "notifications"),
+      where("seen", "==", false),
+    ),
+  );
+  if (snap.empty) return;
+  const batch = writeBatch(db);
+  snap.docs.forEach((d) => batch.update(d.ref, { seen: true }));
+  await batch.commit();
 };
 
 export { serverTimestamp };

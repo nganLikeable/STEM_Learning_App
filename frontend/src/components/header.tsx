@@ -4,6 +4,7 @@ import { Link } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { borderRadius, spacing } from "../theme";
+import NotificationBell from "./NotificationBell";
 
 const heyjoImg = require("../../assets/images/mascot/goodJobMan.png");
 
@@ -40,6 +41,7 @@ const Header: React.FC<HeaderProps> = ({ userName = "User" }) => {
         </View>
 
         <View style={styles.avatarGroup}>
+          <NotificationBell />
           {/* User Avatar - Link to Settings */}
           <Link href="../../setting" asChild>
             <Pressable style={styles.avatarButton}>

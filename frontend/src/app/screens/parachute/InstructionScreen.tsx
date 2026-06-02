@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export const instructionData = {
   instruction: 
 `Drop a toy from a set height, build a parachute, and see how much you can slow it down.
-  What you'll do:
+What you'll do:
 - Drop the toy without a parachute to record a baseline
 - Build a parachute from provided materials
 - Drop from the same height and compare the results

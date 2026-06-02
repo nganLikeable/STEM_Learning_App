@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const instructionData = {
   instruction:
 `Build a structure that can survive a simulated earthquake — then improve it.
-  What you'll do:
+What you'll do:
 - Fold paper or cardboard to create an anti-vibration base layer
 - Place a flat cardboard platform on top
 - Put the phone in the centre and activate vibration mode in the app

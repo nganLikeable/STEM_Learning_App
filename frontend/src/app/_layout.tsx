@@ -18,6 +18,8 @@ import "react-native-reanimated";
 import "../services/firebase";
 import { useTeamStore } from "../store/team-store";
 import { useAppStore } from "../store/app-store";
+import { useNotifications } from "@/src/hooks/useNotifications";
+import { useRankWatcher } from "@/src/hooks/useRankWatcher";
 
 // Tells expo-router which route group to treat as the default/anchor (the tab navigator)
 export const unstable_settings = {
@@ -32,7 +34,11 @@ export default function RootLayout() {
   const [user, setUser] = useState<any>(null);
 
   const setTeamId = useTeamStore((state) => state.setTeamId);
+  const { teamId } = useTeamStore();
   const introSeen = useAppStore((state) => state.introSeen);
+
+  useNotifications(user?.uid ?? null);
+  useRankWatcher(user?.uid ?? null, teamId);
 
   // Subscribe to Firebase auth state
   useEffect(() => {

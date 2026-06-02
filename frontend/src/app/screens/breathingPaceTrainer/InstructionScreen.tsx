@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const instructionData = {
   instruction:
 `Measure how your breathing changes before and after exercise — and see the science in your own lungs.
-  What you'll do:
+What you'll do:
 - Place the phone on your chest and record your breathing at rest
 - Do 1 minute of light exercise (jog on the spot or 100 star jumps)
 - Record your breathing again with the phone on your chest

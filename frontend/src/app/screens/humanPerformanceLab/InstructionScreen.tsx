@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const instructionData = {
   instruction:
 `Discover how your body moves by measuring speed, smoothness, and coordination.
-  What you'll do:
+What you'll do:
 - Hold the phone firmly in one hand and activate the vibration sensor
 - Perform the guided stretching movements slowly and steadily
 - Record the vibration data for each movement

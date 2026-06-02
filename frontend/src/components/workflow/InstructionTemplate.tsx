@@ -276,7 +276,7 @@ function SectionCard({
   );
 }
 
-const NAVY = "#1A2F5A";
+const NAVY = "#3779fd";
 const SLATE = "#64748B";
 
 const styles = StyleSheet.create({
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#EEF1F7",
   },
   sectionIcon: { fontSize: 18 },
-  sectionTitle: { fontSize: 16, fontWeight: "700", color: NAVY },
+  sectionTitle: { fontSize: 16, fontWeight: "800", color: NAVY },
 
   // Character column — 1/3 of card width, stretches to card height
   characterColumn: {
