@@ -37,9 +37,7 @@ export default function InstructionScreen() {
       <Instruction
         activityId={7}
         instruction={instructionData.instruction}
-        title="Breathing Pace Trainer"
-        subtitle="Medical Science"
-        emoji="🫁"
+        image={require("../../../../assets/images/activityCards/breathing-measurement.png")}
         tools={instructionData.tools}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}

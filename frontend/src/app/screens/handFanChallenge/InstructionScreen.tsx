@@ -44,9 +44,7 @@ export default function InstructionScreen() {
       <Instruction
         activityId={3}
         instruction={instructionData.instruction}
-        title="Hand Fan Challenge"
-        subtitle="Physics – Air Movement"
-        emoji="💨"
+        image={require("../../../../assets/images/activityCards/air-fan-experiment.png")}
         tools={instructionData.tools}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}

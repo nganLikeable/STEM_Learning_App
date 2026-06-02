@@ -37,9 +37,7 @@ export default function InstructionScreen() {
       <Instruction
         activityId={6}
         instruction={instructionData.instruction}
-        title="Reaction Board Challenge"
-        subtitle="Neuroscience + Mathematics"
-        emoji="⚡"
+        image={require("../../../../assets/images/activityCards/reaction-time.png")}
         tools={instructionData.tools}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}

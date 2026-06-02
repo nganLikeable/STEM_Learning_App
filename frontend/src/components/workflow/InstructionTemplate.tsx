@@ -1,8 +1,9 @@
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { Button } from "@react-navigation/elements";
+import { Image as ExpoImage } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Image, ImageSourcePropType, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ImageSourcePropType, ScrollView, StyleSheet, Text, View } from "react-native";
 import {
   createSession,
   getActiveSessionByActivity,
@@ -21,22 +22,21 @@ type PredictionPath = string;
 interface InstructionProps {
   activityId?: number;
   instruction: string;
+  image?: ImageSourcePropType;
   title?: string;
   subtitle?: string;
   emoji?: string;
   tools?: string[];
   formulas?: string[];
   journeyParams?: JourneyParams;
-  setupPath?: PredictionPath; // for activities with user designn inputs work flow
+  setupPath?: PredictionPath;
   predictionPath?: PredictionPath;
 }
 
 export default function Instruction({
   activityId,
   instruction,
-  title = "STEM Activity",
-  subtitle = "Science & Engineering",
-  emoji = "🔬",
+  image,
   tools,
   formulas,
   journeyParams,
@@ -156,15 +156,10 @@ export default function Instruction({
   };
   return (
     <ScrollView style={[styles.screen, { backgroundColor: colors.primary }]} contentContainerStyle={styles.content}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerBadge}>
-          <Text style={styles.headerBadgeText}>STEM LAB</Text>
-        </View>
-        <Text style={styles.headerEmoji}>{emoji}</Text>
-        <Text style={styles.headerTitle}>{title}</Text>
-        <Text style={styles.headerSub}>{subtitle}</Text>
-      </View>
+      {/* Header image */}
+      {image && (
+        <ExpoImage source={image} style={styles.headerImage} contentFit="contain" transition={0} />
+      )}
 
       {/* Tools */}
       <SectionCard
@@ -249,7 +244,7 @@ function SectionCard({
       {/* Character on the left — separate from the white card */}
       {characterLeft && (
         <View style={styles.characterColumn}>
-          <Image source={characterLeft} style={styles.characterImage} resizeMode="contain" />
+          <ExpoImage source={characterLeft} style={styles.characterImage} contentFit="contain" transition={0} />
         </View>
       )}
 
@@ -257,7 +252,7 @@ function SectionCard({
       <View style={[styles.sectionCardWrapper, { flex: hasCharacter ? 2 : 1, paddingTop: wrapperPaddingTop, marginTop: gapTop ?? 0 }]}>
         {characterTop && (
           <View style={[styles.characterTopAbsoluteContainer, { top: topOffset }]} pointerEvents="none">
-            <Image source={characterTop} style={styles.characterTopImage} resizeMode="contain" />
+            <ExpoImage source={characterTop} style={styles.characterTopImage} contentFit="contain" transition={0} />
           </View>
         )}
 
@@ -274,7 +269,7 @@ function SectionCard({
       {/* Character on the right — separate from the white card */}
       {characterRight && (
         <View style={styles.characterColumn}>
-          <Image source={characterRight} style={styles.characterImage} resizeMode="contain" />
+          <ExpoImage source={characterRight} style={styles.characterImage} contentFit="contain" transition={0} />
         </View>
       )}
     </View>
@@ -294,43 +289,11 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   },
 
-  // Header
-  header: {
-    alignItems: "center",
-    backgroundColor: NAVY,
+  headerImage: {
+    width: "100%",
+    height: 300,
     borderRadius: 20,
-    paddingVertical: 32,
-    paddingHorizontal: 20,
     marginBottom: 20,
-  },
-  headerBadge: {
-    backgroundColor: "rgba(255,255,255,0.15)",
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.25)",
-  },
-  headerBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 2,
-  },
-  headerEmoji: { fontSize: 52, marginBottom: 10 },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#FFFFFF",
-    letterSpacing: 0.3,
-    textAlign: "center",
-  },
-  headerSub: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.6)",
-    marginTop: 6,
-    letterSpacing: 0.5,
   },
 
   cardWrapper: {

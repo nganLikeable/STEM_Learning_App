@@ -38,9 +38,7 @@ export default function InstructionScreen() {
       <Instruction
         activityId={5}
         instruction={instructionData.instruction}
-        title="Human Performance Lab"
-        subtitle="Medical Science + Biomechanics"
-        emoji="🏃"
+        image={require("../../../../assets/images/activityCards/circular-motion.png")}
         tools={instructionData.tools}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}

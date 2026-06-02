@@ -168,8 +168,8 @@ const sc = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   title: {
-    fontSize: 15,
-    fontWeight: '800',
+    fontSize: 13.6,
+    fontWeight: '900',
     marginBottom: 8,
     lineHeight: 21,
   },

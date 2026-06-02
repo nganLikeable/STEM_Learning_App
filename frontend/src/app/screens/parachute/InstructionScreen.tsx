@@ -43,9 +43,7 @@ export default function InstructionScreen() {
       <Instruction
         activityId={1}
         instruction={instructionData.instruction}
-        title="Parachute Drop Challenge"
-        subtitle="Engineering + Physics"
-        emoji="🪂"
+        image={require("../../../../assets/images/activityCards/parachute-experiment.png")}
         tools={instructionData.tools}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}

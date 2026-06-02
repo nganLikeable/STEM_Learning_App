@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const instructionData = {
   instruction:
 `Hunt for loud and quiet zones in your classroom by measuring real sound levels.
-  What you'll do:
+What you'll do:
 - Drop a book from 20 cm onto the table and record the sound level
 - Drop the same book from 1 m onto the floor and record again
 - Drop a full water bottle from 20 cm onto the table
@@ -46,9 +46,7 @@ export default function InstructionScreen() {
       <Instruction
         activityId={2}
         instruction={instructionData.instruction}
-        title="Sound Pollution Hunter"
-        subtitle="Environmental Science"
-        emoji="🔊"
+        image={require("../../../../assets/images/activityCards/sound-measurement.png")}
         tools={instructionData.tools}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}

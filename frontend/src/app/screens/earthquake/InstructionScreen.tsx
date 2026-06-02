@@ -45,9 +45,7 @@ export default function InstructionScreen() {
       <Instruction
         activityId={4}
         instruction={instructionData.instruction}
-        title="Earthquake-Resistant Structure"
-        subtitle="Engineering + Earth Science"
-        emoji="🌍"
+        image={require("../../../../assets/images/activityCards/vibration-platform.png")}
         tools={instructionData.tools}
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}
