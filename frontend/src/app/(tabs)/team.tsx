@@ -1,3 +1,4 @@
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { getAuth } from "firebase/auth";
 import React, { useEffect, useState } from "react";
@@ -18,6 +19,7 @@ import {
 import { getAvatarSource } from "../constants/avatars";
 
 export default function TeamScreen() {
+  const { colors } = useAppTheme();
   const [loading, setLoading] = useState(true);
   const [team, setTeam] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
@@ -66,7 +68,7 @@ export default function TeamScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={s.centered}>
+      <SafeAreaView style={[s.centered, { backgroundColor: colors.primary }]}>
         <ActivityIndicator size="large" color="#3977fd" />
       </SafeAreaView>
     );
@@ -74,24 +76,24 @@ export default function TeamScreen() {
 
   if (error) {
     return (
-      <SafeAreaView style={s.centered}>
+      <SafeAreaView style={[s.centered, { backgroundColor: colors.primary }]}>
         <MaterialCommunityIcons
           name="alert-circle-outline"
           size={40}
           color="#9CA3AF"
         />
-        <Text style={s.errorText}>{error}</Text>
+        <Text style={[s.errorText, { color: colors.textSecondary }]}>{error}</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={s.screen}>
+    <SafeAreaView style={[s.screen, { backgroundColor: colors.primary }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Text style={s.pageTitle}>Team</Text>
+        <Text style={[s.pageTitle, { color: colors.text }]}>Team</Text>
 
         {/* ── Team info card ── */}
-        <View style={s.teamCard}>
+        <View style={[s.teamCard, { backgroundColor: colors.surface }]}>
           <View style={s.teamIconBox}>
             {team?.avatarId ? (
               <Image
@@ -107,19 +109,19 @@ export default function TeamScreen() {
             )}
           </View>
           <View style={s.teamInfo}>
-            <Text style={s.teamName}>{team.name}</Text>
-            <Text style={s.teamId}>ID: {team.id}</Text>
+            <Text style={[s.teamName, { color: colors.text }]}>{team.name}</Text>
+            <Text style={[s.teamId, { color: colors.textSecondary }]}>ID: {team.id}</Text>
           </View>
         </View>
 
         {/* ── Members section ── */}
-        <Text style={s.sectionTitle}>Members ({members.length})</Text>
+        <Text style={[s.sectionTitle, { color: colors.textSecondary }]}>Members ({members.length})</Text>
 
         {members.length === 0 ? (
-          <Text style={s.emptyText}>No members found.</Text>
+          <Text style={[s.emptyText, { color: colors.textSecondary }]}>No members found.</Text>
         ) : (
           members.map((m) => (
-            <View key={m.uid} style={s.memberCard}>
+            <View key={m.uid} style={[s.memberCard, { backgroundColor: colors.surface }]}>
               <View style={s.avatar}>
                 {m.avatarId ? (
                   (() => {
@@ -139,8 +141,8 @@ export default function TeamScreen() {
                 )}
               </View>
               <View style={s.memberInfo}>
-                <Text style={s.memberName}>{m.name}</Text>
-                <Text style={s.memberMeta}>
+                <Text style={[s.memberName, { color: colors.text }]}>{m.name}</Text>
+                <Text style={[s.memberMeta, { color: colors.textSecondary }]}>
                   Grade {m.grade} · {m.email}
                 </Text>
               </View>

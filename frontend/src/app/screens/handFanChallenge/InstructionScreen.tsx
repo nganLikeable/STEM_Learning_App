@@ -1,3 +1,4 @@
+import { useAppTheme } from "@/hooks/useAppTheme";
 import Instruction from "@/src/components/workflow/InstructionTemplate";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -37,8 +38,9 @@ const instructionData = {
 };
 
 export default function InstructionScreen() {
+  const { colors } = useAppTheme();
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.primary }}>
       <Instruction
         activityId={3}
         instruction={instructionData.instruction}

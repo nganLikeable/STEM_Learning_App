@@ -34,7 +34,7 @@ export default function PickTeamAvatarScreen() {
         selected={selected}
         onSelect={handleSelect}
         category={"teamAvatar"}
-        title="Select Team Avatar"
+        title="Select Your Team Planet"
       />
       <View style={styles.footer}>
         <Pressable
@@ -44,8 +44,8 @@ export default function PickTeamAvatarScreen() {
         >
           <Text style={styles.saveBtnText}>
             {selected
-              ? "Confirm Team Avatar"
-              : "Pick your team avatar to continue"}
+              ? "Confirm Team Planet"
+              : "Pick your team planet to continue"}
           </Text>
         </Pressable>
       </View>

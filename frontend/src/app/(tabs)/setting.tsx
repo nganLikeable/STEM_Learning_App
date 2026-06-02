@@ -1,4 +1,5 @@
 import useGetUserAvatar from "@/hooks/user/useGetUserAvatar";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
@@ -19,17 +20,23 @@ import { getUserProfile } from "../../services/firestore";
 function SettingOption({
   option,
   onPress,
+  colors,
 }: {
   option: string;
   onPress?: () => void;
+  colors?: { text: string; border: string };
 }) {
   return (
     <View>
       <Pressable
-        style={({ pressed }) => [s.row, pressed && { opacity: 0.7 }]}
+        style={({ pressed }) => [
+          s.row,
+          colors && { borderTopColor: colors.border },
+          pressed && { opacity: 0.7 },
+        ]}
         onPress={onPress}
       >
-        <Text style={s.rowLabel}>{option}</Text>
+        <Text style={[s.rowLabel, colors && { color: colors.text }]}>{option}</Text>
         <MaterialCommunityIcons
           name="chevron-right"
           size={20}
@@ -41,6 +48,7 @@ function SettingOption({
 }
 
 export default function SettingScreen() {
+  const { colors } = useAppTheme();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
@@ -108,19 +116,20 @@ export default function SettingScreen() {
     router.push("/screens/profile/ChangeProfileScreen");
   };
 
-  // change preferences - sound and such
-  const handlePreferences = () => {};
+  const handlePreferences = () => {
+    router.push("/screens/settings/PreferencesScreen");
+  };
 
   return (
-    <SafeAreaView style={s.screen}>
+    <SafeAreaView style={[s.screen, { backgroundColor: colors.primary }]}>
       {/* ── Page title ── */}
-      <Text style={s.pageTitle}>Settings</Text>
+      <Text style={[s.pageTitle, { color: colors.text }]}>Settings</Text>
 
       {/* ── User profile card ── */}
       {profileLoading ? (
         <ActivityIndicator style={{ marginBottom: 20 }} color="#3977fd" />
       ) : profile ? (
-        <View style={s.profileCard}>
+        <View style={[s.profileCard, { backgroundColor: colors.surface }]}>
           <View style={s.avatar}>
             {avatar ? (
               <Image source={avatar} style={s.avatarImage} />
@@ -131,36 +140,37 @@ export default function SettingScreen() {
             )}
           </View>
           <View style={s.profileInfo}>
-            <Text style={s.profileName}>{profile.name}</Text>
-            <Text style={s.profileMeta}>
+            <Text style={[s.profileName, { color: colors.text }]}>{profile.name}</Text>
+            <Text style={[s.profileMeta, { color: colors.textSecondary }]}>
               Grade {profile.grade} · {profile.email}
             </Text>
-            <Text style={s.profileTeam}>Team ID: {profile.teamId}</Text>
+            <Text style={[s.profileTeam, { color: colors.textSecondary }]}>Team ID: {profile.teamId}</Text>
           </View>
         </View>
       ) : null}
 
       {/* ── Account section ── */}
-      <View style={s.section}>
+      <View style={[s.section, { backgroundColor: colors.surface }]}>
         <Text style={s.sectionTitle}>Account</Text>
-        <SettingOption option="Profile" onPress={handleChangeAvatar} />
-        <SettingOption option="Preferences" onPress={handlePreferences} />
+        <SettingOption option="Profile" onPress={handleChangeAvatar} colors={colors} />
+        <SettingOption option="Preferences" onPress={handlePreferences} colors={colors} />
       </View>
 
       {/* Support section*/}
-      <View style={s.section}>
+      <View style={[s.section, { backgroundColor: colors.surface }]}>
         <Text style={s.sectionTitle}>Support</Text>
         {/* placeholders - undefined functions */}
-        <SettingOption option="Help Center" />
-        <SettingOption option="Feedback" />
+        <SettingOption option="Help Center" colors={colors} />
+        <SettingOption option="Feedback" colors={colors} />
       </View>
 
       {/* ── Sign Out section (bottom) ── */}
-      <View style={[s.section, s.bottomSection, s.signOutSection]}>
+      <View style={[s.section, s.bottomSection, s.signOutSection, { backgroundColor: colors.surface }]}>
         <Pressable
           style={({ pressed }) => [
             s.row,
             s.signOutRow,
+            { borderTopColor: colors.border },
             pressed && { opacity: 0.7 },
           ]}
           onPress={handleLogout}
@@ -179,8 +189,8 @@ export default function SettingScreen() {
 
       {/* Small legal links below sign-out (not part of the card) */}
       <View style={s.legalContainer}>
-        <View style={s.row}>
-          <Text style={s.rowLabel}>Terms</Text>
+        <View style={[s.row, { borderTopColor: colors.border }]}>
+          <Text style={[s.rowLabel, { color: colors.text }]}>Terms</Text>
           <MaterialCommunityIcons
             name="chevron-right"
             size={20}
@@ -188,8 +198,8 @@ export default function SettingScreen() {
           />
         </View>
 
-        <View style={s.row}>
-          <Text style={s.rowLabel}>Privacy Policy</Text>
+        <View style={[s.row, { borderTopColor: colors.border }]}>
+          <Text style={[s.rowLabel, { color: colors.text }]}>Privacy Policy</Text>
           <MaterialCommunityIcons
             name="chevron-right"
             size={20}
@@ -197,8 +207,8 @@ export default function SettingScreen() {
           />
         </View>
 
-        <View style={[s.row, { borderTopWidth: 1 }]}>
-          <Text style={s.rowLabel}>Acknowledgements</Text>
+        <View style={[s.row, { borderTopWidth: 1, borderTopColor: colors.border }]}>
+          <Text style={[s.rowLabel, { color: colors.text }]}>Acknowledgements</Text>
           <MaterialCommunityIcons
             name="chevron-right"
             size={20}

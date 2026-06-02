@@ -1,3 +1,4 @@
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef, useState } from "react";
@@ -105,6 +106,7 @@ const RankRow: React.FC<{ team: Team; userTeamId: string | null }> = ({
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 const Leaderboard: React.FC = () => {
+  const { colors } = useAppTheme();
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [userTeamVisible, setUserTeamVisible] = useState(true);
@@ -154,7 +156,7 @@ const Leaderboard: React.FC = () => {
   if (loading) {
     return (
       <View
-        style={[s.screen, { justifyContent: "center", alignItems: "center" }]}
+        style={[s.screen, { backgroundColor: colors.primary, justifyContent: "center", alignItems: "center" }]}
       >
         <ActivityIndicator size="large" color="#9333EA" />
       </View>
@@ -162,7 +164,7 @@ const Leaderboard: React.FC = () => {
   }
 
   return (
-    <View style={s.screen}>
+    <View style={[s.screen, { backgroundColor: colors.primary }]}>
       {/* ── Header ── */}
       <LinearGradient
         colors={["#c8afe0", "#5B21B6"]}
@@ -183,7 +185,7 @@ const Leaderboard: React.FC = () => {
       </LinearGradient>
 
       {/* ── Full ranked list ── */}
-      <View style={s.sheet}>
+      <View style={[s.sheet, { backgroundColor: colors.primary }]}>
         <FlatList
           data={teams}
           keyExtractor={(item) => item.id}

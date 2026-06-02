@@ -1,3 +1,4 @@
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { parachuteActivity } from "@/lib/activityPhaseDescriptions";
 import Instruction from "@/src/components/workflow/InstructionTemplate";
 import React from "react";
@@ -36,8 +37,9 @@ export const instructionData = {
 };
 
 export default function InstructionScreen() {
+  const { colors } = useAppTheme();
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.primary }}>
       <Instruction
         activityId={1}
         instruction={instructionData.instruction}

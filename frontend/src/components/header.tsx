@@ -1,8 +1,9 @@
 import useGetUserAvatar from "@/hooks/user/useGetUserAvatar";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { Link } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { borderRadius, colors, spacing } from "../theme";
+import { borderRadius, spacing } from "../theme";
 
 const heyjoImg = require("../../assets/images/mascot/goodJobMan.png");
 
@@ -11,6 +12,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ userName = "User" }) => {
+  const { colors } = useAppTheme();
   const [greeting, setGreeting] = useState("Good morning");
   const avatar = useGetUserAvatar();
 
@@ -31,8 +33,8 @@ const Header: React.FC<HeaderProps> = ({ userName = "User" }) => {
       <View style={styles.content}>
         <View style={styles.leftGroup}>
           <View style={styles.greetingContainer}>
-            <Text style={styles.greeting}>{greeting}</Text>
-            <Text style={styles.userName}>{userName}</Text>
+            <Text style={[styles.greeting, { color: colors.textSecondary }]}>{greeting}</Text>
+            <Text style={[styles.userName, { color: colors.text }]}>{userName}</Text>
           </View>
           <Image source={heyjoImg} style={styles.mascot} resizeMode="contain" />
         </View>
@@ -41,7 +43,7 @@ const Header: React.FC<HeaderProps> = ({ userName = "User" }) => {
           {/* User Avatar - Link to Settings */}
           <Link href="../../setting" asChild>
             <Pressable style={styles.avatarButton}>
-              <View style={styles.avatar}>
+              <View style={[styles.avatar, { backgroundColor: colors.surface }]}>
                 {avatar ? (
                   <Image
                     source={avatar}
@@ -79,14 +81,12 @@ const styles = StyleSheet.create({
   greetingContainer: {},
   greeting: {
     fontSize: 14,
-    color: colors.textSecondary,
     fontWeight: "500",
     marginBottom: spacing.xs,
   },
   userName: {
     fontSize: 20,
     fontWeight: "bold",
-    color: colors.text,
   },
   mascot: {
     width: 52,
@@ -106,7 +106,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.surface,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
@@ -131,7 +130,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.surface,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,

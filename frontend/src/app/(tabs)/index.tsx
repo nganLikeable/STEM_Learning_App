@@ -1,5 +1,6 @@
 import Header from "@/src/components/header";
 import TeamInfoCard from "@/src/components/TeamInfoCard";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
@@ -115,10 +116,15 @@ const IMG_W = Math.round(CARD_W * 0.42);
 
 const SwipeCard: React.FC<{ activity: Activity }> = ({ activity }) => {
   const router = useRouter();
+  const { colors } = useAppTheme();
 
   return (
     <Pressable
-      style={({ pressed }) => [sc.card, pressed && { opacity: 0.82 }]}
+      style={({ pressed }) => [
+        sc.card,
+        { backgroundColor: colors.surface },
+        pressed && { opacity: 0.82 },
+      ]}
       onPress={() => router.navigate(`./screens/${activity.nextScreen}`)}
     >
       {/* Left: image fills the full left column */}
@@ -126,8 +132,8 @@ const SwipeCard: React.FC<{ activity: Activity }> = ({ activity }) => {
 
       {/* Right: text content */}
       <View style={sc.textBlock}>
-        <Text style={sc.title} numberOfLines={2}>{activity.title}</Text>
-        <Text style={sc.desc} numberOfLines={4}>{activity.description}</Text>
+        <Text style={[sc.title, { color: colors.text }]} numberOfLines={2}>{activity.title}</Text>
+        <Text style={[sc.desc, { color: colors.textSecondary }]} numberOfLines={4}>{activity.description}</Text>
 
         {/* Arrow pinned to bottom-right */}
         <View style={sc.arrowRow}>
@@ -142,7 +148,6 @@ const sc = StyleSheet.create({
   card: {
     width: CARD_W,
     height: CARD_H,
-    backgroundColor: '#fff',
     borderRadius: 20,
     flexDirection: 'row',
     overflow: 'hidden',
@@ -165,13 +170,11 @@ const sc = StyleSheet.create({
   title: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#1F2937',
     marginBottom: 8,
     lineHeight: 21,
   },
   desc: {
     fontSize: 12,
-    color: '#6B7280',
     lineHeight: 17,
     flex: 1,
   },
@@ -266,11 +269,12 @@ function getWeekDays(): { label: string; dateStr: string; dayNum: number }[] {
 }
 
 const WeeklyCalendar: React.FC<{ attendanceDates: string[] }> = ({ attendanceDates }) => {
+  const { colors } = useAppTheme();
   const todayStr = new Date().toISOString().slice(0, 10);
   const weekDays = getWeekDays();
 
   return (
-    <View style={wc.card}>
+    <View style={[wc.card, { backgroundColor: colors.surface }]}>
       <View style={wc.row}>
         {weekDays.map(({ label, dateStr, dayNum }) => {
           const isAttended = attendanceDates.includes(dateStr);
@@ -293,7 +297,7 @@ const WeeklyCalendar: React.FC<{ attendanceDates: string[] }> = ({ attendanceDat
 
           return (
             <View key={dateStr} style={wc.dayCol}>
-              <Text style={[wc.dayLabel, isFuture && wc.dayLabelFuture]}>
+              <Text style={[wc.dayLabel, { color: colors.textSecondary }, isFuture && wc.dayLabelFuture]}>
                 {label}
               </Text>
               <View style={[wc.circle, circleStyle]}>
@@ -383,6 +387,7 @@ const wc = StyleSheet.create({
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
+  const { colors } = useAppTheme();
   const engineering = activities.slice(0, 4);
   const health = activities.slice(4);
 
@@ -447,7 +452,7 @@ export default function HomeScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.primary }]}>
       <Header userName={userName} />
 
       <ScrollView
@@ -467,13 +472,13 @@ export default function HomeScreen() {
 
         {/* ── Section 1: Engineering Challenges ── */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Engineering Challenges</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Engineering Challenges</Text>
           <ActivityCarousel activities={engineering} />
         </View>
 
         {/* ── Section 2: Health & Medical Science ── */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Health & Medical Science</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Health & Medical Science</Text>
           <ActivityCarousel activities={health} />
         </View>
       </ScrollView>

@@ -1,3 +1,4 @@
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { Button } from "@react-navigation/elements";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -42,6 +43,7 @@ export default function Instruction({
   setupPath,
   predictionPath,
 }: InstructionProps) {
+  const { colors } = useAppTheme();
   const router = useRouter();
   const { teamId } = useTeamStore();
   const { setSessionId } = useSessionStore();
@@ -153,7 +155,7 @@ export default function Instruction({
     }
   };
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.screen, { backgroundColor: colors.primary }]} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerBadge}>
@@ -174,11 +176,11 @@ export default function Instruction({
             tools.map((tool, index) => (
               <View key={index} style={styles.listItem}>
                 <View style={styles.listDot} />
-                <Text style={styles.listItemText}>{tool}</Text>
+                <Text style={[styles.listItemText, { color: colors.textSecondary }]}>{tool}</Text>
               </View>
             ))
           ) : (
-            <Text style={styles.bodyText}>No tools required</Text>
+            <Text style={[styles.bodyText, { color: colors.textSecondary }]}>No tools required</Text>
           )}
         </View>
       </SectionCard>
@@ -188,15 +190,16 @@ export default function Instruction({
         title="Key Formulas"
         characterLeft={require('../../../assets/images/mascot/ontheLeft.png')}
       >
-        <View style={styles.formulaBox}>
+        <View>
           {formulas && formulas.length > 0 ? (
             formulas.map((formula, index) => (
-              <Text key={index} style={styles.formulaItem}>
-                {formula}
-              </Text>
+              <View key={index} style={styles.listItem}>
+                <View style={styles.listDot} />
+                <Text style={[styles.listItemText, { color: colors.textSecondary }]}>{formula}</Text>
+              </View>
             ))
           ) : (
-            <Text style={styles.bodyText}>No formulas available</Text>
+            <Text style={[styles.bodyText, { color: colors.textSecondary }]}>No formulas available</Text>
           )}
         </View>
       </SectionCard>
@@ -208,7 +211,7 @@ export default function Instruction({
         characterTopOffset={-35}
         gapTop={50}
       >
-        <Text style={styles.bodyText}>{instruction}</Text>
+        <Text style={[styles.bodyText, { color: colors.textSecondary }]}>{instruction}</Text>
       </SectionCard>
 
       <Button onPress={handleStartExperiment}>
@@ -236,6 +239,7 @@ function SectionCard({
   characterTopOffset?: number;
   gapTop?: number;
 }) {
+  const { colors } = useAppTheme();
   const hasCharacter = !!(characterRight || characterLeft);
   const topOffset = characterTopOffset ?? -40;
   const wrapperPaddingTop = Math.max(0, -topOffset);
@@ -257,7 +261,7 @@ function SectionCard({
           </View>
         )}
 
-        <View style={styles.sectionCard}>
+        <View style={[styles.sectionCard, { backgroundColor: colors.surface }]}>
           <View style={styles.sectionInner}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>{title}</Text>

@@ -1,12 +1,25 @@
-export const colors = {
-  primary: '#F8F9FA',      // Slight gray-white for background
-  surface: '#FFFFFF',      // Pure white cards
-  text: '#1A1A1A',         // Dark text
-  textSecondary: '#666666', // Secondary text
-  border: '#E0E0E0',       // Light borders
-  accent: '#F39C12',       // Badge/highlight color
-  success: '#27AE60',      // Success states
+export const lightColors = {
+  primary: '#F8F9FA',
+  surface: '#FFFFFF',
+  text: '#1A1A1A',
+  textSecondary: '#666666',
+  border: '#E0E0E0',
+  accent: '#F39C12',
+  success: '#27AE60',
 };
+
+export const darkColors = {
+  primary: '#111827',
+  surface: '#1F2937',
+  text: '#F9FAFB',
+  textSecondary: '#9CA3AF',
+  border: '#374151',
+  accent: '#F39C12',
+  success: '#27AE60',
+};
+
+// backwards-compat alias — existing imports keep working
+export const colors = lightColors;
 
 export const spacing = {
   xs: 4,
