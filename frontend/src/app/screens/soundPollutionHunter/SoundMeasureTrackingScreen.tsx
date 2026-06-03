@@ -12,7 +12,8 @@
  * dBFS value from the microphone. Accuracy varies by device.
  */
 
-import { setActivity2 } from "@/src/services/activity";
+import { calculateFinalPoints, setActivity2 } from "@/src/services/activity";
+import { db as dbFirestore } from "@/src/services/firestore";
 import { advanceActiveSession, getActiveSession } from "@/src/services/session";
 import { useSessionStore } from "@/src/store/session-store";
 import { useTeamStore } from "@/src/store/team-store";
@@ -24,6 +25,7 @@ import {
   useAudioRecorderState,
 } from "expo-audio";
 import { router, useLocalSearchParams } from "expo-router";
+import { doc, updateDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -169,10 +171,33 @@ export default function SoundMeasureTracking() {
         peakDb,
       );
 
-      // advance session
-      await advanceActiveSession(teamId, activityDocId, 0, 3);
+      const updatedSession = await advanceActiveSession(
+        teamId,
+        activityDocId,
+        peakDb, // save  peak as score
+        3,
+      );
 
-      console.log("Result saved:", peakDb);
+      if (updatedSession?.completed) {
+        const finalPoints = await calculateFinalPoints(updatedSession);
+        console.log(finalPoints);
+        await updateDoc(doc(dbFirestore, "sessions", updatedSession.id), {
+          totalPoints: finalPoints,
+        });
+
+        router.replace("/screens/soundPollutionHunter/ReflectionScreen");
+        return;
+      }
+
+      if (journeyData) {
+        router.replace({
+          pathname: "/journey",
+          params: { journeyData },
+        } as any);
+        return;
+      }
+
+      router.replace("/screens/soundPollutionHunter/InstructionScreen");
     } catch (err) {
       console.error("Failed to save result:", err);
     }
@@ -293,22 +318,7 @@ export default function SoundMeasureTracking() {
           </Text>
         </TouchableOpacity>
         {!isRecording && peakDb > 0 && (
-          <TouchableOpacity
-            style={styles.finishButton}
-            onPress={async () => {
-              await finishAttempt();
-
-              if (journeyData) {
-                router.replace({
-                  pathname: "/journey",
-                  params: { journeyData },
-                } as any);
-                return;
-              }
-
-              router.replace("/screens/soundPollutionHunter/InstructionScreen");
-            }}
-          >
+          <TouchableOpacity style={styles.finishButton} onPress={finishAttempt}>
             <Text style={styles.finishButtonText}>Finish Attempt</Text>
           </TouchableOpacity>
         )}

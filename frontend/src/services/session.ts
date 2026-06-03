@@ -30,6 +30,7 @@ export interface SessionDoc {
   designs?: SessionDesignInput[];
   activitiesCompleted: SessionActivityResult[];
   totalPoints?: number;
+  reflection?: string;
 }
 
 // create a new session when starting a path (multi-activity path)
@@ -136,6 +137,21 @@ export const updateSessionPhase = async (
   }
 };
 
+// add reflection
+export const addSessionReflection = async (
+  sessionId: string,
+  reflection: string,
+) => {
+  try {
+    await updateDoc(doc(db, "sessions", sessionId), {
+      reflection,
+    });
+  } catch (e) {
+    console.error("Error adding reflection");
+    throw e;
+  }
+};
+
 // advance the active session only after the activity data has been saved
 export const advanceActiveSession = async (
   teamId: string,
@@ -162,15 +178,6 @@ export const advanceActiveSession = async (
     completed,
   };
 
-  // If all activities are finished, aggregate total points to check against original prediction
-  if (completed) {
-    const totalPoints = updatedActivities.reduce(
-      (sum, act) => sum + act.score,
-      0,
-    );
-    updatePayload.totalPoints = totalPoints;
-  }
-
   await updateDoc(doc(db, "sessions", activeSession.id), updatePayload);
 
   return {
@@ -178,6 +185,6 @@ export const advanceActiveSession = async (
     activitiesCompleted: updatedActivities,
     currentPhase: completed ? totalPhases : nextPhase,
     completed,
-    totalPoints: updatePayload.totalPoints,
+    totalPoints: activeSession.totalPoints,
   };
 };

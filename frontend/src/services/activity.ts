@@ -1,5 +1,11 @@
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "./firestore";
+import { SessionDoc } from "./session";
+
+interface CompletedActivity {
+  activityId: string;
+  score: number;
+}
 
 // save data for activity 1 - parachute
 export const setActivity1 = async (
@@ -74,3 +80,33 @@ export const setActivity4 = async (
     throw e;
   }
 };
+
+// calculate final poitns for activity - for those with one metric compared against each other
+export function calculateFinalPoints(
+  session: SessionDoc,
+  bonusAwardAmount: number = 100,
+): number {
+  const activities = session.activitiesCompleted ?? [];
+  const prediction = session.prediction;
+  let finalPoints = session.totalPoints ?? 0;
+
+  if (activities.length === 0) return finalPoints;
+
+  // find index of highest score
+  const bestIndex = activities.reduce((maxIdx, current, currentIdx, arr) => {
+    return current.score > arr[maxIdx].score ? currentIdx : maxIdx;
+  }, 0);
+
+  // part of final score = their highest (best) design'result
+  const bestScore = activities[bestIndex]?.score ?? 0;
+  finalPoints += bestScore;
+
+  const bestDesignNumber = bestIndex + 1; // array frm 0 -2 =>  1, 2,3
+
+  // scoring rules
+  if (prediction === bestDesignNumber) {
+    finalPoints += bonusAwardAmount;
+  }
+
+  return finalPoints;
+}

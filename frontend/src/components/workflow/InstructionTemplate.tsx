@@ -17,7 +17,7 @@ import { useTeamStore } from "../../store/team-store";
 
 interface JourneyParams {
   titles: string[];
-  descriptions: string[];
+  descriptions?: string[];
   pathIDs: string[];
 }
 

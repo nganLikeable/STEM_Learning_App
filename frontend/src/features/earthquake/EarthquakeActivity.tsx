@@ -99,52 +99,6 @@ export default function EarthquakeActivity({ designNumber }: Props) {
     backToPath,
   } = useEarthquakeTest(designNumber);
 
-  // ── Idle — design label entry ─────────────────────────────────────────────
-
-  // if (status === "idle") {
-  //   return (
-  //     <View style={styles.screen}>
-  //       <View style={styles.header}>
-  //         <Text style={styles.eyebrow}>ACTIVITY 4</Text>
-  //         <Text style={styles.title}>Earthquake{"\n"}Lab</Text>
-  //         <Text style={styles.subtitle}>Design {designNumber}</Text>
-  //       </View>
-
-  //       <View style={styles.inputSection}>
-  //         <Text style={styles.inputLabel}>Describe your structure:</Text>
-  //         <TextInput
-  //           style={styles.input}
-  //           placeholder="e.g. 4 folds + 4 pillars"
-  //           placeholderTextColor="#475569"
-  //           value={labelInput}
-  //           onChangeText={setLabelInput}
-  //         />
-  //         <Text style={styles.inputHint}>
-  //           Place your phone on the structure after tapping Start.
-  //         </Text>
-  //       </View>
-
-  //       <Pressable
-  //         style={({ pressed }) => [
-  //           styles.cta,
-  //           !labelInput.trim() && styles.ctaDisabled,
-  //           pressed && labelInput.trim() && styles.ctaPressed,
-  //         ]}
-  //         onPress={() => {
-  //           if (labelInput.trim()) {
-  //             beginCountdown(labelInput.trim());
-  //             setLabelInput("");
-  //           }
-  //         }}
-  //       >
-  //         <Text style={styles.ctaText}>START TEST</Text>
-  //       </Pressable>
-  //     </View>
-  //   );
-  // }
-
-  // ── Countdown ─────────────────────────────────────────────────────────────
-
   if (status === "countdown") {
     return (
       <View style={styles.screen}>

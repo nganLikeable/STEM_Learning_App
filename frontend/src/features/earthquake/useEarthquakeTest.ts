@@ -1,9 +1,11 @@
 // useEarthquakeTest.ts
-import { setActivity4 } from "@/src/services/activity";
+import { calculateFinalPoints, setActivity4 } from "@/src/services/activity";
+import { db } from "@/src/services/firestore";
 import { advanceActiveSession, getActiveSession } from "@/src/services/session";
 import { useSessionStore } from "@/src/store/session-store";
 import { useTeamStore } from "@/src/store/team-store";
-import { useNavigation } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
+import { doc, updateDoc } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
 import { DesignResult, TestStatus } from "./types";
 import useAccelerometer from "./useAccelerometer";
@@ -29,6 +31,10 @@ export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
   const [designLabel, setDesignLabel] = useState("");
   const [result, setResult] = useState<DesignResult | null>(null);
   const { sessionId } = useSessionStore();
+  // track the session document locally to inspect it on completion
+  const [sessionData, setSessionData] = useState<any>(null);
+
+  const router = useRouter();
 
   const gyroscope = useGyroscope();
   const accelerometer = useAccelerometer();
@@ -142,8 +148,16 @@ export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
         targetsSessionId,
         result.stabilityScore,
       );
-      await advanceActiveSession(teamId, activityDocId, 0, 3);
+      const updatedSession = await advanceActiveSession(
+        teamId,
+        activityDocId,
+        result.stabilityScore,
+        3,
+      ); // save stabilitiy score directly to session, no need to query
+
       console.log("Saved successfully");
+
+      setSessionData(updatedSession);
     } catch (e) {
       console.error("Failed to save:", e);
     }
@@ -163,10 +177,26 @@ export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
     setDesignLabel("");
   };
 
-  const backToPath = () => {
-    navigation.goBack();
-  };
+  // if 3 attempts completed, completed == true => calculate poitns and save to firestore, then nav to reflection
+  const backToPath = async () => {
+    if (sessionData?.completed) {
+      const finalPoints = calculateFinalPoints(sessionData);
+      console.log("Final activity points computed:", finalPoints);
 
+      // update to session points
+      try {
+        await updateDoc(doc(db, "sessions", sessionData.id), {
+          totalPoints: finalPoints,
+        });
+      } catch (err) {
+        console.error("Failed to update final points in Firestore:", err);
+      }
+
+      router.replace("/screens/earthquake/ReflectionScreen");
+    } else {
+      navigation.goBack();
+    }
+  };
   return {
     // state
     status,
