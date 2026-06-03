@@ -1,4 +1,4 @@
-import { getActiveSessionByActivity } from "@/src/services/session";
+import { getActiveSession } from "@/src/services/session";
 import { useTeamStore } from "@/src/store/team-store";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -56,10 +56,7 @@ export default function PredictionTemplate({
 
       try {
         // get active session to fetch the right inputs by teamId and activityId
-        const activeSession = await getActiveSessionByActivity(
-          teamId,
-          activityId,
-        );
+        const activeSession = await getActiveSession(teamId);
         const savedDesigns = activeSession?.designs ?? [];
 
         if (cancelled) return;

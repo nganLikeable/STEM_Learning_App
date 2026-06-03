@@ -1,6 +1,7 @@
 // useEarthquakeTest.ts
-import { setActivity4 } from "@/src/services/firestore";
-import { advanceActiveSession } from "@/src/services/session";
+import { setActivity4 } from "@/src/services/activity";
+import { advanceActiveSession, getActiveSession } from "@/src/services/session";
+import { useSessionStore } from "@/src/store/session-store";
 import { useTeamStore } from "@/src/store/team-store";
 import { useNavigation } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -27,6 +28,7 @@ export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
   const [progress, setProgress] = useState(0); // 0–1 during test
   const [designLabel, setDesignLabel] = useState("");
   const [result, setResult] = useState<DesignResult | null>(null);
+  const { sessionId } = useSessionStore();
 
   const gyroscope = useGyroscope();
   const accelerometer = useAccelerometer();
@@ -129,9 +131,18 @@ export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
           "Missing teamId. Join or create a team before saving Activity 4.",
         );
       }
+      const activeSession = await getActiveSession(teamId);
+      const targetsSessionId = sessionId || activeSession?.id;
 
-      await setActivity4(teamId, designNumber, result);
-      await advanceActiveSession(teamId, 4);
+      if (!targetsSessionId)
+        throw new Error("No running structural session found");
+
+      const activityDocId = await setActivity4(
+        teamId,
+        targetsSessionId,
+        result.stabilityScore,
+      );
+      await advanceActiveSession(teamId, activityDocId, 0, 3);
       console.log("Saved successfully");
     } catch (e) {
       console.error("Failed to save:", e);

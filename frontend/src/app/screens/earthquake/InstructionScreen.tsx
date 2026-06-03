@@ -1,7 +1,9 @@
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { earthquakeActivity } from "@/lib/activityPhaseDescriptions";
 import Instruction from "@/src/components/workflow/InstructionTemplate";
-import React from "react";
+import { getActiveSession } from "@/src/services/session";
+import { useTeamStore } from "@/src/store/team-store";
+import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const instructionData = {
@@ -40,6 +42,34 @@ What you'll do:
 
 export default function InstructionScreen() {
   const { colors } = useAppTheme();
+  const { teamId } = useTeamStore();
+
+  const [journeyParams, setJourneyParams] = useState(
+    instructionData.journeyParams,
+  );
+
+  useEffect(() => {
+    const loadDesigns = async () => {
+      if (!teamId) return;
+
+      try {
+        const activeSession = await getActiveSession(teamId);
+        const savedDesigns = activeSession?.designs ?? [];
+
+        if (savedDesigns.length === 3) {
+          setJourneyParams({
+            ...instructionData.journeyParams,
+            titles: savedDesigns.map((d) => d.title.trim()),
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    loadDesigns();
+  }, [teamId]);
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.primary }}>
       <Instruction
@@ -48,7 +78,7 @@ export default function InstructionScreen() {
         image={require("../../../../assets/images/activityCards/vibration-platform.png")}
         tools={instructionData.tools}
         formulas={instructionData.formulas}
-        journeyParams={instructionData.journeyParams}
+        journeyParams={journeyParams}
         setupPath="/screens/earthquake/DesignInputScreen"
         predictionPath="/screens/earthquake/PredictionScreen"
       />

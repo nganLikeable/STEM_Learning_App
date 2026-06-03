@@ -176,7 +176,7 @@ export const advanceActiveSession = async (
   return {
     ...activeSession,
     activitiesCompleted: updatedActivities,
-    currentPhase: nextPhase,
+    currentPhase: completed ? totalPhases : nextPhase,
     completed,
     totalPoints: updatePayload.totalPoints,
   };

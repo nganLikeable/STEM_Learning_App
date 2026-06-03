@@ -20,7 +20,7 @@ export default function PredictionScreen() {
     }
 
     router.replace({
-      pathname: "/JourneyComponent",
+      pathname: "/journey",
       params: { journeyData },
     } as any);
   };

@@ -1,11 +1,11 @@
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { handFanActivity } from "@/lib/activityPhaseDescriptions";
 import Instruction from "@/src/components/workflow/InstructionTemplate";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const instructionData = {
-  instruction:
-`Find out how fan design and distance affect how much a material bends.
+  instruction: `Find out how fan design and distance affect how much a material bends.
 What you'll do:
 - Stand paper upright on a table
 - Fan air from 30 cm away and observe how it moves
@@ -27,12 +27,12 @@ What you'll do:
     "θ = bend angle (radians)",
   ],
   journeyParams: {
-    titles: ["Phase 1", "Phase 2", "Phase 3"],
-    descriptions: ["gi do", "gi do", "gi do"],
+    titles: handFanActivity.phases.map((p) => p.title),
+    descriptions: handFanActivity.phases.map((p) => p.title),
     pathIDs: [
-      "/screens/handFanChallenge/HandFanTrackingScreen",
-      "/screens/handFanChallenge/HandFanTrackingScreen",
-      "/screens/handFanChallenge/HandFanTrackingScreen",
+      "/screens/handFanChallenge/HandFanTrackingScreen?design=1",
+      "/screens/handFanChallenge/HandFanTrackingScreen?design=2",
+      "/screens/handFanChallenge/HandFanTrackingScreen?design=3",
     ],
   },
 };

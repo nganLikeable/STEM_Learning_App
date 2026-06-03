@@ -260,7 +260,6 @@ const DescriptionPopup: React.FC<DescriptionPopupProps> = ({
       {node && (
         <View style={styles.popupCard}>
           <Text style={styles.popupTitle}>{node.title}</Text>
-          <Text style={styles.popupDesc}>{node.description}</Text>
 
           {/* Completed state from firestore branch */}
           <TouchableOpacity
@@ -539,13 +538,6 @@ const styles = StyleSheet.create({
     color: "#1A1240",
     textAlign: "center",
     marginBottom: 10,
-  },
-  popupDesc: {
-    fontSize: 13,
-    color: "#5A4E8A",
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 24,
   },
   startBtn: {
     width: "100%",

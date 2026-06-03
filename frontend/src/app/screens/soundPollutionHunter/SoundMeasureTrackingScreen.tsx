@@ -12,6 +12,9 @@
  * dBFS value from the microphone. Accuracy varies by device.
  */
 
+import { setActivity2 } from "@/src/services/activity";
+import { advanceActiveSession, getActiveSession } from "@/src/services/session";
+import { useSessionStore } from "@/src/store/session-store";
 import { useTeamStore } from "@/src/store/team-store";
 import {
   AudioModule,
@@ -81,6 +84,7 @@ export default function SoundMeasureTracking() {
   const meterAnim = useRef(new Animated.Value(0)).current;
 
   const { teamId } = useTeamStore();
+  const { sessionId } = useSessionStore(); // Access globally tracking path state container
 
   const { journeyData } = useLocalSearchParams<{ journeyData?: string }>();
 
@@ -153,6 +157,20 @@ export default function SoundMeasureTracking() {
   async function finishAttempt() {
     try {
       if (!teamId) throw new Error("Missing teamId.");
+      // 1. Fetch current runtime continuous session tracking
+      const activeSession = await getActiveSession(teamId);
+      const targetsSessionId = sessionId || activeSession?.id;
+
+      if (!targetsSessionId)
+        throw new Error("No running structural session found");
+      const activityDocId = await setActivity2(
+        teamId,
+        targetsSessionId,
+        peakDb,
+      );
+
+      // advance session
+      await advanceActiveSession(teamId, activityDocId, 0, 3);
 
       console.log("Result saved:", peakDb);
     } catch (err) {
@@ -282,7 +300,7 @@ export default function SoundMeasureTracking() {
 
               if (journeyData) {
                 router.replace({
-                  pathname: "/JourneyComponent",
+                  pathname: "/journey",
                   params: { journeyData },
                 } as any);
                 return;

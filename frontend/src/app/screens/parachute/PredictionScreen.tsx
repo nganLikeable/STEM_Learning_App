@@ -28,7 +28,7 @@ export default function PredictionScreen() {
     }
     console.log(journeyData);
     router.replace({
-      pathname: "/JourneyComponent",
+      pathname: "/journey",
       params: { journeyData },
     } as any);
   };

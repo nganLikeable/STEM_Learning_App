@@ -68,68 +68,6 @@ export const getTeamMembers = async (teamId) => {
   return snap.docs.map((d) => ({ uid: d.id, ...d.data() }));
 };
 
-//  save data for activity 1 - parachute
-export const setActivity1 = async (
-  teamId,
-  data,
-  userAnswers,
-  validation,
-  score,
-) => {
-  try {
-    const docRef = await addDoc(collection(db, "activities"), {
-      teamId: teamId,
-      experiementData: data,
-      userAnswers: userAnswers,
-      validation,
-      totalScore: score,
-      createdAt: serverTimestamp(),
-      completedAt: serverTimestamp(),
-    });
-    await addTeamNotification(teamId, {
-      type: "activity_score",
-      title: "Activity completed!",
-      body: `Your team just completed the Parachute activity and scored ${score} point${score !== 1 ? "s" : ""}!`,
-      seen: false,
-    });
-    return docRef.id;
-  } catch (e) {
-    console.error("Error saving activity 1 to Firestore", e);
-    throw e;
-  }
-};
-
-// activity 2 - sound
-export const setActivity2 = {};
-
-// activity 4 - earthquake
-export const setActivity4 = async (teamId, designNumber, result) => {
-  try {
-    const docRef = await addDoc(collection(db, "activities"), {
-      teamId: teamId,
-      designNumber: designNumber,
-      label: result.label,
-      description: result.label,
-      peakRotationRateDeg: result.peakRotationRateDeg,
-      totalRotationDeg: result.totalRotationDeg,
-      maxAcceleration: result.maxAcceleration,
-      stabilityScore: result.stabilityScore,
-      createdAt: serverTimestamp(),
-      completedAt: serverTimestamp(),
-    });
-    await addTeamNotification(teamId, {
-      type: "activity_score",
-      title: "Activity completed!",
-      body: `Your team just completed the Earthquake activity with a stability score of ${result.stabilityScore}!`,
-      seen: false,
-    });
-    return docRef.id;
-  } catch (e) {
-    console.error("Error saving activity 4 to Firestore", e);
-    throw e;
-  }
-};
-
 export const markTodayAttendance = (uid) => {
   const today = new Date().toISOString().slice(0, 10);
   return setDoc(

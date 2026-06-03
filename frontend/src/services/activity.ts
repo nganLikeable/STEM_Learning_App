@@ -55,23 +55,19 @@ export const setActivity2 = async (
 export const setActivity4 = async (
   teamId: string,
   sessionId: string,
-  designNumber: number,
-  result: any,
+  //   designNumber: number,
+  stabilityScore: number,
 ): Promise<string> => {
   try {
     const docRef = await addDoc(collection(db, "activities"), {
       teamId,
       sessionId,
-      designNumber,
-      label: result.label,
-      description: result.label,
-      peakRotationRateDeg: result.peakRotationRateDeg,
-      totalRotationDeg: result.totalRotationDeg,
-      maxAcceleration: result.maxAcceleration,
-      stabilityScore: result.stabilityScore,
+      stabilityScore,
       createdAt: serverTimestamp(),
       completedAt: serverTimestamp(),
     });
+    console.log("Saved successfully a4", docRef.id);
+
     return docRef.id;
   } catch (e) {
     console.error("Error saving activity 4 to Firestore", e);
