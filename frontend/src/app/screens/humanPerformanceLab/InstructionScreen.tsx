@@ -29,6 +29,7 @@ What you'll do:
       "/screens/humanPerformanceLab/HumanPerformanceScreen?phase=3",
     ],
   },
+  },
 };
 
 export default function InstructionScreen() {

@@ -1,92 +1,248 @@
+import StretchActivity from "@/src/features/humanPerformance/StretchActivity";
+import {
+  MovementId,
+  MovementResult,
+} from "@/src/features/humanPerformance/types";
+import { useHumanPerformanceStore } from "@/src/store/human-performance-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useMemo, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-export default function HumanPerformanceScreen() {
-  const router = useRouter();
-  const { phase } = useLocalSearchParams<{ phase?: string }>();
+function parseMovementId(value: string | string[] | undefined): MovementId {
+  const raw = Array.isArray(value) ? value[0] : value;
+  const parsed = Number(raw);
+  if (parsed === 1 || parsed === 2 || parsed === 3) return parsed;
+  return 1;
+}
 
+function improvementColor(delta: number) {
+  if (delta > 0) return "#22c55e";
+  if (delta === 0) return "#facc15";
+  return "#ef4444";
+}
+
+function SummaryCard({ result }: { result: MovementResult }) {
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Text style={styles.kicker}>Human Performance Lab</Text>
-        <Text style={styles.title}>Movement Phase {phase ?? "1"}</Text>
-        <Text style={styles.description}>
-          Follow the guided movement for this phase and observe how the phone
-          responds to speed, smoothness, and coordination.
-        </Text>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>What to do</Text>
-          <Text style={styles.cardBody}>
-            Keep the phone secure, perform the movement shown in the app, and
-            compare the vibration changes across the three phases.
-          </Text>
-        </View>
-
-        <Pressable style={styles.button} onPress={() => router.back()}>
-          <Text style={styles.buttonText}>Back to Journey</Text>
-        </Pressable>
-      </View>
-    </SafeAreaView>
+    <View style={s.card}>
+      <Text style={s.cardTitle}>
+        {result.emoji} Movement {result.movementId} · {result.label}
+      </Text>
+      <Text style={s.cardLine}>
+        Attempt 1: {result.attempt1.smoothnessScore} / 100
+      </Text>
+      <Text style={s.cardLine}>
+        Attempt 2: {result.attempt2.smoothnessScore} / 100
+      </Text>
+      <Text
+        style={[s.cardLine, { color: improvementColor(result.improvement) }]}
+      >
+        Improvement:{" "}
+        {result.improvement > 0 ? `+${result.improvement}` : result.improvement}
+      </Text>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#f4f7fb",
+export default function HumanPerformanceScreen() {
+  const router = useRouter();
+  const { addId } = useLocalSearchParams<{ addId?: string | string[] }>();
+  const movementId = parseMovementId(addId);
+
+  const [phaseCompleted, setPhaseCompleted] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+
+  const { resultsById, upsertResult, resetResults } =
+    useHumanPerformanceStore();
+
+  const results = useMemo(
+    () =>
+      Object.values(resultsById).sort((a, b) => a.movementId - b.movementId),
+    [resultsById],
+  );
+
+  const hardest = useMemo(() => {
+    if (results.length === 0) return null;
+    return results.reduce((a, b) =>
+      a.attempt1.smoothnessScore < b.attempt1.smoothnessScore ? a : b,
+    );
+  }, [results]);
+
+  const avgImprovement =
+    results.length > 0
+      ? Math.round(
+          results.reduce((sum, item) => sum + item.improvement, 0) /
+            results.length,
+        )
+      : 0;
+
+  const handleComplete = (result: MovementResult) => {
+    upsertResult(result);
+    setPhaseCompleted(true);
+
+    const completedMovementIds = new Set([
+      ...Object.values(resultsById).map((item) => item.movementId),
+      result.movementId,
+    ]);
+
+    if (completedMovementIds.size === 3) {
+      setShowSummary(true);
+    }
+  };
+
+  if (showSummary) {
+    return (
+      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
+        <Text style={s.eyebrow}>ACTIVITY 5 COMPLETE</Text>
+        <Text style={s.title}>Human Performance Summary</Text>
+
+        <View style={s.answerBox}>
+          <Text style={s.answerTitle}>Hardest movement</Text>
+          <Text style={s.answerValue}>
+            {hardest
+              ? `${hardest.emoji} Movement ${hardest.movementId} · ${hardest.label}`
+              : "—"}
+          </Text>
+        </View>
+
+        <View style={s.answerBox}>
+          <Text style={s.answerTitle}>Average feedback impact</Text>
+          <Text
+            style={[s.answerValue, { color: improvementColor(avgImprovement) }]}
+          >
+            {avgImprovement > 0
+              ? `+${avgImprovement} points`
+              : avgImprovement === 0
+                ? "No overall change"
+                : `${avgImprovement} points`}
+          </Text>
+        </View>
+
+        {results.map((result) => (
+          <SummaryCard key={result.movementId} result={result} />
+        ))}
+
+        <Pressable
+          style={({ pressed }) => [s.cta, pressed && s.ctaPressed]}
+          onPress={() => {
+            resetResults();
+            setShowSummary(false);
+            setPhaseCompleted(false);
+            router.back();
+          }}
+        >
+          <Text style={s.ctaText}>DONE</Text>
+        </Pressable>
+      </ScrollView>
+    );
+  }
+
+  if (phaseCompleted) {
+    const remaining = 3 - results.length;
+    return (
+      <View style={s.doneScreen}>
+        <Text style={s.title}>Movement {movementId} saved</Text>
+        <Text style={s.subtitle}>
+          {remaining > 0
+            ? `${remaining} movement${remaining > 1 ? "s" : ""} remaining before summary.`
+            : "All movements complete."}
+        </Text>
+        <Pressable
+          style={({ pressed }) => [s.cta, pressed && s.ctaPressed]}
+          onPress={() => router.back()}
+        >
+          <Text style={s.ctaText}>BACK TO JOURNEY</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  return <StretchActivity addId={movementId} onComplete={handleComplete} />;
+}
+
+const s = StyleSheet.create({
+  scroll: { flex: 1, backgroundColor: "#0f172a" },
+  scrollContent: {
+    paddingVertical: 48,
+    paddingHorizontal: 24,
+    gap: 14,
   },
-  container: {
+  doneScreen: {
     flex: 1,
-    padding: 20,
+    backgroundColor: "#0f172a",
+    paddingHorizontal: 24,
     justifyContent: "center",
-    gap: 16,
+    alignItems: "center",
+    gap: 12,
   },
-  kicker: {
-    fontSize: 14,
+  eyebrow: {
+    fontSize: 10,
     fontWeight: "700",
-    color: "#4c9be8",
-    textTransform: "uppercase",
-    letterSpacing: 1,
+    letterSpacing: 2,
+    color: "#64748b",
+    textAlign: "center",
   },
   title: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: "800",
-    color: "#14213d",
+    color: "#f1f5f9",
+    textAlign: "center",
   },
-  description: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#475569",
+  subtitle: {
+    fontSize: 14,
+    color: "#94a3b8",
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  answerBox: {
+    width: "100%",
+    backgroundColor: "#1e293b",
+    borderRadius: 12,
+    padding: 16,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: "#334155",
+  },
+  answerTitle: {
+    fontSize: 11,
+    color: "#94a3b8",
+    fontWeight: "700",
+    letterSpacing: 1,
+  },
+  answerValue: {
+    fontSize: 20,
+    color: "#f8fafc",
+    fontWeight: "800",
   },
   card: {
-    backgroundColor: "#ffffff",
-    borderRadius: 20,
-    padding: 18,
+    width: "100%",
+    backgroundColor: "#1e293b",
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#dbe5f0",
-    gap: 8,
+    borderColor: "#334155",
+    padding: 16,
+    gap: 4,
   },
   cardTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1f2937",
-  },
-  cardBody: {
+    color: "#e2e8f0",
     fontSize: 15,
-    lineHeight: 22,
-    color: "#475569",
-  },
-  button: {
-    backgroundColor: "#3977fd",
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#ffffff",
-    fontSize: 16,
     fontWeight: "700",
+  },
+  cardLine: {
+    color: "#cbd5e1",
+    fontSize: 13,
+  },
+  cta: {
+    backgroundColor: "#facc15",
+    paddingHorizontal: 36,
+    paddingVertical: 14,
+    borderRadius: 999,
+    alignSelf: "center",
+    marginTop: 6,
+  },
+  ctaPressed: { opacity: 0.85, transform: [{ scale: 0.97 }] },
+  ctaText: {
+    color: "#0f172a",
+    fontWeight: "800",
+    letterSpacing: 1,
   },
 });
