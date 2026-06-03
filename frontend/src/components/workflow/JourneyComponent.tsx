@@ -25,9 +25,9 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
-import { getActiveSessionByActivity } from "../services/session";
-import { useSessionStore } from "../store/session-store";
-import { useTeamStore } from "../store/team-store";
+import { getActiveSession } from "../../services/session";
+import { useSessionStore } from "../../store/session-store";
+import { useTeamStore } from "../../store/team-store";
 
 // ─────────────────────────────────────────────
 // TYPES & NODE DATA
@@ -313,17 +313,12 @@ export default function JourneyComponent() {
       })
     : {};
 
-  const activityNo = Number(activityId);
-
   // ── Firestore session loading ──────────────────────────────────────────────
 
   const loadActiveSession = React.useCallback(async () => {
-    if (!teamId || !Number.isFinite(activityNo) || activityNo <= 0) return;
+    if (!teamId || !activityId) return;
     try {
-      const activeSession = await getActiveSessionByActivity(
-        teamId,
-        activityNo,
-      );
+      const activeSession = await getActiveSession(teamId);
       if (!activeSession) {
         setCompletedUpTo(0);
         return;
@@ -333,7 +328,7 @@ export default function JourneyComponent() {
     } catch (e) {
       console.error(e);
     }
-  }, [teamId, activityNo, setSessionId]);
+  }, [teamId, activityId, setSessionId]);
 
   useEffect(() => {
     loadActiveSession();

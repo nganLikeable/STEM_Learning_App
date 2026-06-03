@@ -1,11 +1,11 @@
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { earthquakeActivity } from "@/lib/activityPhaseDescriptions";
 import Instruction from "@/src/components/workflow/InstructionTemplate";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const instructionData = {
-  instruction:
-`Build a structure that can survive a simulated earthquake — then improve it.
+  instruction: `Build a structure that can survive a simulated earthquake — then improve it.
 What you'll do:
 - Fold paper or cardboard to create an anti-vibration base layer
 - Place a flat cardboard platform on top
@@ -28,8 +28,8 @@ What you'll do:
     "Structure stability",
   ],
   journeyParams: {
-    titles: ["Phase 1", "Phase 2", "Phase 3"],
-    descriptions: ["gi do", "gi do", "gi do"],
+    titles: earthquakeActivity.phases.map((p) => p.title),
+    descriptions: earthquakeActivity.phases.map((p) => p.title),
     pathIDs: [
       "/screens/earthquake/EarthquakeScreen?design=1",
       "/screens/earthquake/EarthquakeScreen?design=2",

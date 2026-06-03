@@ -137,6 +137,14 @@ export default function BaseVideoPreview({
     return (Math.round(seconds * 100) / 100).toFixed(2);
   };
 
+  const markedCount = markedTimes.filter((t) => t > 0).length;
+  const markButtonLabel =
+    markedCount === 0
+      ? "📍 Mark First Time"
+      : markedCount === 1
+        ? "📍 Mark Second Time"
+        : "📍 Mark Time";
+
   const { currentTime } = useEvent(player, "timeUpdate", {
     currentTime: 0,
     currentLiveTimestamp: null,
@@ -223,8 +231,34 @@ export default function BaseVideoPreview({
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleMarkTime} style={styles.markBtn}>
-          <Text style={styles.markBtnText}>📍 Mark Time</Text>
+          <Text style={styles.markBtnText}>{markButtonLabel}</Text>
         </TouchableOpacity>
+      </View>
+
+      <View style={styles.markStatusRow}>
+        <View
+          style={[
+            styles.markStatusCard,
+            markedTimes[0] > 0 && styles.markStatusCardDone,
+          ]}
+        >
+          <Text style={styles.markStatusLabel}>Mark 1</Text>
+          <Text style={styles.markStatusValue}>
+            {markedTimes[0] > 0 ? `${formatTime(markedTimes[0])}s` : "--"}
+          </Text>
+        </View>
+
+        <View
+          style={[
+            styles.markStatusCard,
+            markedTimes[1] > 0 && styles.markStatusCardDone,
+          ]}
+        >
+          <Text style={styles.markStatusLabel}>Mark 2</Text>
+          <Text style={styles.markStatusValue}>
+            {markedTimes[1] > 0 ? `${formatTime(markedTimes[1])}s` : "--"}
+          </Text>
+        </View>
       </View>
 
       {/* bottom controls */}
@@ -347,6 +381,39 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingVertical: 12,
     backgroundColor: "rgba(0,0,0,0.8)",
+  },
+  markStatusRow: {
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "center",
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    backgroundColor: "rgba(0,0,0,0.8)",
+  },
+  markStatusCard: {
+    flex: 1,
+    maxWidth: 180,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.15)",
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+  },
+  markStatusCardDone: {
+    borderColor: "rgba(76,175,80,0.9)",
+    backgroundColor: "rgba(76,175,80,0.15)",
+  },
+  markStatusLabel: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  markStatusValue: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+    marginTop: 2,
   },
   markBtn: {
     backgroundColor: "rgba(79,195,247,0.15)",

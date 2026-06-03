@@ -1,10 +1,21 @@
 import { parachuteCalculate } from "@/lib/parachute";
-import { setActivity1 } from "@/src/services/firestore";
-import { advanceActiveSession } from "@/src/services/session";
+import { setActivity1 } from "@/src/services/activity";
+import {
+  advanceActiveSession,
+  getActiveSession, // Updated imports to match global session strategy
+} from "@/src/services/session";
+import { useSessionStore } from "@/src/store/session-store"; // Imported global session context
 import { useTeamStore } from "@/src/store/team-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type Step = "INPUT" | "CALCULATE" | "RESULT";
@@ -17,12 +28,15 @@ const BG = "#F4F6F9";
 export default function CalculationFlow() {
   const router = useRouter();
   const { teamId } = useTeamStore();
+  const { sessionId } = useSessionStore(); // Access globally tracking path state container
 
   const { markedTime, journeyData } = useLocalSearchParams<{
     markedTime?: string | string[];
     journeyData?: string;
   }>();
-  const markedTimeValue = Array.isArray(markedTime) ? markedTime[0] : markedTime;
+  const markedTimeValue = Array.isArray(markedTime)
+    ? markedTime[0]
+    : markedTime;
 
   useEffect(() => {
     if (markedTime !== undefined) {
@@ -30,7 +44,11 @@ export default function CalculationFlow() {
     }
   }, [markedTime]);
 
-  const [input, setInput] = useState({ mass: "", time: markedTimeValue ?? "", distance: "" });
+  const [input, setInput] = useState({
+    mass: "",
+    time: markedTimeValue ?? "",
+    distance: "",
+  });
   const [step, setStep] = useState<Step>("INPUT");
   const [error, setError] = useState("");
 
@@ -51,12 +69,18 @@ export default function CalculationFlow() {
   const [correct, setCorrect] = useState(0);
 
   const isExperimentInputValid = () =>
-    input.time !== "" && input.distance !== "" && input.mass !== "" &&
-    input.time !== "0" && input.distance !== "0" && input.mass !== "0";
+    input.time !== "" &&
+    input.distance !== "" &&
+    input.mass !== "" &&
+    input.time !== "0" &&
+    input.distance !== "0" &&
+    input.mass !== "0";
 
   const isCaculationInputValid = () =>
-    userCalculation.acceleration !== "" && userCalculation.dragForce !== "" &&
-    userCalculation.netForce !== "" && userCalculation.velocity !== "";
+    userCalculation.acceleration !== "" &&
+    userCalculation.dragForce !== "" &&
+    userCalculation.netForce !== "" &&
+    userCalculation.velocity !== "";
 
   const getResult = () => {
     const t = parseFloat(input.time);
@@ -75,20 +99,44 @@ export default function CalculationFlow() {
     const nearlyEqual = (a: number, b: number) => Math.abs(a - b) <= EPS;
 
     const validationMap = {
-      velocity: nearlyEqual(parseFloat(userCalculation.velocity), calculated.velocity),
-      acceleration: nearlyEqual(parseFloat(userCalculation.acceleration), calculated.acceleration),
-      netForce: nearlyEqual(parseFloat(userCalculation.netForce), calculated.netForce),
-      dragForce: nearlyEqual(parseFloat(userCalculation.dragForce), calculated.dragForce),
+      velocity: nearlyEqual(
+        parseFloat(userCalculation.velocity),
+        calculated.velocity,
+      ),
+      acceleration: nearlyEqual(
+        parseFloat(userCalculation.acceleration),
+        calculated.acceleration,
+      ),
+      netForce: nearlyEqual(
+        parseFloat(userCalculation.netForce),
+        calculated.netForce,
+      ),
+      dragForce: nearlyEqual(
+        parseFloat(userCalculation.dragForce),
+        calculated.dragForce,
+      ),
     };
 
     setFieldResults(validationMap);
-    const correctCount = Object.values(validationMap).filter((f) => f === true).length;
+    const correctCount = Object.values(validationMap).filter(
+      (f) => f === true,
+    ).length;
     setCorrect(correctCount);
 
     try {
       if (!teamId) throw new Error("Missing teamId.");
-      await setActivity1(
+
+      // 1. Fetch current runtime continuous session tracking
+      const activeSession = await getActiveSession(teamId);
+      const targetsSessionId = sessionId || activeSession?.id;
+
+      if (!targetsSessionId)
+        throw new Error("No running structural session found");
+
+      // 2. Save individual experiment document metrics tagged back to global run ID
+      const activityDocId = await setActivity1(
         teamId,
+        targetsSessionId,
         { time: t, distance: d, mass: m },
         {
           velocity: parseFloat(userCalculation.velocity),
@@ -97,11 +145,13 @@ export default function CalculationFlow() {
           dragForce: parseFloat(userCalculation.dragForce),
         },
         validationMap,
-        correctCount,
+        correctCount, // Points score awarded on activity validation loop
       );
-      await advanceActiveSession(teamId, 1);
+
+      // 3. Update parent container state mapping and atomically step phase counter
+      await advanceActiveSession(teamId, activityDocId, correctCount, 3);
     } catch (e) {
-      console.error("Failed to save:", e);
+      console.error("Failed to save architecture flow results:", e);
     }
   }
 
@@ -109,26 +159,40 @@ export default function CalculationFlow() {
   if (step === "INPUT") {
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+        >
           <PageHeader stepNum={1} subtitle="Enter Experiment Parameters" />
 
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Experiment Parameters</Text>
-            <Text style={styles.cardSub}>Based on your experiment setup, enter the values below.</Text>
+            <Text style={styles.cardSub}>
+              Based on your experiment setup, enter the values below.
+            </Text>
 
             <InputField
               label="Time (s)"
               value={input.time}
-              onChangeText={(t) => { setInput({ ...input, time: t }); setError(""); }}
+              onChangeText={(t) => {
+                setInput({ ...input, time: t });
+                setError("");
+              }}
               prefilled={!!markedTimeValue}
             />
             <InputField
               label="Mass (kg)"
-              onChangeText={(t) => { setInput({ ...input, mass: t }); setError(""); }}
+              onChangeText={(t) => {
+                setInput({ ...input, mass: t });
+                setError("");
+              }}
             />
             <InputField
               label="Distance (m)"
-              onChangeText={(t) => { setInput({ ...input, distance: t }); setError(""); }}
+              onChangeText={(t) => {
+                setInput({ ...input, distance: t });
+                setError("");
+              }}
             />
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -156,7 +220,10 @@ export default function CalculationFlow() {
   if (step === "CALCULATE") {
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+        >
           <PageHeader stepNum={2} subtitle="Calculate & Verify" />
 
           <View style={styles.summaryPill}>
@@ -169,23 +236,37 @@ export default function CalculationFlow() {
 
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Your Calculations</Text>
-            <Text style={styles.cardSub}>Use the formulas from the instruction screen.</Text>
+            <Text style={styles.cardSub}>
+              Use the formulas from the instruction screen.
+            </Text>
 
             <InputField
               label="Velocity (m/s)"
-              onChangeText={(t) => { setUserCalculation({ ...userCalculation, velocity: t }); setError(""); }}
+              onChangeText={(t) => {
+                setUserCalculation({ ...userCalculation, velocity: t });
+                setError("");
+              }}
             />
             <InputField
               label="Acceleration (m/s²)"
-              onChangeText={(t) => { setUserCalculation({ ...userCalculation, acceleration: t }); setError(""); }}
+              onChangeText={(t) => {
+                setUserCalculation({ ...userCalculation, acceleration: t });
+                setError("");
+              }}
             />
             <InputField
               label="Net Force (N)"
-              onChangeText={(t) => { setUserCalculation({ ...userCalculation, netForce: t }); setError(""); }}
+              onChangeText={(t) => {
+                setUserCalculation({ ...userCalculation, netForce: t });
+                setError("");
+              }}
             />
             <InputField
               label="Drag Force (N)"
-              onChangeText={(t) => { setUserCalculation({ ...userCalculation, dragForce: t }); setError(""); }}
+              onChangeText={(t) => {
+                setUserCalculation({ ...userCalculation, dragForce: t });
+                setError("");
+              }}
             />
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -212,7 +293,8 @@ export default function CalculationFlow() {
   // ── RESULT ────────────────────────────────────────────────────────────────
   if (step === "RESULT") {
     const correctValues = getResult();
-    const scoreColor = correct === 4 ? "#16a34a" : correct >= 2 ? "#d97706" : "#dc2626";
+    const scoreColor =
+      correct === 4 ? "#16a34a" : correct >= 2 ? "#d97706" : "#dc2626";
 
     const fields: {
       key: keyof typeof fieldResults;
@@ -221,18 +303,47 @@ export default function CalculationFlow() {
       correctVal: number;
       userVal: string;
     }[] = [
-      { key: "velocity", label: "Velocity", unit: "m/s", correctVal: correctValues.velocity, userVal: userCalculation.velocity },
-      { key: "acceleration", label: "Acceleration", unit: "m/s²", correctVal: correctValues.acceleration, userVal: userCalculation.acceleration },
-      { key: "netForce", label: "Net Force", unit: "N", correctVal: correctValues.netForce, userVal: userCalculation.netForce },
-      { key: "dragForce", label: "Drag Force", unit: "N", correctVal: correctValues.dragForce, userVal: userCalculation.dragForce },
+      {
+        key: "velocity",
+        label: "Velocity",
+        unit: "m/s",
+        correctVal: correctValues.velocity,
+        userVal: userCalculation.velocity,
+      },
+      {
+        key: "acceleration",
+        label: "Acceleration",
+        unit: "m/s²",
+        correctVal: correctValues.acceleration,
+        userVal: userCalculation.acceleration,
+      },
+      {
+        key: "netForce",
+        label: "Net Force",
+        unit: "N",
+        correctVal: correctValues.netForce,
+        userVal: userCalculation.netForce,
+      },
+      {
+        key: "dragForce",
+        label: "Drag Force",
+        unit: "N",
+        correctVal: correctValues.dragForce,
+        userVal: userCalculation.dragForce,
+      },
     ];
 
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+        >
           <View style={[styles.scoreBanner, { borderColor: scoreColor }]}>
             <Text style={styles.scoreBannerLabel}>YOUR SCORE</Text>
-            <Text style={[styles.scoreBannerScore, { color: scoreColor }]}>{correct} / 4</Text>
+            <Text style={[styles.scoreBannerScore, { color: scoreColor }]}>
+              {correct} / 4
+            </Text>
             <Text style={styles.scoreBannerSub}>
               {correct === 4
                 ? "Perfect — all answers correct!"
@@ -247,18 +358,28 @@ export default function CalculationFlow() {
               return (
                 <View
                   key={key}
-                  style={[styles.resultRow, isCorrect ? styles.resultRowCorrect : styles.resultRowWrong]}
+                  style={[
+                    styles.resultRow,
+                    isCorrect ? styles.resultRowCorrect : styles.resultRowWrong,
+                  ]}
                 >
                   <View style={styles.resultRowLeft}>
                     <Text style={styles.resultLabel}>{label}</Text>
-                    <Text style={styles.resultYourAnswer}>Your answer: {userVal} {unit}</Text>
+                    <Text style={styles.resultYourAnswer}>
+                      Your answer: {userVal} {unit}
+                    </Text>
                     {!isCorrect && (
                       <Text style={styles.resultCorrectAnswer}>
                         Correct: {correctVal.toFixed(2)} {unit}
                       </Text>
                     )}
                   </View>
-                  <Text style={[styles.resultIcon, { color: isCorrect ? "#16a34a" : "#dc2626" }]}>
+                  <Text
+                    style={[
+                      styles.resultIcon,
+                      { color: isCorrect ? "#16a34a" : "#dc2626" },
+                    ]}
+                  >
                     {isCorrect ? "✓" : "✗"}
                   </Text>
                 </View>
@@ -270,7 +391,10 @@ export default function CalculationFlow() {
             style={styles.primaryBtn}
             onPress={() => {
               if (journeyData) {
-                router.replace({ pathname: "/JourneyComponent", params: { journeyData } } as any);
+                router.replace({
+                  pathname: "/journey",
+                  params: { journeyData },
+                } as any);
                 return;
               }
               router.replace("/screens/parachute/InstructionScreen");
@@ -286,7 +410,13 @@ export default function CalculationFlow() {
 
 // ── Sub-components ───────────────────────────────────────────────────────────
 
-function PageHeader({ stepNum, subtitle }: { stepNum: number; subtitle: string }) {
+function PageHeader({
+  stepNum,
+  subtitle,
+}: {
+  stepNum: number;
+  subtitle: string;
+}) {
   return (
     <View style={styles.pageHeader}>
       <View style={styles.stepBadge}>
@@ -321,7 +451,9 @@ function InputField({
         placeholder="0.00"
         placeholderTextColor="#94A3B8"
       />
-      {prefilled && <Text style={styles.prefilledNote}>Pre-filled from your video</Text>}
+      {prefilled && (
+        <Text style={styles.prefilledNote}>Pre-filled from your video</Text>
+      )}
     </View>
   );
 }
@@ -409,7 +541,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
   },
   chip: { flex: 1, alignItems: "center" },
-  chipLabel: { fontSize: 11, color: SLATE, fontWeight: "600", letterSpacing: 0.5 },
+  chipLabel: {
+    fontSize: 11,
+    color: SLATE,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+  },
   chipValue: { fontSize: 15, fontWeight: "700", color: NAVY, marginTop: 2 },
 
   inputGroup: { marginBottom: 14 },

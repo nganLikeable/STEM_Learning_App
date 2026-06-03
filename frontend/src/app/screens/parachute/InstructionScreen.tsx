@@ -5,8 +5,7 @@ import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export const instructionData = {
-  instruction: 
-`Drop a toy from a set height, build a parachute, and see how much you can slow it down.
+  instruction: `Drop a toy from a set height, build a parachute, and see how much you can slow it down.
 What you'll do:
 - Drop the toy without a parachute to record a baseline
 - Build a parachute from provided materials
@@ -24,7 +23,11 @@ What you'll do:
     "Tape",
   ],
 
-  formulas: ["Net Force = Weight − Drag Force", "g-force = Δv/t_contact ÷ 9.8", "Drag Force = Weight − Net Force"],
+  formulas: [
+    "Net Force = Weight − Drag Force",
+    "g-force = Δv/t_contact ÷ 9.8",
+    "Drag Force = Weight − Net Force",
+  ],
   journeyParams: {
     titles: parachuteActivity.phases.map((p) => p.title),
     descriptions: parachuteActivity.phases.map((p) => p.title),

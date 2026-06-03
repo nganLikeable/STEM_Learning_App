@@ -1,11 +1,11 @@
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { soundPollutionActivity } from "@/lib/activityPhaseDescriptions";
 import Instruction from "@/src/components/workflow/InstructionTemplate";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const instructionData = {
-  instruction:
-`Hunt for loud and quiet zones in your classroom by measuring real sound levels.
+  instruction: `Hunt for loud and quiet zones in your classroom by measuring real sound levels.
 What you'll do:
 - Drop a book from 20 cm onto the table and record the sound level
 - Drop the same book from 1 m onto the floor and record again
@@ -36,6 +36,15 @@ What you'll do:
       "/screens/soundPollutionHunter/SoundMeasureTrackingScreen",
       "/screens/soundPollutionHunter/SoundMeasureTrackingScreen",
     ],
+    journeyParams: {
+      titles: soundPollutionActivity.phases.map((p) => p.title),
+      descriptions: soundPollutionActivity.phases.map((p) => p.title),
+      pathIDs: [
+        "/screens/parachute/VideoRecorderScreen",
+        "/screens/parachute/VideoRecorderScreen",
+        "/screens/parachute/VideoRecorderScreen",
+      ],
+    },
   },
 };
 

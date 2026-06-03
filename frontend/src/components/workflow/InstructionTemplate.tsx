@@ -3,11 +3,15 @@ import { Button } from "@react-navigation/elements";
 import { Image as ExpoImage } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ImageSourcePropType, ScrollView, StyleSheet, Text, View } from "react-native";
 import {
-  createSession,
-  getActiveSessionByActivity,
-} from "../../services/session";
+  Image,
+  ImageSourcePropType,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { createSession, getActiveSession } from "../../services/session";
 import { useSessionStore } from "../../store/session-store";
 import { useTeamStore } from "../../store/team-store";
 
@@ -53,16 +57,13 @@ export default function Instruction({
     let cancelled = false;
 
     const loadActiveSession = async () => {
-      if (!teamId || !activityId) {
+      if (!teamId) {
         setHasProgress(false);
         return;
       }
 
       try {
-        const activeSession = await getActiveSessionByActivity(
-          teamId,
-          activityId,
-        );
+        const activeSession = await getActiveSession(teamId);
         if (!cancelled) {
           // to track progress and show the appropriate screen
           // if predictions are made but no phases completed yet -> show path
@@ -90,16 +91,12 @@ export default function Instruction({
   }, [teamId, activityId]);
 
   const handleStartExperiment = async () => {
-    if (!teamId || !activityId) return;
-    if (!journeyParams) return;
+    if (!teamId || !journeyParams) return;
 
     try {
       let activeSessionId: string | null = null;
 
-      const activeSession = await getActiveSessionByActivity(
-        teamId,
-        activityId,
-      );
+      const activeSession = await getActiveSession(teamId);
       if (activeSession?.id) {
         activeSessionId = activeSession.id;
         setSessionId(activeSessionId);
@@ -109,9 +106,12 @@ export default function Instruction({
           activeSession.prediction != null;
 
         // Resume directly from the journey once the session has real progress.
-        if (hasJourneyProgress) {
+        if (
+          (activeSession.currentPhase ?? 1) > 1 ||
+          activeSession.prediction != null
+        ) {
           router.push({
-            pathname: "/JourneyComponent" as any,
+            pathname: "/journey" as any,
             params: {
               journeyData: JSON.stringify({
                 titles: journeyParams.titles,
@@ -126,7 +126,7 @@ export default function Instruction({
       }
 
       if (!activeSessionId) {
-        activeSessionId = await createSession(teamId, activityId, null);
+        activeSessionId = await createSession(teamId, null);
         // persist the newly created session id into the global store
         setSessionId(activeSessionId);
       }
@@ -155,27 +155,41 @@ export default function Instruction({
     }
   };
   return (
-    <ScrollView style={[styles.screen, { backgroundColor: colors.primary }]} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={[styles.screen, { backgroundColor: colors.primary }]}
+      contentContainerStyle={styles.content}
+    >
       {/* Header image */}
       {image && (
-        <ExpoImage source={image} style={styles.headerImage} contentFit="contain" transition={0} />
+        <ExpoImage
+          source={image}
+          style={styles.headerImage}
+          contentFit="contain"
+          transition={0}
+        />
       )}
 
       {/* Tools */}
       <SectionCard
         title="Tools Required"
-        characterRight={require('../../../assets/images/mascot/ontheRight.png')}
+        characterRight={require("../../../assets/images/mascot/ontheRight.png")}
       >
         <View>
           {tools && tools.length > 0 ? (
             tools.map((tool, index) => (
               <View key={index} style={styles.listItem}>
                 <View style={styles.listDot} />
-                <Text style={[styles.listItemText, { color: colors.textSecondary }]}>{tool}</Text>
+                <Text
+                  style={[styles.listItemText, { color: colors.textSecondary }]}
+                >
+                  {tool}
+                </Text>
               </View>
             ))
           ) : (
-            <Text style={[styles.bodyText, { color: colors.textSecondary }]}>No tools required</Text>
+            <Text style={[styles.bodyText, { color: colors.textSecondary }]}>
+              No tools required
+            </Text>
           )}
         </View>
       </SectionCard>
@@ -183,18 +197,24 @@ export default function Instruction({
       {/* Formulas */}
       <SectionCard
         title="Key Formulas"
-        characterLeft={require('../../../assets/images/mascot/ontheLeft.png')}
+        characterLeft={require("../../../assets/images/mascot/ontheLeft.png")}
       >
         <View>
           {formulas && formulas.length > 0 ? (
             formulas.map((formula, index) => (
               <View key={index} style={styles.listItem}>
                 <View style={styles.listDot} />
-                <Text style={[styles.listItemText, { color: colors.textSecondary }]}>{formula}</Text>
+                <Text
+                  style={[styles.listItemText, { color: colors.textSecondary }]}
+                >
+                  {formula}
+                </Text>
               </View>
             ))
           ) : (
-            <Text style={[styles.bodyText, { color: colors.textSecondary }]}>No formulas available</Text>
+            <Text style={[styles.bodyText, { color: colors.textSecondary }]}>
+              No formulas available
+            </Text>
           )}
         </View>
       </SectionCard>
@@ -202,17 +222,18 @@ export default function Instruction({
       {/* Instructions */}
       <SectionCard
         title="Instructions"
-        characterTop={require('../../../assets/images/mascot/holdingDown.png')}
+        characterTop={require("../../../assets/images/mascot/holdingDown.png")}
         characterTopOffset={-35}
         gapTop={50}
       >
-        <Text style={[styles.bodyText, { color: colors.textSecondary }]}>{instruction}</Text>
+        <Text style={[styles.bodyText, { color: colors.textSecondary }]}>
+          {instruction}
+        </Text>
       </SectionCard>
 
       <Button onPress={handleStartExperiment}>
         {hasProgress ? "Resume Experiment" : "Start Experiment"}
       </Button>
-
     </ScrollView>
   );
 }
@@ -244,15 +265,35 @@ function SectionCard({
       {/* Character on the left — separate from the white card */}
       {characterLeft && (
         <View style={styles.characterColumn}>
-          <ExpoImage source={characterLeft} style={styles.characterImage} contentFit="contain" transition={0} />
+          <Image
+            source={characterLeft}
+            style={styles.characterImage}
+            resizeMode="contain"
+          />
         </View>
       )}
 
       {/* White card wrapper — allows absolutely-positioned top mascot without affecting siblings */}
-      <View style={[styles.sectionCardWrapper, { flex: hasCharacter ? 2 : 1, paddingTop: wrapperPaddingTop, marginTop: gapTop ?? 0 }]}>
+      <View
+        style={[
+          styles.sectionCardWrapper,
+          {
+            flex: hasCharacter ? 2 : 1,
+            paddingTop: wrapperPaddingTop,
+            marginTop: gapTop ?? 0,
+          },
+        ]}
+      >
         {characterTop && (
-          <View style={[styles.characterTopAbsoluteContainer, { top: topOffset }]} pointerEvents="none">
-            <ExpoImage source={characterTop} style={styles.characterTopImage} contentFit="contain" transition={0} />
+          <View
+            style={[styles.characterTopAbsoluteContainer, { top: topOffset }]}
+            pointerEvents="none"
+          >
+            <Image
+              source={characterTop}
+              style={styles.characterTopImage}
+              resizeMode="contain"
+            />
           </View>
         )}
 
@@ -269,7 +310,11 @@ function SectionCard({
       {/* Character on the right — separate from the white card */}
       {characterRight && (
         <View style={styles.characterColumn}>
-          <ExpoImage source={characterRight} style={styles.characterImage} contentFit="contain" transition={0} />
+          <Image
+            source={characterRight}
+            style={styles.characterImage}
+            resizeMode="contain"
+          />
         </View>
       )}
     </View>

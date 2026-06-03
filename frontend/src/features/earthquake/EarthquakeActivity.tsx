@@ -1,14 +1,6 @@
 // EarthquakeActivity.tsx
 import { useState } from "react";
-import {
-  Dimensions,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-import { DesignResult } from "./types";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import useEarthquakeTest from "./useEarthquakeTest";
 
 const SCREEN_W = Dimensions.get("window").width;
@@ -49,44 +41,44 @@ function LiveMeter({
   );
 }
 
-function DesignCard({
-  result,
-  isWinner,
-}: {
-  result: DesignResult;
-  isWinner: boolean;
-}) {
-  return (
-    <View style={[card.wrapper, isWinner && card.wrapperWinner]}>
-      {isWinner && <Text style={card.winnerBadge}>⭐ BEST</Text>}
-      <Text style={card.designNum}>Design {result.designNumber}</Text>
-      <Text style={card.designLabel}>{result.label}</Text>
-      <View style={card.statsRow}>
-        <View style={card.stat}>
-          <Text style={card.statValue}>{result.stabilityScore}</Text>
-          <Text style={card.statLabel}>Stability</Text>
-        </View>
-        <View style={card.divider} />
-        <View style={card.stat}>
-          <Text style={card.statValue}>{result.totalRotationDeg}°</Text>
-          <Text style={card.statLabel}>Total rotation</Text>
-        </View>
-        <View style={card.divider} />
-        <View style={card.stat}>
-          <Text style={card.statValue}>{result.peakRotationRateDeg}°/s</Text>
-          <Text style={card.statLabel}>Peak rotation</Text>
-        </View>
-        <View style={card.divider} />
-        <View style={card.stat}>
-          <Text style={card.statValue}>
-            {result.maxAcceleration.toFixed(2)}G
-          </Text>
-          <Text style={card.statLabel}>Max accel</Text>
-        </View>
-      </View>
-    </View>
-  );
-}
+// function DesignCard({
+//   result,
+//   isWinner,
+// }: {
+//   result: DesignResult;
+//   isWinner: boolean;
+// }) {
+//   return (
+//     <View style={[card.wrapper, isWinner && card.wrapperWinner]}>
+//       {isWinner && <Text style={card.winnerBadge}>⭐ BEST</Text>}
+//       <Text style={card.designNum}>Design {result.designNumber}</Text>
+//       <Text style={card.designLabel}>{result.label}</Text>
+//       <View style={card.statsRow}>
+//         <View style={card.stat}>
+//           <Text style={card.statValue}>{result.stabilityScore}</Text>
+//           <Text style={card.statLabel}>Stability</Text>
+//         </View>
+//         <View style={card.divider} />
+//         <View style={card.stat}>
+//           <Text style={card.statValue}>{result.totalRotationDeg}°</Text>
+//           <Text style={card.statLabel}>Total rotation</Text>
+//         </View>
+//         <View style={card.divider} />
+//         <View style={card.stat}>
+//           <Text style={card.statValue}>{result.peakRotationRateDeg}°/s</Text>
+//           <Text style={card.statLabel}>Peak rotation</Text>
+//         </View>
+//         <View style={card.divider} />
+//         <View style={card.stat}>
+//           <Text style={card.statValue}>
+//             {result.maxAcceleration.toFixed(2)}G
+//           </Text>
+//           <Text style={card.statLabel}>Max accel</Text>
+//         </View>
+//       </View>
+//     </View>
+//   );
+// }
 
 interface Props {
   designNumber: 1 | 2 | 3;
@@ -109,47 +101,47 @@ export default function EarthquakeActivity({ designNumber }: Props) {
 
   // ── Idle — design label entry ─────────────────────────────────────────────
 
-  if (status === "idle") {
-    return (
-      <View style={styles.screen}>
-        <View style={styles.header}>
-          <Text style={styles.eyebrow}>ACTIVITY 4</Text>
-          <Text style={styles.title}>Earthquake{"\n"}Lab</Text>
-          <Text style={styles.subtitle}>Design {designNumber}</Text>
-        </View>
+  // if (status === "idle") {
+  //   return (
+  //     <View style={styles.screen}>
+  //       <View style={styles.header}>
+  //         <Text style={styles.eyebrow}>ACTIVITY 4</Text>
+  //         <Text style={styles.title}>Earthquake{"\n"}Lab</Text>
+  //         <Text style={styles.subtitle}>Design {designNumber}</Text>
+  //       </View>
 
-        <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Describe your structure:</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. 4 folds + 4 pillars"
-            placeholderTextColor="#475569"
-            value={labelInput}
-            onChangeText={setLabelInput}
-          />
-          <Text style={styles.inputHint}>
-            Place your phone on the structure after tapping Start.
-          </Text>
-        </View>
+  //       <View style={styles.inputSection}>
+  //         <Text style={styles.inputLabel}>Describe your structure:</Text>
+  //         <TextInput
+  //           style={styles.input}
+  //           placeholder="e.g. 4 folds + 4 pillars"
+  //           placeholderTextColor="#475569"
+  //           value={labelInput}
+  //           onChangeText={setLabelInput}
+  //         />
+  //         <Text style={styles.inputHint}>
+  //           Place your phone on the structure after tapping Start.
+  //         </Text>
+  //       </View>
 
-        <Pressable
-          style={({ pressed }) => [
-            styles.cta,
-            !labelInput.trim() && styles.ctaDisabled,
-            pressed && labelInput.trim() && styles.ctaPressed,
-          ]}
-          onPress={() => {
-            if (labelInput.trim()) {
-              beginCountdown(labelInput.trim());
-              setLabelInput("");
-            }
-          }}
-        >
-          <Text style={styles.ctaText}>START TEST</Text>
-        </Pressable>
-      </View>
-    );
-  }
+  //       <Pressable
+  //         style={({ pressed }) => [
+  //           styles.cta,
+  //           !labelInput.trim() && styles.ctaDisabled,
+  //           pressed && labelInput.trim() && styles.ctaPressed,
+  //         ]}
+  //         onPress={() => {
+  //           if (labelInput.trim()) {
+  //             beginCountdown(labelInput.trim());
+  //             setLabelInput("");
+  //           }
+  //         }}
+  //       >
+  //         <Text style={styles.ctaText}>START TEST</Text>
+  //       </Pressable>
+  //     </View>
+  //   );
+  // }
 
   // ── Countdown ─────────────────────────────────────────────────────────────
 

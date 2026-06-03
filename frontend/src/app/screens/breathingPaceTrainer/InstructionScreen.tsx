@@ -1,11 +1,11 @@
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { breathingPaceActivity } from "@/lib/activityPhaseDescriptions";
 import Instruction from "@/src/components/workflow/InstructionTemplate";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const instructionData = {
-  instruction:
-`Measure how your breathing changes before and after exercise — and see the science in your own lungs.
+  instruction: `Measure how your breathing changes before and after exercise — and see the science in your own lungs.
 What you'll do:
 - Place the phone on your chest and record your breathing at rest
 - Do 1 minute of light exercise (jog on the spot or 100 star jumps)
@@ -20,8 +20,8 @@ What you'll do:
     "Respiratory Rate increases with activity",
   ],
   journeyParams: {
-    titles: ["Phase 1", "Phase 2", "Phase 3"],
-    descriptions: ["gi do", "gi do", "gi do"],
+    titles: breathingPaceActivity.phases.map((p) => p.title),
+    descriptions: breathingPaceActivity.phases.map((p) => p.title),
     pathIDs: [
       "/screens/breathingPaceTrainer/BreathTrackerScreen",
       "/screens/breathingPaceTrainer/BreathTrackerScreen",

@@ -16,30 +16,35 @@ export interface SessionDesignInput {
   title: string;
 }
 
+export interface SessionActivityResult {
+  activityId: string; // The docRef.id generated from the activities collection
+  score: number;
+}
+
 export interface SessionDoc {
   id: string;
   teamId: string;
-  activityId?: number;
   prediction: number | null;
-  currentPhase: number;
+  currentPhase: number; // 1, 2, 3
   completed: boolean;
   designs?: SessionDesignInput[];
+  activitiesCompleted: SessionActivityResult[];
+  totalPoints?: number;
 }
 
-// create a new session when starting a path
+// create a new session when starting a path (multi-activity path)
 export const createSession = async (
   teamId: string,
-  activityId: number,
   prediction: number | null,
 ) => {
   try {
     const docRef = await addDoc(collection(db, "sessions"), {
       teamId,
-      activityId,
       prediction,
       currentPhase: 1,
       completed: false,
       designs: [],
+      activitiesCompleted: [],
       createdAt: serverTimestamp(),
     });
     return docRef.id; // sessionId
@@ -49,65 +54,35 @@ export const createSession = async (
   }
 };
 
-// get active (incomplete) session for a team and activity
-export const getActiveSessionByActivity = async (
+// get active (incomplete) session for a team
+export const getActiveSession = async (
   teamId: string,
-  activityId: number,
 ): Promise<SessionDoc | null> => {
   try {
-    const q = query(collection(db, "sessions"), where("teamId", "==", teamId));
+    const q = query(
+      collection(db, "sessions"),
+      where("teamId", "==", teamId),
+      where("completed", "==", false),
+    );
     const snap = await getDocs(q);
 
-    const candidates = snap.docs
-      .map((sessionDoc) => {
-        const data = sessionDoc.data();
-        return {
-          id: sessionDoc.id,
-          teamId: String(data.teamId ?? ""),
-          activityId:
-            typeof data.activityId === "number"
-              ? data.activityId
-              : Number(data.activityId),
-          prediction:
-            typeof data.prediction === "number" ? data.prediction : null,
-          currentPhase:
-            typeof data.currentPhase === "number" ? data.currentPhase : 1,
-          completed: Boolean(data.completed),
-          designs: Array.isArray(data.designs)
-            ? data.designs
-                .map((design: any) => ({
-                  id: Number(design.id),
-                  title: String(design.title ?? ""),
-                }))
-                .filter(
-                  (design: SessionDesignInput) => !Number.isNaN(design.id),
-                )
-            : [],
-          createdAtMillis:
-            typeof data.createdAt?.toMillis === "function"
-              ? data.createdAt.toMillis()
-              : 0,
-        };
-      })
-      .filter(
-        (item) =>
-          item.activityId === activityId &&
-          item.completed === false &&
-          item.teamId === teamId,
-      )
-      .sort((a, b) => b.createdAtMillis - a.createdAtMillis);
+    if (snap.empty) return null;
 
-    if (candidates.length === 0) return null;
+    const sessionDoc = snap.docs[0];
+    const data = sessionDoc.data();
 
-    const active = candidates[0];
     return {
-      id: active.id,
-      teamId: active.teamId,
-      activityId: active.activityId,
-      prediction: active.prediction,
-      currentPhase: active.currentPhase,
-      completed: active.completed,
-      designs: active.designs,
+      id: sessionDoc.id,
+      teamId: String(data.teamId ?? ""),
+      prediction: typeof data.prediction === "number" ? data.prediction : null,
+      currentPhase:
+        typeof data.currentPhase === "number" ? data.currentPhase : 1,
+      completed: Boolean(data.completed),
+      designs: Array.isArray(data.designs) ? data.designs : [],
+      activitiesCompleted: Array.isArray(data.activitiesCompleted)
+        ? data.activitiesCompleted
+        : [],
+      totalPoints: data.totalPoints ?? undefined,
     };
   } catch (e) {
     console.error("Error fetching active session", e);
@@ -134,7 +109,10 @@ export const updateSession = async (
   currentPhase: number,
 ) => {
   try {
-    updateDoc(doc(db, "sessions", sessionId), { prediction, currentPhase });
+    await updateDoc(doc(db, "sessions", sessionId), {
+      prediction,
+      currentPhase,
+    });
   } catch (e) {
     console.error("Error updating session", e);
     throw e;
@@ -148,7 +126,10 @@ export const updateSessionPhase = async (
   completed = false,
 ) => {
   try {
-    updateDoc(doc(db, "sessions", sessionId), { currentPhase, completed });
+    await updateDoc(doc(db, "sessions", sessionId), {
+      currentPhase,
+      completed,
+    });
   } catch (e) {
     console.error("Error updating session phase", e);
     throw e;
@@ -158,18 +139,45 @@ export const updateSessionPhase = async (
 // advance the active session only after the activity data has been saved
 export const advanceActiveSession = async (
   teamId: string,
-  activityId: number,
+  activityDocId: string, // docRef.id from activities collection
+  score: number,
   totalPhases = 3,
-) => {
-  const activeSession = await getActiveSessionByActivity(teamId, activityId);
+): Promise<SessionDoc | null> => {
+  const activeSession = await getActiveSession(teamId);
+
   if (!activeSession) return null;
 
-  const nextPhase =
-    activeSession.currentPhase >= totalPhases
-      ? totalPhases + 1
-      : activeSession.currentPhase + 1;
-  const completed = activeSession.currentPhase >= totalPhases;
+  const updatedActivities = [
+    ...(activeSession.activitiesCompleted || []),
+    { activityId: activityDocId, score },
+  ];
 
-  await updateSessionPhase(activeSession.id, nextPhase, completed);
-  return { ...activeSession, currentPhase: nextPhase, completed };
+  const isLastPhase = activeSession.currentPhase >= totalPhases;
+  const nextPhase = activeSession.currentPhase + 1;
+  const completed = isLastPhase;
+
+  const updatePayload: Record<string, any> = {
+    activitiesCompleted: updatedActivities,
+    currentPhase: nextPhase,
+    completed,
+  };
+
+  // If all activities are finished, aggregate total points to check against original prediction
+  if (completed) {
+    const totalPoints = updatedActivities.reduce(
+      (sum, act) => sum + act.score,
+      0,
+    );
+    updatePayload.totalPoints = totalPoints;
+  }
+
+  await updateDoc(doc(db, "sessions", activeSession.id), updatePayload);
+
+  return {
+    ...activeSession,
+    activitiesCompleted: updatedActivities,
+    currentPhase: nextPhase,
+    completed,
+    totalPoints: updatePayload.totalPoints,
+  };
 };

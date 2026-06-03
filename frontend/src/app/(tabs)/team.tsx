@@ -24,7 +24,7 @@ export default function TeamScreen() {
   const [team, setTeam] = useState<any>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [error, setError] = useState("");
-
+  0;
   useEffect(() => {
     const load = async () => {
       try {
