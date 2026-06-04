@@ -122,6 +122,7 @@ export const getSessionById = async (
         : [],
       totalPoints: data.totalPoints ?? undefined,
       bestDesign: data.bestDesign ?? undefined,
+      reflection: data.reflection ?? undefined,
     };
   } catch (e) {
     console.error("Error fetching session by id", e);
