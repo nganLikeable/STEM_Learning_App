@@ -74,11 +74,33 @@ export const setActivity4 = async (
       createdAt: serverTimestamp(),
       completedAt: serverTimestamp(),
     });
-    console.log("Saved successfully a4", docRef.id);
+    console.log("Saved successfully a4", docRef);
 
     return docRef.id;
   } catch (e) {
     console.error("Error saving activity 4 to Firestore", e);
+    throw e;
+  }
+};
+
+// save for activity 5 - human performance lab
+export const setActivity5 = async (
+  teamId: string,
+  sessionId: string,
+  improvement: number,
+): Promise<string> => {
+  try {
+    const docRef = await addDoc(collection(db, "activities"), {
+      teamId,
+      sessionId,
+      improvement,
+      createdAt: serverTimestamp(),
+      completedAt: serverTimestamp(),
+    });
+    console.log("saved successfully a5", docRef);
+    return docRef.id;
+  } catch (e) {
+    console.error("Error saving activity 5 to Firestore", e);
     throw e;
   }
 };
@@ -105,7 +127,8 @@ export function calculateFinalPoints1(
   return rawScore + bonus;
 }
 
-// calculate final poitns for activity - for those with one metric compared against each other
+// activity 4 - earthquake
+// calculate final poitns for activity - for those with one metric compared against each other; aggregate points from all attempts
 export function calculateFinalPoints(
   session: SessionDoc,
   bonusAwardAmount: number = 100,
@@ -133,4 +156,26 @@ export function calculateFinalPoints(
   }
 
   return finalPoints;
+}
+
+// get points for activity5 - human performace lab
+// calculate final points for activity 5 (human performance):
+// finds which movement had the highest improvement score => hard to keep sturdy; award points if that matches prediction
+export function calculateFinalPoints5(
+  session: SessionDoc,
+  bonusAwardAmount: number = 100,
+): number {
+  const activities = session.activitiesCompleted ?? [];
+  if (activities.length === 0) return 0;
+
+  const bestIndex = activities.reduce(
+    (maxIdx, current, currentIdx, arr) =>
+      current.score > arr[maxIdx].score ? currentIdx : maxIdx,
+    0,
+  );
+  const bestDesignNumber = bestIndex + 1;
+
+  return session.prediction !== null && session.prediction === bestDesignNumber
+    ? bonusAwardAmount
+    : 0;
 }

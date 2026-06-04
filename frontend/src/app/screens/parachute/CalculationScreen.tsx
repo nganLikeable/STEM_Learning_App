@@ -1,6 +1,6 @@
 import { parachuteCalculate } from "@/lib/parachute";
 import { setActivity1 } from "@/src/services/activity";
-import { advanceActiveSession, getActiveSession } from "@/src/services/session";
+import { advanceSessionById, getActiveSession } from "@/src/services/session";
 import { useSessionStore } from "@/src/store/session-store";
 import { useTeamStore } from "@/src/store/team-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -151,8 +151,8 @@ export default function CalculationFlow() {
         pointsAwarded, // Points score awarded on activity validation loop
         video ?? undefined,
       );
-      const updatedSessionDoc = await advanceActiveSession(
-        teamId,
+      const updatedSessionDoc = await advanceSessionById(
+        targetsSessionId,
         activityDocId,
         pointsAwarded,
         3,

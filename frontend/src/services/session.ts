@@ -181,6 +181,39 @@ export const addSessionReflection = async (
   }
 };
 
+// advance a known session by ID — avoids re-querying when sessionId is already in store
+export const advanceSessionById = async (
+  sessionId: string,
+  activityDocId: string,
+  score: number,
+  totalPhases = 3,
+): Promise<SessionDoc | null> => {
+  const current = await getSessionById(sessionId);
+  if (!current) return null;
+
+  const updatedActivities = [
+    ...(current.activitiesCompleted || []),
+    { activityId: activityDocId, score },
+  ];
+
+  const isLastPhase = current.currentPhase >= totalPhases;
+  const nextPhase = current.currentPhase + 1;
+  const completed = isLastPhase;
+
+  await updateDoc(doc(db, "sessions", sessionId), {
+    activitiesCompleted: updatedActivities,
+    currentPhase: nextPhase,
+    completed,
+  });
+
+  return {
+    ...current,
+    activitiesCompleted: updatedActivities,
+    currentPhase: completed ? totalPhases : nextPhase,
+    completed,
+  };
+};
+
 // advance the active session only after the activity data has been saved
 export const advanceActiveSession = async (
   teamId: string,

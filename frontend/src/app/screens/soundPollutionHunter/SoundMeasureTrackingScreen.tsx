@@ -14,10 +14,10 @@
 
 import { calculateFinalPoints, setActivity2 } from "@/src/services/activity";
 import { db as dbFirestore } from "@/src/services/firestore";
-import { advanceActiveSession, getActiveSession } from "@/src/services/session";
-import { playPhaseCompleteSound } from "@/src/utils/playSound";
+import { advanceSessionById, getActiveSession } from "@/src/services/session";
 import { useSessionStore } from "@/src/store/session-store";
 import { useTeamStore } from "@/src/store/team-store";
+import { playPhaseCompleteSound } from "@/src/utils/playSound";
 import {
   AudioModule,
   RecordingPresets,
@@ -172,10 +172,10 @@ export default function SoundMeasureTracking() {
         peakDb,
       );
 
-      const updatedSession = await advanceActiveSession(
-        teamId,
+      const updatedSession = await advanceSessionById(
+        targetsSessionId,
         activityDocId,
-        peakDb, // save  peak as score
+        peakDb,
         3,
       );
       playPhaseCompleteSound();

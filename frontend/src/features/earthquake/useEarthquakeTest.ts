@@ -1,10 +1,10 @@
 // useEarthquakeTest.ts
 import { calculateFinalPoints, setActivity4 } from "@/src/services/activity";
 import { db } from "@/src/services/firestore";
-import { advanceActiveSession, getActiveSession } from "@/src/services/session";
-import { playPhaseCompleteSound } from "@/src/utils/playSound";
+import { advanceSessionById, getActiveSession } from "@/src/services/session";
 import { useSessionStore } from "@/src/store/session-store";
 import { useTeamStore } from "@/src/store/team-store";
+import { playPhaseCompleteSound } from "@/src/utils/playSound";
 import { useNavigation, useRouter } from "expo-router";
 import { doc, updateDoc } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
@@ -149,8 +149,8 @@ export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
         targetsSessionId,
         result.stabilityScore,
       );
-      const updatedSession = await advanceActiveSession(
-        teamId,
+      const updatedSession = await advanceSessionById(
+        targetsSessionId,
         activityDocId,
         result.stabilityScore,
         3,

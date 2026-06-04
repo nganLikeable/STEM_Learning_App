@@ -117,7 +117,7 @@ export default function StretchActivity({ addId, onComplete }: StretchActivityPr
     return (
       <View style={s.screen}>
         <View style={s.header}>
-          <Text style={s.eyebrow}>ACTIVITY 5 · MOVEMENT {currentMovement.id} OF 3</Text>
+          <Text style={s.eyebrow}>ACTIVITY 5 · HUMAN PERFORMANCE LAB</Text>
           <Text style={s.bigEmoji}>{currentMovement.emoji}</Text>
           <Text style={s.title}>{currentMovement.label}</Text>
           <Text style={s.subtitle}>{currentMovement.instruction}</Text>
