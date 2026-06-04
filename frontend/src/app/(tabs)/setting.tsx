@@ -87,6 +87,12 @@ function FeedbackModal({
             onChangeText={setMessage}
             textAlignVertical="top"
           />
+          <View style={s.feedbackLocationNote}>
+            <MaterialCommunityIcons name="map-marker-outline" size={13} color="#9CA3AF" />
+            <Text style={s.feedbackLocationText}>
+              Sending feedback may prompt you to share your location.
+            </Text>
+          </View>
           <View style={s.feedbackActions}>
             <Pressable
               style={({ pressed }) => [s.feedbackCancelBtn, pressed && { opacity: 0.7 }]}
@@ -552,5 +558,16 @@ const s = StyleSheet.create({
     fontSize: 15,
     fontWeight: "700",
     color: "#fff",
+  },
+  feedbackLocationNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginBottom: 14,
+  },
+  feedbackLocationText: {
+    fontSize: 11,
+    color: "#9CA3AF",
+    flex: 1,
   },
 });

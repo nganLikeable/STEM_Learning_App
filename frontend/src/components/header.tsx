@@ -1,12 +1,72 @@
 import useGetUserAvatar from "@/hooks/user/useGetUserAvatar";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import * as Battery from "expo-battery";
 import { Link } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { borderRadius, spacing } from "../theme";
 import NotificationBell from "./NotificationBell";
 
-const heyjoImg = require("../../assets/images/mascot/goodJobMan.png");
+function BatteryIndicator({
+  level,
+  state,
+}: {
+  level: number | null;
+  state: Battery.BatteryState;
+}) {
+  const pct = level !== null ? Math.round(level * 100) : null;
+  const isCharging = state === Battery.BatteryState.CHARGING;
+
+  const color =
+    pct === null ? "#9CA3AF"
+    : pct <= 20 ? "#EF4444"
+    : pct <= 50 ? "#F59E0B"
+    : "#22C55E";
+
+  const fillHeight = pct !== null ? `${pct}%` : "0%";
+
+  return (
+    <View style={batteryStyles.wrapper}>
+      <View style={[batteryStyles.tip, { backgroundColor: color }]} />
+      <View style={[batteryStyles.body, { borderColor: color }]}>
+        <View style={[batteryStyles.fill, { height: fillHeight as any, backgroundColor: color }]} />
+        {isCharging && (
+          <Text style={[batteryStyles.bolt, { color: "#fff" }]}>⚡</Text>
+        )}
+      </View>
+    </View>
+  );
+}
+
+const batteryStyles = StyleSheet.create({
+  wrapper: {
+    alignItems: "center",
+  },
+  tip: {
+    width: 6,
+    height: 3,
+    borderRadius: 1,
+    marginBottom: -1,
+  },
+  body: {
+    width: 12,
+    height: 22,
+    borderRadius: 3,
+    borderWidth: 1.5,
+    overflow: "hidden",
+    justifyContent: "flex-end",
+  },
+  fill: {
+    width: "100%",
+    borderRadius: 1.5,
+  },
+  bolt: {
+    position: "absolute",
+    fontSize: 9,
+    alignSelf: "center",
+    top: 4,
+  },
+});
 
 interface HeaderProps {
   userName?: string;
@@ -16,9 +76,10 @@ const Header: React.FC<HeaderProps> = ({ userName = "User" }) => {
   const { colors } = useAppTheme();
   const [greeting, setGreeting] = useState("Good morning");
   const avatar = useGetUserAvatar();
+  const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
+  const [batteryState, setBatteryState] = useState<Battery.BatteryState>(Battery.BatteryState.UNKNOWN);
 
   useEffect(() => {
-    // Determine greeting based on time of day
     const hour = new Date().getHours();
     if (hour >= 12 && hour < 18) {
       setGreeting("Good afternoon");
@@ -29,6 +90,14 @@ const Header: React.FC<HeaderProps> = ({ userName = "User" }) => {
     }
   }, []);
 
+  useEffect(() => {
+    Battery.getBatteryLevelAsync().then(setBatteryLevel);
+    Battery.getBatteryStateAsync().then(setBatteryState);
+    const lvlSub = Battery.addBatteryLevelListener(({ batteryLevel: l }) => setBatteryLevel(l));
+    const stateSub = Battery.addBatteryStateListener(({ batteryState: s }) => setBatteryState(s));
+    return () => { lvlSub.remove(); stateSub.remove(); };
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -37,11 +106,11 @@ const Header: React.FC<HeaderProps> = ({ userName = "User" }) => {
             <Text style={[styles.greeting, { color: colors.textSecondary }]}>{greeting}</Text>
             <Text style={[styles.userName, { color: colors.text }]}>{userName}</Text>
           </View>
-          <Image source={heyjoImg} style={styles.mascot} resizeMode="contain" />
         </View>
 
         <View style={styles.avatarGroup}>
           <NotificationBell />
+          <BatteryIndicator level={batteryLevel} state={batteryState} />
           {/* User Avatar - Link to Settings */}
           <Link href="../../setting" asChild>
             <Pressable style={styles.avatarButton}>
@@ -89,11 +158,6 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 20,
     fontWeight: "bold",
-  },
-  mascot: {
-    width: 52,
-    height: 52,
-    marginLeft: spacing.sm,
   },
   avatarGroup: {
     flexDirection: "row",

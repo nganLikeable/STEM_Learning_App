@@ -2,6 +2,7 @@
 import { calculateFinalPoints, setActivity4 } from "@/src/services/activity";
 import { db } from "@/src/services/firestore";
 import { advanceActiveSession, getActiveSession } from "@/src/services/session";
+import { playPhaseCompleteSound } from "@/src/utils/playSound";
 import { useSessionStore } from "@/src/store/session-store";
 import { useTeamStore } from "@/src/store/team-store";
 import { useNavigation, useRouter } from "expo-router";
@@ -154,6 +155,7 @@ export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
         result.stabilityScore,
         3,
       ); // save stabilitiy score directly to session, no need to query
+      playPhaseCompleteSound();
 
       console.log("Saved successfully");
 

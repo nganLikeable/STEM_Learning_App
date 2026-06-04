@@ -7,6 +7,7 @@ import {
 import { useSessionStore } from "@/src/store/session-store"; // Imported global session context
 import { useTeamStore } from "@/src/store/team-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { playPhaseCompleteSound } from "@/src/utils/playSound";
 import { useEffect, useState } from "react";
 import {
   Pressable,
@@ -150,6 +151,7 @@ export default function CalculationFlow() {
 
       // 3. Update parent container state mapping and atomically step phase counter
       await advanceActiveSession(teamId, activityDocId, correctCount, 3);
+      playPhaseCompleteSound();
     } catch (e) {
       console.error("Failed to save architecture flow results:", e);
     }

@@ -15,6 +15,7 @@
 import { calculateFinalPoints, setActivity2 } from "@/src/services/activity";
 import { db as dbFirestore } from "@/src/services/firestore";
 import { advanceActiveSession, getActiveSession } from "@/src/services/session";
+import { playPhaseCompleteSound } from "@/src/utils/playSound";
 import { useSessionStore } from "@/src/store/session-store";
 import { useTeamStore } from "@/src/store/team-store";
 import {
@@ -177,6 +178,7 @@ export default function SoundMeasureTracking() {
         peakDb, // save  peak as score
         3,
       );
+      playPhaseCompleteSound();
 
       if (updatedSession?.completed) {
         const finalPoints = await calculateFinalPoints(updatedSession);
