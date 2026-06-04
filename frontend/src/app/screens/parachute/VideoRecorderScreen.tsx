@@ -24,6 +24,7 @@ export default function VideoRecorderScreen() {
               pathname: "./CalculationScreen",
               params: {
                 markedTime: markedTime.toFixed(2),
+                video,
                 ...(journeyData ? { journeyData } : {}),
               }, // passed to next screen, so that finish at the end of calculation screen can navigate back to the right journey component
             });

@@ -2,6 +2,7 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
   getDocs,
   query,
   serverTimestamp,
@@ -30,6 +31,7 @@ export interface SessionDoc {
   designs?: SessionDesignInput[];
   activitiesCompleted: SessionActivityResult[];
   totalPoints?: number;
+  bestDesign?: number; // to compare against prediction
   reflection?: string;
 }
 
@@ -87,6 +89,33 @@ export const getActiveSession = async (
     };
   } catch (e) {
     console.error("Error fetching active session", e);
+    throw e;
+  }
+};
+
+export const getSessionById = async (
+  sessionId: string,
+): Promise<SessionDoc | null> => {
+  try {
+    const snap = await getDoc(doc(db, "sessions", sessionId));
+    if (!snap.exists()) return null;
+    const data = snap.data();
+    return {
+      id: snap.id,
+      teamId: String(data.teamId ?? ""),
+      prediction: typeof data.prediction === "number" ? data.prediction : null,
+      currentPhase:
+        typeof data.currentPhase === "number" ? data.currentPhase : 1,
+      completed: Boolean(data.completed),
+      designs: Array.isArray(data.designs) ? data.designs : [],
+      activitiesCompleted: Array.isArray(data.activitiesCompleted)
+        ? data.activitiesCompleted
+        : [],
+      totalPoints: data.totalPoints ?? undefined,
+      bestDesign: data.bestDesign ?? undefined,
+    };
+  } catch (e) {
+    console.error("Error fetching session by id", e);
     throw e;
   }
 };

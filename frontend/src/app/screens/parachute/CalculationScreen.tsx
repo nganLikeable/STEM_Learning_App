@@ -1,10 +1,7 @@
 import { parachuteCalculate } from "@/lib/parachute";
 import { setActivity1 } from "@/src/services/activity";
-import {
-  advanceActiveSession,
-  getActiveSession, // Updated imports to match global session strategy
-} from "@/src/services/session";
-import { useSessionStore } from "@/src/store/session-store"; // Imported global session context
+import { advanceActiveSession, getActiveSession } from "@/src/services/session";
+import { useSessionStore } from "@/src/store/session-store";
 import { useTeamStore } from "@/src/store/team-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -29,9 +26,12 @@ export default function CalculationFlow() {
   const router = useRouter();
   const { teamId } = useTeamStore();
   const { sessionId } = useSessionStore(); // Access globally tracking path state container
+  // track the session document locally to inspect it on completion
+  const [sessionData, setSessionData] = useState<any>(null);
 
-  const { markedTime, journeyData } = useLocalSearchParams<{
+  const { markedTime, video, journeyData } = useLocalSearchParams<{
     markedTime?: string | string[];
+    video?: string;
     journeyData?: string;
   }>();
   const markedTimeValue = Array.isArray(markedTime)
@@ -123,6 +123,8 @@ export default function CalculationFlow() {
     ).length;
     setCorrect(correctCount);
 
+    const pointsAwarded = correctCount * 20;
+
     try {
       if (!teamId) throw new Error("Missing teamId.");
 
@@ -145,13 +147,45 @@ export default function CalculationFlow() {
           dragForce: parseFloat(userCalculation.dragForce),
         },
         validationMap,
-        correctCount, // Points score awarded on activity validation loop
+        pointsAwarded, // Points score awarded on activity validation loop
+        video ?? undefined,
       );
-
-      // 3. Update parent container state mapping and atomically step phase counter
-      await advanceActiveSession(teamId, activityDocId, correctCount, 3);
+      const updatedSessionDoc = await advanceActiveSession(
+        teamId,
+        activityDocId,
+        pointsAwarded,
+        3,
+      );
+      console.log("Saved successfully", updatedSessionDoc);
+      setSessionData(updatedSessionDoc);
     } catch (e) {
       console.error("Failed to save architecture flow results:", e);
+    }
+  }
+
+  async function handleFinish() {
+    try {
+      if (!teamId) throw new Error("Missing teamId.");
+
+      const pointsAwarded = correct * 20;
+
+      if (sessionData?.completed) {
+        router.replace("/screens/parachute/PickBestDesignScreen");
+        return;
+      }
+
+      // fallback
+      if (journeyData) {
+        router.replace({
+          pathname: "/journey",
+          params: { journeyData },
+        } as any);
+        return;
+      }
+
+      router.replace("/screens/parachute/InstructionScreen");
+    } catch (err) {
+      console.error("Failed to complete session pipeline:", err);
     }
   }
 
@@ -387,19 +421,7 @@ export default function CalculationFlow() {
             })}
           </View>
 
-          <Pressable
-            style={styles.primaryBtn}
-            onPress={() => {
-              if (journeyData) {
-                router.replace({
-                  pathname: "/journey",
-                  params: { journeyData },
-                } as any);
-                return;
-              }
-              router.replace("/screens/parachute/InstructionScreen");
-            }}
-          >
+          <Pressable style={styles.primaryBtn} onPress={handleFinish}>
             <Text style={styles.primaryBtnText}>Finish</Text>
           </Pressable>
         </ScrollView>
