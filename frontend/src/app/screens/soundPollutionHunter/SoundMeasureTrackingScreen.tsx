@@ -169,6 +169,7 @@ export default function SoundMeasureTracking() {
       const activityDocId = await setActivity2(
         teamId,
         targetsSessionId,
+        2,
         peakDb,
       );
 

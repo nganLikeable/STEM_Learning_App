@@ -3,10 +3,9 @@ import {
   MovementId,
   MovementResult,
 } from "@/src/features/humanPerformance/types";
-import { calculateFinalPoints5, setActivity5 } from "@/src/services/activity";
+import { calculateFinalPoints57, setActivity5 } from "@/src/services/activity";
 import { db } from "@/src/services/firestore";
-import { advanceSessionById } from "@/src/services/session";
-import { getSessionById } from "@/src/services/session";
+import { advanceSessionById, getSessionById } from "@/src/services/session";
 import { useSessionStore } from "@/src/store/session-store";
 import { useTeamStore } from "@/src/store/team-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -61,13 +60,19 @@ export default function HumanPerformanceScreen() {
       const score = Math.max(0, result.improvement);
       const activityDocId = await setActivity5(
         teamId,
+        5,
         sessionId,
         result.improvement,
       );
-      const updated = await advanceSessionById(sessionId, activityDocId, score, 3);
+      const updated = await advanceSessionById(
+        sessionId,
+        activityDocId,
+        score,
+        3,
+      );
 
       if (updated?.completed) {
-        const finalPoints = calculateFinalPoints5(updated);
+        const finalPoints = calculateFinalPoints57(updated);
         await updateDoc(doc(db, "sessions", sessionId), {
           totalPoints: finalPoints,
         });

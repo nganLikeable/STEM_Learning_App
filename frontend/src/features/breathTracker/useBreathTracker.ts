@@ -131,12 +131,13 @@ export default function useBreathTracker() {
     countPeak = 0;
   };
 
-  // cleanup when unmount
-  const stop = () => {
+  // stops recording and returns the final bpm
+  const stop = (): number => {
     setIsRecording(false);
     subscription.current?.remove();
     subscription.current = null;
     setData({ x: 0, y: 0, z: 0 });
+    return bpm;
   };
 
   return { bpm, x, y, z, start, stop, isRecording };

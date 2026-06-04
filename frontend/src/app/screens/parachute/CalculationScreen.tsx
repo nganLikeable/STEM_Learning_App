@@ -3,8 +3,8 @@ import { setActivity1 } from "@/src/services/activity";
 import { advanceSessionById, getActiveSession } from "@/src/services/session";
 import { useSessionStore } from "@/src/store/session-store";
 import { useTeamStore } from "@/src/store/team-store";
-import { useLocalSearchParams, useRouter } from "expo-router";
 import { playPhaseCompleteSound } from "@/src/utils/playSound";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Pressable,
@@ -139,6 +139,7 @@ export default function CalculationFlow() {
       // 2. Save individual experiment document metrics tagged back to global run ID
       const activityDocId = await setActivity1(
         teamId,
+        1,
         targetsSessionId,
         { time: t, distance: d, mass: m },
         {

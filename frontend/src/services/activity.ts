@@ -10,6 +10,7 @@ interface CompletedActivity {
 // save data for activity 1 - parachute
 export const setActivity1 = async (
   teamId: string,
+  activityNo: 1,
   sessionId: string,
   data: any,
   userAnswers: any,
@@ -21,6 +22,7 @@ export const setActivity1 = async (
     const docRef = await addDoc(collection(db, "activities"), {
       teamId,
       sessionId,
+      activityNo,
       experimentData: data,
       userAnswers: userAnswers,
       validation,
@@ -42,12 +44,14 @@ export const setActivity1 = async (
 export const setActivity2 = async (
   teamId: string,
   sessionId: string,
+  activityNo: 2,
   peakSound: number,
 ): Promise<string> => {
   try {
     const docRef = await addDoc(collection(db, "activities"), {
       teamId,
       sessionId,
+      activityNo,
       peakSound,
       createdAt: serverTimestamp(),
       completedAt: serverTimestamp(),
@@ -63,6 +67,7 @@ export const setActivity2 = async (
 export const setActivity4 = async (
   teamId: string,
   sessionId: string,
+  activityNo: 4,
   //   designNumber: number,
   stabilityScore: number,
 ): Promise<string> => {
@@ -70,6 +75,7 @@ export const setActivity4 = async (
     const docRef = await addDoc(collection(db, "activities"), {
       teamId,
       sessionId,
+      activityNo,
       stabilityScore,
       createdAt: serverTimestamp(),
       completedAt: serverTimestamp(),
@@ -86,6 +92,7 @@ export const setActivity4 = async (
 // save for activity 5 - human performance lab
 export const setActivity5 = async (
   teamId: string,
+  activityNo: 5,
   sessionId: string,
   improvement: number,
 ): Promise<string> => {
@@ -93,6 +100,7 @@ export const setActivity5 = async (
     const docRef = await addDoc(collection(db, "activities"), {
       teamId,
       sessionId,
+      activityNo,
       improvement,
       createdAt: serverTimestamp(),
       completedAt: serverTimestamp(),
@@ -101,6 +109,30 @@ export const setActivity5 = async (
     return docRef.id;
   } catch (e) {
     console.error("Error saving activity 5 to Firestore", e);
+    throw e;
+  }
+};
+
+// save for activity 7 - breathes per minute
+export const setActivity7 = async (
+  teamId: string,
+  activityNo: 7,
+  sessionId: string,
+  breathsPerMinute: number,
+): Promise<string> => {
+  try {
+    const docRef = await addDoc(collection(db, "activities"), {
+      teamId,
+      activityNo,
+      sessionId,
+      breathsPerMinute,
+      createdAt: serverTimestamp(),
+      completedAt: serverTimestamp(),
+    });
+    console.log("saved successfully a7", docRef);
+    return docRef.id;
+  } catch (e) {
+    console.error("Error saving activity 7 to Firestore", e);
     throw e;
   }
 };
@@ -158,10 +190,12 @@ export function calculateFinalPoints(
   return finalPoints;
 }
 
-// get points for activity5 - human performace lab
+// get points for activity5 and 7 - human performace lab; breath tracker
 // calculate final points for activity 5 (human performance):
 // finds which movement had the highest improvement score => hard to keep sturdy; award points if that matches prediction
-export function calculateFinalPoints5(
+
+// for 7: the highest bpm is the result - same logic
+export function calculateFinalPoints57(
   session: SessionDoc,
   bonusAwardAmount: number = 100,
 ): number {
