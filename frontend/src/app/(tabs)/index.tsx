@@ -28,6 +28,7 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import CompletedSessionsSection from '@/src/components/CompletedSessionsSection';
 import { getUserProfile, getTeam, getTeamMembers, markTodayAttendance } from '../../services/firestore';
 import { subscribeToTeamScores } from '../../services/teamScore';
 
@@ -559,6 +560,9 @@ export default function HomeScreen() {
         />
 
         <AttendanceCalendar attendanceDates={attendanceDates} />
+
+        {/* ── Completed Sessions ── */}
+        {teamId ? <CompletedSessionsSection teamId={teamId} /> : null}
 
         {/* ── Section 1: Engineering Challenges ── */}
         <View style={styles.section}>

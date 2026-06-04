@@ -1,3 +1,4 @@
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import useBreathTracker from "./useBreathTracker";
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export default function BreathTracker({ onSave }: Props) {
+  const { colors } = useAppTheme();
   const { bpm, x, y, z, stop, start, isRecording } = useBreathTracker();
   const [finalBpm, setFinalBpm] = useState<number | null>(null);
 
@@ -22,12 +24,13 @@ export default function BreathTracker({ onSave }: Props) {
   const displayBpm = finalBpm !== null ? finalBpm : bpm;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.bpm}>{displayBpm}</Text>
-      <Text style={styles.label}>breaths / min</Text>
+    <View style={[styles.container, { backgroundColor: colors.primary }]}>
+      <Text style={styles.eyebrow}>BREATHING PACE TRAINER</Text>
+      <Text style={[styles.bpm, { color: colors.text }]}>{displayBpm}</Text>
+      <Text style={[styles.label, { color: colors.textSecondary }]}>breaths / min</Text>
 
       {/* for debugging */}
-      <Text style={styles.debug}>
+      <Text style={[styles.debug, { color: colors.textSecondary }]}>
         x: {x.toFixed(3)} y: {y.toFixed(3)} z: {z.toFixed(3)}
       </Text>
 
@@ -63,13 +66,21 @@ export default function BreathTracker({ onSave }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
-  bpm: { fontSize: 72, fontWeight: "200" },
-  label: { fontSize: 16, opacity: 0.5, marginTop: 4 },
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 4,
+    color: "#475569",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  bpm: { fontSize: 80, fontWeight: "200" },
+  label: { fontSize: 16, marginTop: 4 },
   debug: {
     fontSize: 11,
-    opacity: 0.3,
     marginTop: 32,
     fontVariant: ["tabular-nums"],
+    opacity: 0.4,
   },
   buttons: { flexDirection: "row", gap: 12, marginTop: 16 },
   btn: {

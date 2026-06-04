@@ -1,4 +1,5 @@
 // TracingGame.tsx
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { SHAPES } from "@/src/app/constants/shapes";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
@@ -36,6 +37,7 @@ interface TracingGameProps {
 }
 
 export default function TracingGame({ onDone }: TracingGameProps) {
+  const { colors } = useAppTheme();
   const [shapeId, setShapeId] = useState(() => randomShapeId());
   const shape = SHAPES[shapeId];
 
@@ -78,11 +80,10 @@ export default function TracingGame({ onDone }: TracingGameProps) {
   const label = result ? accuracyLabel(result.accuracy) : null;
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: colors.primary }]}>
       <View style={styles.header}>
-        {/* <Text style={styles.eyebrow}>PHASE 3</Text> */}
         <Text style={styles.title}>Tracing Challenge</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
           {status === "idle" && `Trace the ${shape.emoji} ${shape.label}`}
           {status === "countdown" && "Get ready…"}
           {status === "tracing" && `Trace the ${shape.emoji} ${shape.label}!`}
@@ -91,7 +92,7 @@ export default function TracingGame({ onDone }: TracingGameProps) {
       </View>
 
       <View
-        style={[styles.canvas, { width: SVG_SIZE, height: SVG_SIZE }]}
+        style={[styles.canvas, { width: SVG_SIZE, height: SVG_SIZE, backgroundColor: colors.surface, borderColor: colors.border }]}
         ref={(ref) => {
           // measure gives pageX/pageY — absolute screen position
           // needed so screenToSvg can offset correctly
@@ -181,7 +182,7 @@ export default function TracingGame({ onDone }: TracingGameProps) {
       {status === "done" && result && label ? (
         <View style={styles.resultBox}>
           <Text style={styles.resultEmoji}>{label.emoji}</Text>
-          <Text style={styles.resultVerdict}>{label.text}</Text>
+          <Text style={[styles.resultVerdict, { color: colors.text }]}>{label.text}</Text>
           <View style={styles.statsRow}>
             <View style={styles.stat}>
               <Text style={styles.statValue}>{result.accuracy}%</Text>
@@ -231,7 +232,6 @@ export default function TracingGame({ onDone }: TracingGameProps) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#0f172a",
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 56,
@@ -248,10 +248,8 @@ const styles = StyleSheet.create({
 
   canvas: {
     borderRadius: 20,
-    backgroundColor: "#1e293b",
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#334155",
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

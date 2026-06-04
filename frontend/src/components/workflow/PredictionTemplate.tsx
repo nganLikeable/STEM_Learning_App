@@ -1,19 +1,30 @@
+import { useAppTheme } from "@/hooks/useAppTheme";
+import { LinearGradient } from "expo-linear-gradient";
 import { getActiveSession } from "@/src/services/session";
 import { useTeamStore } from "@/src/store/team-store";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 interface Design {
   id: number;
   title: string;
-  description?: string; // applied to hardcoded (predefined ones)
+  description?: string;
 }
+
 interface PredictionTemplateProps {
   activityId: number;
   activityName: string;
   title: string;
   description: string;
-  designs?: Design[]; // applied to activities requiring user inputs for designs
-  fallbackDesigns?: Design[]; // applied too activities with predefined acts
+  designs?: Design[];
+  fallbackDesigns?: Design[];
   onSave: (prediction: number) => void;
   titleOnly?: boolean;
 }
@@ -28,46 +39,26 @@ export default function PredictionTemplate({
   onSave,
   titleOnly = false,
 }: PredictionTemplateProps) {
+  const { colors } = useAppTheme();
   const [prediction, setPrediction] = useState<number | null>(null);
   const { teamId } = useTeamStore();
   const [resolvedDesigns, setResolvedDesigns] = useState<Design[]>(
     designs ?? fallbackDesigns ?? [],
   );
 
-  // fetch design inputs if applicable
   useEffect(() => {
-    if (designs) {
-      setResolvedDesigns(designs);
-      return;
-    }
-
-    if (!fallbackDesigns) {
-      setResolvedDesigns([]);
-      return;
-    }
+    if (designs) { setResolvedDesigns(designs); return; }
+    if (!fallbackDesigns) { setResolvedDesigns([]); return; }
 
     let cancelled = false;
-
     const loadDesigns = async () => {
-      if (!teamId) {
-        setResolvedDesigns(fallbackDesigns);
-        return;
-      }
-
+      if (!teamId) { setResolvedDesigns(fallbackDesigns); return; }
       try {
-        // get active session to fetch the right inputs by teamId and activityId
         const activeSession = await getActiveSession(teamId, activityId as 1 | 2 | 3 | 4 | 5 | 6 | 7);
         const savedDesigns = activeSession?.designs ?? [];
-
         if (cancelled) return;
-
         if (savedDesigns.length === 3) {
-          setResolvedDesigns(
-            savedDesigns.map((design) => ({
-              id: design.id,
-              title: design.title,
-            })),
-          );
+          setResolvedDesigns(savedDesigns.map((d) => ({ id: d.id, title: d.title })));
         } else {
           setResolvedDesigns(fallbackDesigns);
         }
@@ -76,157 +67,171 @@ export default function PredictionTemplate({
         if (!cancelled) setResolvedDesigns(fallbackDesigns);
       }
     };
-
     loadDesigns();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [activityId, designs, fallbackDesigns, teamId]);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.activityText}>Activity {activityId}</Text>
-        <Text style={styles.activityName}>{activityName}</Text>
-      </View>
+    <SafeAreaView style={[s.safe, { backgroundColor: colors.primary }]}>
+      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
 
-      <View style={styles.section}>
-        <Text style={styles.title}>Prediction</Text>
-        <Text style={styles.description}>{description}</Text>
-      </View>
+        {/* Header */}
+        <LinearGradient
+          colors={["#6b76ee", "#9b59b6"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={s.hero}
+        >
+          <Text style={s.heroEyebrow}>ACTIVITY {activityId}</Text>
+          <Text style={s.heroActivity}>{activityName}</Text>
+          <Text style={s.heroTitle}>{title}</Text>
+        </LinearGradient>
 
-      <View style={styles.buttonContainer}>
-        {resolvedDesigns.map((d, index) => {
-          const selected = prediction === d.id;
-          return (
-            <Pressable
-              key={index}
-              onPress={() => setPrediction(d.id)}
-              style={[
-                styles.predictionButton,
-                selected && styles.selectedButton,
-              ]}
-            >
-              <View style={styles.cardTopRow}>
-                <Text style={styles.cardNumber}>Design {d.id}</Text>
-              </View>
-              <Text style={styles.buttonTitle}>{d.title}</Text>
-              {!titleOnly && d.description ? (
-                <Text style={styles.buttonSubtitle}>{d.description}</Text>
-              ) : null}
-            </Pressable>
-          );
-        })}
-      </View>
-      <Pressable
-        style={styles.saveButton}
-        onPress={() => {
-          if (prediction == null) return;
-          onSave(prediction);
-        }}
-      >
-        <Text style={styles.saveButtonText}>Save prediction</Text>
-      </Pressable>
-    </View>
+        {/* Description */}
+        <View style={[s.descCard, { backgroundColor: colors.surface }]}>
+          <Text style={[s.descText, { color: colors.textSecondary }]}>{description}</Text>
+        </View>
+
+        {/* Design options */}
+        <View style={s.options}>
+          {resolvedDesigns.map((d) => {
+            const selected = prediction === d.id;
+            return (
+              <Pressable
+                key={d.id}
+                onPress={() => setPrediction(d.id)}
+                style={[
+                  s.card,
+                  { backgroundColor: colors.surface, borderColor: selected ? "#6b76ee" : colors.border },
+                  selected && s.cardSelected,
+                ]}
+              >
+                <View style={s.cardTop}>
+                  <Text style={[s.cardNum, { color: colors.textSecondary }]}>
+                    Option {d.id}
+                  </Text>
+                  {selected && (
+                    <View style={s.checkBadge}>
+                      <Text style={s.checkText}>✓</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={[s.cardTitle, { color: colors.text }]}>{d.title}</Text>
+                {!titleOnly && d.description ? (
+                  <Text style={[s.cardDesc, { color: colors.textSecondary }]}>{d.description}</Text>
+                ) : null}
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {/* Save */}
+        <Pressable
+          style={({ pressed }) => [
+            s.btn,
+            !prediction && s.btnDisabled,
+            pressed && prediction != null && s.btnPressed,
+          ]}
+          onPress={() => prediction != null && onSave(prediction)}
+          disabled={prediction == null}
+        >
+          <Text style={s.btnText}>Confirm Prediction</Text>
+        </Pressable>
+
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
+const s = StyleSheet.create({
+  safe: { flex: 1 },
+  scroll: { paddingBottom: 40 },
+
+  hero: {
+    paddingTop: 48,
+    paddingBottom: 32,
+    paddingHorizontal: 24,
+    gap: 4,
+    alignItems: "center",
+  },
+  heroEyebrow: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 3,
+    color: "rgba(255,255,255,0.6)",
+  },
+  heroActivity: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "rgba(255,255,255,0.85)",
+    letterSpacing: 0.5,
+  },
+  heroTitle: {
+    fontSize: 26,
+    fontWeight: "900",
+    color: "#fff",
+    textAlign: "center",
+    marginTop: 6,
+    lineHeight: 32,
   },
 
-  header: {
-    marginBottom: 24,
+  descCard: {
+    margin: 16,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
+  descText: { fontSize: 14, lineHeight: 22 },
 
-  activityText: {
-    fontSize: 16,
-  },
+  options: { paddingHorizontal: 16, gap: 12, marginBottom: 16 },
 
-  activityName: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-
-  section: {
-    marginBottom: 20,
-  },
-
-  title: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-
-  description: {
-    fontSize: 16,
-  },
-
-  buttonContainer: {
-    gap: 12,
-    marginBottom: 24,
-  },
-
-  predictionButton: {
-    borderWidth: 1,
-    borderColor: "#D7E0EE",
+  card: {
+    borderWidth: 1.5,
     borderRadius: 18,
     padding: 16,
-    backgroundColor: "#FFFFFF",
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 8 },
+    gap: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
-    shadowRadius: 18,
+    shadowRadius: 8,
     elevation: 2,
-    gap: 10,
   },
-
-  selectedButton: {
-    borderColor: "#3977fd",
-    backgroundColor: "#EFF6FF",
-    shadowOpacity: 0.12,
-    transform: [{ translateY: -1 }],
+  cardSelected: {
+    shadowColor: "#6b76ee",
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 4,
   },
-
-  cardTopRow: {
+  cardTop: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
-
-  cardNumber: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#64748B",
-    letterSpacing: 1.4,
+  cardNum: { fontSize: 11, fontWeight: "800", letterSpacing: 1.5 },
+  checkBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "#6b76ee",
+    alignItems: "center",
+    justifyContent: "center",
   },
+  checkText: { fontSize: 12, fontWeight: "800", color: "#fff" },
+  cardTitle: { fontSize: 16, fontWeight: "700", lineHeight: 22 },
+  cardDesc: { fontSize: 13, lineHeight: 20 },
 
-  buttonTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#0F172A",
-    lineHeight: 22,
-  },
-
-  buttonSubtitle: {
-    fontSize: 14,
-    color: "#475569",
-    lineHeight: 20,
-  },
-
-  saveButton: {
-    backgroundColor: "#3977fd",
-    paddingVertical: 14,
-    borderRadius: 8,
+  btn: {
+    backgroundColor: "#6b76ee",
+    borderRadius: 999,
+    paddingVertical: 16,
+    marginHorizontal: 16,
     alignItems: "center",
   },
-
-  saveButtonText: {
-    color: "white",
-    fontWeight: "600",
-    fontSize: 16,
-  },
+  btnDisabled: { backgroundColor: "#a5b4fc", opacity: 0.6 },
+  btnPressed: { opacity: 0.85, transform: [{ scale: 0.97 }] },
+  btnText: { fontSize: 15, fontWeight: "800", color: "#fff", letterSpacing: 1 },
 });

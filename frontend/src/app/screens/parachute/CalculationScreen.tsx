@@ -1,3 +1,4 @@
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { parachuteCalculate } from "@/lib/parachute";
 import { setActivity1 } from "@/src/services/activity";
 import { advanceSessionById, getActiveSession } from "@/src/services/session";
@@ -18,12 +19,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 type Step = "INPUT" | "CALCULATE" | "RESULT";
 
-const NAVY = "#1A2F5A";
-const BLUE = "#3977fd";
-const SLATE = "#64748B";
-const BG = "#F4F6F9";
+const ACCENT = "#6b76ee";
 
 export default function CalculationFlow() {
+  const { colors, isDark } = useAppTheme();
   const router = useRouter();
   const { teamId } = useTeamStore();
   const { sessionId } = useSessionStore(); // Access globally tracking path state container
@@ -195,16 +194,16 @@ export default function CalculationFlow() {
   // ── INPUT ─────────────────────────────────────────────────────────────────
   if (step === "INPUT") {
     return (
-      <SafeAreaView style={styles.safe} edges={["top"]}>
+      <SafeAreaView style={[styles.safe, { backgroundColor: colors.primary }]} edges={["top"]}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
         >
           <PageHeader stepNum={1} subtitle="Enter Experiment Parameters" />
 
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: colors.surface }]}>
             <Text style={styles.cardTitle}>Experiment Parameters</Text>
-            <Text style={styles.cardSub}>
+            <Text style={[styles.cardSub, { color: colors.textSecondary }]}>
               Based on your experiment setup, enter the values below.
             </Text>
 
@@ -256,24 +255,24 @@ export default function CalculationFlow() {
   // ── CALCULATE ─────────────────────────────────────────────────────────────
   if (step === "CALCULATE") {
     return (
-      <SafeAreaView style={styles.safe} edges={["top"]}>
+      <SafeAreaView style={[styles.safe, { backgroundColor: colors.primary }]} edges={["top"]}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
         >
           <PageHeader stepNum={2} subtitle="Calculate & Verify" />
 
-          <View style={styles.summaryPill}>
+          <View style={[styles.summaryPill, { backgroundColor: colors.surface }]}>
             <SummaryChip label="Mass" value={`${input.mass} kg`} />
-            <View style={styles.pillDivider} />
+            <View style={[styles.pillDivider, { backgroundColor: colors.border }]} />
             <SummaryChip label="Dist" value={`${input.distance} m`} />
-            <View style={styles.pillDivider} />
+            <View style={[styles.pillDivider, { backgroundColor: colors.border }]} />
             <SummaryChip label="Time" value={`${input.time} s`} />
           </View>
 
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: colors.surface }]}>
             <Text style={styles.cardTitle}>Your Calculations</Text>
-            <Text style={styles.cardSub}>
+            <Text style={[styles.cardSub, { color: colors.textSecondary }]}>
               Use the formulas from the instruction screen.
             </Text>
 
@@ -371,38 +370,39 @@ export default function CalculationFlow() {
     ];
 
     return (
-      <SafeAreaView style={styles.safe} edges={["top"]}>
+      <SafeAreaView style={[styles.safe, { backgroundColor: colors.primary }]} edges={["top"]}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
         >
-          <View style={[styles.scoreBanner, { borderColor: scoreColor }]}>
-            <Text style={styles.scoreBannerLabel}>YOUR SCORE</Text>
+          <View style={[styles.scoreBanner, { borderColor: scoreColor, backgroundColor: colors.surface }]}>
+            <Text style={[styles.scoreBannerLabel, { color: colors.textSecondary }]}>YOUR SCORE</Text>
             <Text style={[styles.scoreBannerScore, { color: scoreColor }]}>
               {correct} / 4
             </Text>
-            <Text style={styles.scoreBannerSub}>
+            <Text style={[styles.scoreBannerSub, { color: colors.textSecondary }]}>
               {correct === 4
                 ? "Perfect — all answers correct!"
                 : `${4 - correct} answer${4 - correct > 1 ? "s" : ""} need${4 - correct === 1 ? "s" : ""} review.`}
             </Text>
           </View>
 
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: colors.surface }]}>
             <Text style={styles.cardTitle}>Results Breakdown</Text>
             {fields.map(({ key, label, unit, correctVal, userVal }) => {
               const isCorrect = fieldResults[key];
+              const rowBg = isCorrect
+                ? isDark ? "#14532d33" : "#F0FDF4"
+                : isDark ? "#7f1d1d33" : "#FFF1F2";
+              const rowBorder = isCorrect ? "#86EFAC" : "#FCA5A5";
               return (
                 <View
                   key={key}
-                  style={[
-                    styles.resultRow,
-                    isCorrect ? styles.resultRowCorrect : styles.resultRowWrong,
-                  ]}
+                  style={[styles.resultRow, { backgroundColor: rowBg, borderColor: rowBorder }]}
                 >
                   <View style={styles.resultRowLeft}>
-                    <Text style={styles.resultLabel}>{label}</Text>
-                    <Text style={styles.resultYourAnswer}>
+                    <Text style={[styles.resultLabel, { color: colors.text }]}>{label}</Text>
+                    <Text style={[styles.resultYourAnswer, { color: colors.textSecondary }]}>
                       Your answer: {userVal} {unit}
                     </Text>
                     {!isCorrect && (
@@ -411,12 +411,7 @@ export default function CalculationFlow() {
                       </Text>
                     )}
                   </View>
-                  <Text
-                    style={[
-                      styles.resultIcon,
-                      { color: isCorrect ? "#16a34a" : "#dc2626" },
-                    ]}
-                  >
+                  <Text style={[styles.resultIcon, { color: isCorrect ? "#16a34a" : "#dc2626" }]}>
                     {isCorrect ? "✓" : "✗"}
                   </Text>
                 </View>
@@ -435,13 +430,7 @@ export default function CalculationFlow() {
 
 // ── Sub-components ───────────────────────────────────────────────────────────
 
-function PageHeader({
-  stepNum,
-  subtitle,
-}: {
-  stepNum: number;
-  subtitle: string;
-}) {
+function PageHeader({ stepNum, subtitle }: { stepNum: number; subtitle: string }) {
   return (
     <View style={styles.pageHeader}>
       <View style={styles.stepBadge}>
@@ -455,39 +444,37 @@ function PageHeader({
 }
 
 function InputField({
-  label,
-  value,
-  onChangeText,
-  prefilled,
+  label, value, onChangeText, prefilled,
 }: {
-  label: string;
-  value?: string;
-  onChangeText: (t: string) => void;
-  prefilled?: boolean;
+  label: string; value?: string; onChangeText: (t: string) => void; prefilled?: boolean;
 }) {
+  const { colors } = useAppTheme();
   return (
     <View style={styles.inputGroup}>
-      <Text style={styles.inputLabel}>{label}</Text>
+      <Text style={[styles.inputLabel, { color: colors.text }]}>{label}</Text>
       <TextInput
-        style={[styles.inputBox, prefilled && styles.inputBoxPrefilled]}
+        style={[
+          styles.inputBox,
+          { backgroundColor: colors.primary, borderColor: colors.border, color: colors.text },
+          prefilled && styles.inputBoxPrefilled,
+        ]}
         value={value}
         onChangeText={onChangeText}
         keyboardType="numeric"
         placeholder="0.00"
-        placeholderTextColor="#94A3B8"
+        placeholderTextColor={colors.textSecondary}
       />
-      {prefilled && (
-        <Text style={styles.prefilledNote}>Pre-filled from your video</Text>
-      )}
+      {prefilled && <Text style={styles.prefilledNote}>Pre-filled from your video</Text>}
     </View>
   );
 }
 
 function SummaryChip({ label, value }: { label: string; value: string }) {
+  const { colors } = useAppTheme();
   return (
     <View style={styles.chip}>
-      <Text style={styles.chipLabel}>{label}</Text>
-      <Text style={styles.chipValue}>{value}</Text>
+      <Text style={[styles.chipLabel, { color: colors.textSecondary }]}>{label}</Text>
+      <Text style={[styles.chipValue, { color: colors.text }]}>{value}</Text>
     </View>
   );
 }
@@ -495,12 +482,12 @@ function SummaryChip({ label, value }: { label: string; value: string }) {
 // ── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: BG },
+  safe: { flex: 1 },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 48, gap: 16 },
 
   pageHeader: {
-    backgroundColor: NAVY,
+    backgroundColor: ACCENT,
     borderRadius: 20,
     paddingVertical: 28,
     paddingHorizontal: 20,
@@ -515,133 +502,58 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.25)",
   },
-  stepBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 2,
-  },
+  stepBadgeText: { color: "#fff", fontSize: 11, fontWeight: "800", letterSpacing: 2 },
   pageEmoji: { fontSize: 44, marginBottom: 8 },
-  pageHeading: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#FFFFFF",
-    textAlign: "center",
-  },
-  pageSub: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.6)",
-    marginTop: 4,
-  },
+  pageHeading: { fontSize: 20, fontWeight: "800", color: "#fff", textAlign: "center" },
+  pageSub: { fontSize: 13, color: "rgba(255,255,255,0.6)", marginTop: 4 },
 
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: NAVY,
-    marginBottom: 4,
-  },
-  cardSub: {
-    fontSize: 13,
-    color: SLATE,
-    marginBottom: 16,
-  },
+  card: { borderRadius: 16, padding: 16 },
+  cardTitle: { fontSize: 16, fontWeight: "700", color: ACCENT, marginBottom: 4 },
+  cardSub: { fontSize: 13, marginBottom: 16 },
 
   summaryPill: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 14,
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 16,
   },
-  pillDivider: {
-    width: 1,
-    height: 28,
-    backgroundColor: "#E2E8F0",
-    marginHorizontal: 12,
-  },
+  pillDivider: { width: 1, height: 28, marginHorizontal: 12 },
   chip: { flex: 1, alignItems: "center" },
-  chipLabel: {
-    fontSize: 11,
-    color: SLATE,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-  },
-  chipValue: { fontSize: 15, fontWeight: "700", color: NAVY, marginTop: 2 },
+  chipLabel: { fontSize: 11, fontWeight: "600", letterSpacing: 0.5 },
+  chipValue: { fontSize: 15, fontWeight: "700", marginTop: 2 },
 
   inputGroup: { marginBottom: 14 },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: NAVY,
-    marginBottom: 6,
-  },
+  inputLabel: { fontSize: 13, fontWeight: "600", marginBottom: 6 },
   inputBox: {
     borderWidth: 1.5,
-    borderColor: "#D7E0EE",
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 11,
     fontSize: 15,
-    color: "#0F172A",
-    backgroundColor: "#F8FAFC",
   },
-  inputBoxPrefilled: {
-    borderColor: BLUE,
-    backgroundColor: "#EFF6FF",
-  },
-  prefilledNote: {
-    fontSize: 11,
-    color: BLUE,
-    marginTop: 4,
-  },
+  inputBoxPrefilled: { borderColor: ACCENT },
+  prefilledNote: { fontSize: 11, color: ACCENT, marginTop: 4 },
 
-  errorText: {
-    color: "#dc2626",
-    fontSize: 13,
-    marginTop: 4,
-  },
+  errorText: { color: "#dc2626", fontSize: 13, marginTop: 4 },
 
   primaryBtn: {
-    backgroundColor: BLUE,
-    borderRadius: 12,
-    paddingVertical: 15,
+    backgroundColor: ACCENT,
+    borderRadius: 999,
+    paddingVertical: 16,
     alignItems: "center",
   },
-  primaryBtnText: {
-    color: "#FFFFFF",
-    fontWeight: "700",
-    fontSize: 16,
-  },
+  primaryBtnText: { color: "#fff", fontWeight: "800", fontSize: 15, letterSpacing: 1 },
 
   scoreBanner: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 24,
     alignItems: "center",
     borderWidth: 2,
   },
-  scoreBannerLabel: {
-    fontSize: 11,
-    fontWeight: "800",
-    color: SLATE,
-    letterSpacing: 2,
-  },
-  scoreBannerScore: {
-    fontSize: 56,
-    fontWeight: "800",
-    marginVertical: 4,
-  },
-  scoreBannerSub: {
-    fontSize: 14,
-    color: SLATE,
-    textAlign: "center",
-  },
+  scoreBannerLabel: { fontSize: 11, fontWeight: "800", letterSpacing: 2 },
+  scoreBannerScore: { fontSize: 56, fontWeight: "800", marginVertical: 4 },
+  scoreBannerSub: { fontSize: 14, textAlign: "center" },
 
   resultRow: {
     flexDirection: "row",
@@ -652,29 +564,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderWidth: 1,
   },
-  resultRowCorrect: {
-    backgroundColor: "#F0FDF4",
-    borderColor: "#86EFAC",
-  },
-  resultRowWrong: {
-    backgroundColor: "#FFF1F2",
-    borderColor: "#FCA5A5",
-  },
+  resultRowCorrect: { backgroundColor: "#F0FDF4", borderColor: "#86EFAC" },
+  resultRowWrong: { backgroundColor: "#FFF1F2", borderColor: "#FCA5A5" },
   resultRowLeft: { flex: 1, gap: 2 },
-  resultLabel: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-  resultYourAnswer: {
-    fontSize: 13,
-    color: SLATE,
-  },
-  resultCorrectAnswer: {
-    fontSize: 13,
-    color: "#16a34a",
-    fontWeight: "600",
-  },
+  resultLabel: { fontSize: 14, fontWeight: "700", color: "#0F172A" },
+  resultYourAnswer: { fontSize: 13 },
+  resultCorrectAnswer: { fontSize: 13, color: "#16a34a", fontWeight: "600" },
   resultIcon: {
     fontSize: 22,
     fontWeight: "700",
