@@ -15,6 +15,7 @@ export const setActivity1 = async (
   userAnswers: any,
   validation: any,
   score: number,
+  videoUrl?: string,
 ): Promise<string> => {
   try {
     const docRef = await addDoc(collection(db, "activities"), {
@@ -24,6 +25,7 @@ export const setActivity1 = async (
       userAnswers: userAnswers,
       validation,
       totalScore: score,
+      ...(videoUrl ? { videoUrl } : {}),
       createdAt: serverTimestamp(),
       completedAt: serverTimestamp(),
     });
@@ -80,6 +82,28 @@ export const setActivity4 = async (
     throw e;
   }
 };
+
+// calculate final points for activity 1 (parachute):
+// adds bonus if user's chosen bestDesign matches their prediction
+export function calculateFinalPoints1(
+  session: SessionDoc,
+  bonusAwardAmount: number = 100,
+): number {
+  const rawScore = (session.activitiesCompleted ?? []).reduce(
+    (sum, a) => sum + (a.score ?? 0),
+    0,
+  ); // sum points for calculations
+
+  // add bonus if prediction is correct, matching best desgin
+  const bonus =
+    session.bestDesign !== undefined &&
+    session.prediction !== null &&
+    session.bestDesign === session.prediction
+      ? bonusAwardAmount
+      : 0;
+
+  return rawScore + bonus;
+}
 
 // calculate final poitns for activity - for those with one metric compared against each other
 export function calculateFinalPoints(
