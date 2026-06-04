@@ -2,20 +2,119 @@ import useGetUserAvatar from "@/hooks/user/useGetUserAvatar";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { getAuth, signOut } from "firebase/auth";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getUserProfile } from "../../services/firestore";
+import { db, getUserProfile } from "../../services/firestore";
+
+function FeedbackModal({
+  visible,
+  onClose,
+  colors,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  colors: any;
+}) {
+  const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!message.trim()) return;
+    setSubmitting(true);
+    try {
+      const user = getAuth().currentUser;
+
+      let gps: { latitude: number; longitude: number } | null = null;
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === "granted") {
+        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        gps = { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
+      }
+
+      await addDoc(collection(db, "feedback"), {
+        userId: user?.uid ?? null,
+        message: message.trim(),
+        gps,
+        createdAt: serverTimestamp(),
+      });
+      setMessage("");
+      onClose();
+      Alert.alert("Thank you!", "Your feedback has been sent.");
+    } catch {
+      Alert.alert("Error", "Failed to send feedback. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal transparent animationType="fade" visible={visible} onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        style={s.feedbackOverlay}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <TouchableOpacity style={s.feedbackOverlay} activeOpacity={1} onPress={onClose} />
+        <View style={[s.feedbackCard, { backgroundColor: colors.surface }]}>
+          <Text style={[s.feedbackTitle, { color: colors.text }]}>Send Feedback</Text>
+          <Text style={[s.feedbackSubtitle, { color: colors.textSecondary }]}>
+            Help us improve by sharing your thoughts.
+          </Text>
+          <TextInput
+            style={[s.feedbackInput, { color: colors.text, borderColor: colors.border }]}
+            placeholder="Write your feedback here..."
+            placeholderTextColor={colors.textSecondary}
+            multiline
+            numberOfLines={5}
+            value={message}
+            onChangeText={setMessage}
+            textAlignVertical="top"
+          />
+          <View style={s.feedbackActions}>
+            <Pressable
+              style={({ pressed }) => [s.feedbackCancelBtn, pressed && { opacity: 0.7 }]}
+              onPress={onClose}
+            >
+              <Text style={[s.feedbackCancelText, { color: colors.textSecondary }]}>Cancel</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                s.feedbackSubmitBtn,
+                !message.trim() && s.feedbackSubmitDisabled,
+                pressed && { opacity: 0.8 },
+              ]}
+              onPress={handleSubmit}
+              disabled={submitting || !message.trim()}
+            >
+              {submitting ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={s.feedbackSubmitText}>Send</Text>
+              )}
+            </Pressable>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
 
 function SettingOption({
   option,
@@ -53,6 +152,7 @@ export default function SettingScreen() {
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [feedbackVisible, setFeedbackVisible] = useState(false);
 
   // get user avatar
   const avatar = useGetUserAvatar();
@@ -161,7 +261,7 @@ export default function SettingScreen() {
         <Text style={s.sectionTitle}>Support</Text>
         {/* placeholders - undefined functions */}
         <SettingOption option="Help Center" colors={colors} />
-        <SettingOption option="Feedback" colors={colors} />
+        <SettingOption option="Feedback" onPress={() => setFeedbackVisible(true)} colors={colors} />
       </View>
 
       {/* ── Sign Out section (bottom) ── */}
@@ -216,6 +316,11 @@ export default function SettingScreen() {
           />
         </View>
       </View>
+      <FeedbackModal
+        visible={feedbackVisible}
+        onClose={() => setFeedbackVisible(false)}
+        colors={colors}
+      />
     </SafeAreaView>
   );
 }
@@ -378,5 +483,74 @@ const s = StyleSheet.create({
   legalContainer: {
     marginTop: 12,
     paddingHorizontal: 16,
+  },
+
+  feedbackOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "flex-end",
+  },
+  feedbackCard: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 36,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 12,
+  },
+  feedbackTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#1F2937",
+    marginBottom: 4,
+  },
+  feedbackSubtitle: {
+    fontSize: 13,
+    color: "#6B7280",
+    marginBottom: 16,
+  },
+  feedbackInput: {
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 14,
+    minHeight: 120,
+    marginBottom: 16,
+  },
+  feedbackActions: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  feedbackCancelBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+  },
+  feedbackCancelText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#6B7280",
+  },
+  feedbackSubmitBtn: {
+    flex: 2,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: "#6C63FF",
+    alignItems: "center",
+  },
+  feedbackSubmitDisabled: {
+    backgroundColor: "#C4C0F0",
+  },
+  feedbackSubmitText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#fff",
   },
 });

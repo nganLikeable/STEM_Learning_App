@@ -7,6 +7,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -38,13 +39,11 @@ export interface JourneyNodeData {
   title: string;
   locked: boolean;
   completed: boolean;
-  description?: string;
   pathID?: string;
 }
 
 function buildNodes(
   titles: string[],
-  descriptions: string[],
   pathIDs: string[],
   completedUpTo: number,
 ): JourneyNodeData[] {
@@ -55,7 +54,6 @@ function buildNodes(
       title: hasPhase ? titles[i] : `Phase ${i + 1}`,
       locked: i >= titles.length || i > completedUpTo,
       completed: hasPhase && i < completedUpTo,
-      description: hasPhase ? descriptions[i] : undefined,
       pathID: hasPhase ? pathIDs[i] : undefined,
     };
   });
@@ -65,14 +63,13 @@ function buildNodes(
 // LAYOUT CONSTANTS  — SVG road layout from HEAD
 // ─────────────────────────────────────────────
 
-const ROW_H = 130;
-const PAD_TOP = 80;
+const ROW_H = 200;
+const PAD_TOP = 110;
 const PAD_BOT = 120;
 const NODE_R = 34;
 const ACTIVE_R = 42;
-const GLOW_PAD = 16;
 
-const ZIGZAG = ["right", "left", "right", "left"] as const;
+const ZIGZAG = ["right", "left",  "right" , "left" ] as const;
 type Col = (typeof ZIGZAG)[number];
 
 function colX(col: Col, w: number): number {
@@ -96,8 +93,11 @@ function segmentD(
   a: { x: number; y: number },
   b: { x: number; y: number },
 ): string {
-  const dy = (b.y - a.y) * 0.45;
-  return `M${a.x},${a.y} C${a.x},${a.y + dy} ${b.x},${b.y - dy} ${b.x},${b.y}`;
+  const dy = (b.y - a.y) * 1.11  ; // Pull distance for the curve handle
+  return `M${a.x},${a.y} 
+  C${a.x},${a.y + dy} 
+  ${b.x},${b.y - dy} 
+  ${b.x},${b.y}`;
 }
 
 // ─────────────────────────────────────────────
@@ -146,57 +146,28 @@ const NodeButton: React.FC<NodeButtonProps> = ({
   };
 
   const r = isActive ? ACTIVE_R : NODE_R;
-  const totalR = isActive ? r + GLOW_PAD : r;
 
   return (
     <Animated.View
       style={[
         styles.nodeWrap,
-        { left: x - totalR, top: y - totalR },
+        { left: x - r, top: y - r },
         animStyle,
       ]}
     >
       {isActive ? (
-        // Glowing gold active node — from HEAD
-        <View
-          style={{
-            width: totalR * 2,
-            height: totalR * 2,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+        <Pressable
+          onPress={handlePress}
+          style={[
+            styles.nodeCircle,
+            styles.nodeActive,
+            { width: r * 2, height: r * 2, borderRadius: r },
+          ]}
         >
-          <View
-            style={{
-              position: "absolute",
-              width: totalR * 2,
-              height: totalR * 2,
-              borderRadius: totalR,
-              backgroundColor: "rgba(255,208,0,0.20)",
-            }}
-          />
-          <View
-            style={{
-              position: "absolute",
-              width: (r + 8) * 2,
-              height: (r + 8) * 2,
-              borderRadius: r + 8,
-              backgroundColor: "rgba(255,208,0,0.38)",
-            }}
-          />
-          <Pressable
-            onPress={handlePress}
-            style={[
-              styles.nodeCircle,
-              styles.nodeActive,
-              { width: r * 2, height: r * 2, borderRadius: r },
-            ]}
-          >
-            <Text style={[styles.nodeIcon, styles.nodeIconActive]}>
-              {node.id}
-            </Text>
-          </Pressable>
-        </View>
+          <Text style={[styles.nodeIcon, styles.nodeIconActive]}>
+            {node.id}
+          </Text>
+        </Pressable>
       ) : (
         <Pressable
           onPress={handlePress}
@@ -212,9 +183,15 @@ const NodeButton: React.FC<NodeButtonProps> = ({
           ]}
         >
           {node.locked ? (
-            <Text style={styles.lockIcon}>🔒</Text>
+            <Image
+              source={require("../../../assets/images/mascot/thinking.png")}
+              style={styles.lockIcon}
+            />
           ) : node.completed ? (
-            <Text style={[styles.nodeIcon, { color: "#fff" }]}>✓</Text>
+            <Image
+              source={require("../../../assets/images/mascot/heyjo.png")}
+              style={styles.lockIcon}
+            />
           ) : (
             <Text style={styles.nodeIcon}>{node.id}</Text>
           )}
@@ -300,13 +277,11 @@ export default function JourneyComponent() {
   const { journeyData } = useLocalSearchParams<{ journeyData: string }>();
   const {
     titles = [],
-    descriptions = [],
     pathIDs = [],
     activityId,
   } = journeyData
     ? (JSON.parse(journeyData as string) as {
         titles: string[];
-        descriptions: string[];
         pathIDs: string[];
         activityId?: number;
       })
@@ -343,7 +318,7 @@ export default function JourneyComponent() {
 
   // ── Build nodes + SVG layout ───────────────────────────────────────────────
 
-  const nodes = buildNodes(titles, descriptions, pathIDs, completedUpTo);
+  const nodes = buildNodes(titles, pathIDs, completedUpTo);
 
   // Active = the current phase; completed phases stay green but locked against redo
   const activeIndex = completedUpTo < titles.length ? completedUpTo : -1;
@@ -467,7 +442,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   nodeActive: {
-    backgroundColor: "#FFD000",
+    backgroundColor: "#8d7a26",
     borderColor: "#E8A800",
     shadowColor: "#FFD000",
     shadowOpacity: 0.5,
@@ -499,7 +474,9 @@ const styles = StyleSheet.create({
     color: "#7A4F00",
   },
   lockIcon: {
-    fontSize: 18,
+    width: 56,
+    height: 56,
+    resizeMode: "contain",
   },
   nodeLabel: {
     marginTop: 6,
