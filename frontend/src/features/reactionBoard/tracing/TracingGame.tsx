@@ -31,7 +31,11 @@ function accuracyLabel(pct: number) {
   return { emoji: "🔴", text: "Keep practicing" };
 }
 
-export default function TracingGame() {
+interface TracingGameProps {
+  onDone?: (accuracyPercent: number) => void;
+}
+
+export default function TracingGame({ onDone }: TracingGameProps) {
   const [shapeId, setShapeId] = useState(() => randomShapeId());
   const shape = SHAPES[shapeId];
 
@@ -201,14 +205,24 @@ export default function TracingGame() {
       )}
 
       {status !== "tracing" && status !== "countdown" && (
-        <Pressable
-          style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
-          onPress={handleStart}
-        >
-          <Text style={styles.ctaText}>
-            {status === "idle" ? "START" : "TRY AGAIN"}
-          </Text>
-        </Pressable>
+        <View style={{ flexDirection: "row", gap: 12 }}>
+          <Pressable
+            style={({ pressed }) => [styles.cta, styles.ctaSecondary, pressed && styles.ctaPressed]}
+            onPress={handleStart}
+          >
+            <Text style={[styles.ctaText, { color: "#f1f5f9" }]}>
+              {status === "idle" ? "START" : "TRY AGAIN"}
+            </Text>
+          </Pressable>
+          {status === "done" && result && onDone && (
+            <Pressable
+              style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
+              onPress={() => onDone(result.accuracy)}
+            >
+              <Text style={styles.ctaText}>SAVE</Text>
+            </Pressable>
+          )}
+        </View>
       )}
     </View>
   );
@@ -268,6 +282,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 50,
   },
+  ctaSecondary: { backgroundColor: "#1e293b", borderWidth: 1, borderColor: "#334155" },
   ctaPressed: { opacity: 0.8, transform: [{ scale: 0.97 }] },
   ctaText: {
     fontSize: 15,

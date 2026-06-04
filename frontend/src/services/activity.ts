@@ -113,6 +113,70 @@ export const setActivity5 = async (
   }
 };
 
+// save for activity 6 - reaction board challenge
+export const setActivity6 = async (
+  teamId: string,
+  activityNo: 6,
+  sessionId: string,
+  dominantMs: number,
+  nonDominantMs: number,
+  tracingAccuracy: number,
+  totalScore: number,
+): Promise<string> => {
+  try {
+    const docRef = await addDoc(collection(db, "activities"), {
+      teamId,
+      activityNo,
+      sessionId,
+      dominantMs,
+      nonDominantMs,
+      tracingAccuracy,
+      totalScore,
+      createdAt: serverTimestamp(),
+      completedAt: serverTimestamp(),
+    });
+    console.log("saved successfully a6", docRef);
+    return docRef.id;
+  } catch (e) {
+    console.error("Error saving activity 6 to Firestore", e);
+    throw e;
+  }
+};
+
+// score reaction time: <300ms=100, 300-400ms=50, >400ms=0
+export function scoreReactionTime(ms: number): number {
+  if (ms < 300) return 100;
+  if (ms <= 400) return 50;
+  return 0;
+}
+
+// calculate final points for activity 6 (reaction board):
+// sum all attempt scores + swap bonus + prediction bonus
+export function calculateFinalPoints6(
+  session: SessionDoc,
+  dominantMs: number,
+  nonDominantMs: number,
+  bonusAwardAmount: number = 100,
+): number {
+  const activities = session.activitiesCompleted ?? [];
+
+  // sum all phase scores
+  const totalPhaseScore = activities.reduce((sum, a) => sum + (a.score ?? 0), 0);
+
+  // swap bonus: non-dominant within 50% slower than dominant
+  const swapBonus = nonDominantMs <= dominantMs * 1.5 ? 50 : 0;
+
+  // prediction bonus: prediction matches the attempt index with highest score
+  const bestIndex = activities.length > 0
+    ? activities.reduce((maxIdx, cur, idx, arr) =>
+        cur.score > arr[maxIdx].score ? idx : maxIdx, 0)
+    : -1;
+  const predictionBonus =
+    bestIndex >= 0 && session.prediction === bestIndex + 1 ? bonusAwardAmount : 0;
+
+  return totalPhaseScore + swapBonus + predictionBonus;
+}
+
 // save for activity 7 - breathes per minute
 export const setActivity7 = async (
   teamId: string,

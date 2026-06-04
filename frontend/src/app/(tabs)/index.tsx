@@ -486,8 +486,6 @@ export default function HomeScreen() {
   const [rank, setRank] = useState<number | null>(null);
   const [attendanceDates, setAttendanceDates] = useState<string[]>([]);
 
-  const currentTeamId = useRef<string | null>(null);
-
   const loadProfile = useCallback(async () => {
     const user = getAuth().currentUser;
     if (!user) return;
@@ -502,7 +500,6 @@ export default function HomeScreen() {
 
     if (profile.teamId) {
       setTeamId(profile.teamId);
-      currentTeamId.current = profile.teamId;
 
       const [teamSnap, teamMembers] = await Promise.all([
         getTeam(profile.teamId),
@@ -514,7 +511,6 @@ export default function HomeScreen() {
       return;
     }
 
-    currentTeamId.current = null;
     setTeamId("");
     setTeamName("");
     setMemberNames([]);
@@ -522,18 +518,18 @@ export default function HomeScreen() {
     setRank(null);
   }, []);
 
-  // Real-time points + rank from teamScores
+  // Real-time points + rank — re-subscribes whenever teamId becomes known
   useEffect(() => {
+    if (!teamId) return;
     const unsub = subscribeToTeamScores((scores) => {
-      if (!currentTeamId.current) return;
       const sorted = [...scores].sort((a, b) => (b.totalScore ?? 0) - (a.totalScore ?? 0));
-      const idx = sorted.findIndex((s) => s.teamId === currentTeamId.current);
-      const myScore = scores.find((s) => s.teamId === currentTeamId.current);
+      const idx = sorted.findIndex((s) => s.teamId === teamId);
+      const myScore = scores.find((s) => s.teamId === teamId);
       setPoints(Math.round((myScore?.totalScore ?? 0) * 100) / 100);
       setRank(idx >= 0 ? idx + 1 : null);
     });
     return unsub;
-  }, []);
+  }, [teamId]);
 
   useEffect(() => {
     loadProfile();

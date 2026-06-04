@@ -22,7 +22,7 @@ const getFeedback = (ms: number) => {
 // for screen setting stage
 interface TapReactionGameProps {
   phase: "dominant" | "non-dominant";
-  onNext: () => void;
+  onNext: (reactionTimeMs: number) => void;
 }
 
 export default function TapReactionGame({
@@ -134,7 +134,7 @@ export default function TapReactionGame({
       <View style={styles.nextWrapper}>
         {status === "done" && (
           <Pressable
-            onPress={onNext}
+            onPress={() => reactionTime != null && onNext(reactionTime)}
             style={({ pressed }) => [
               styles.nextBtn,
               pressed && styles.nextBtnPressed,
