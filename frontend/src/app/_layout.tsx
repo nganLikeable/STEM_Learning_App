@@ -40,12 +40,18 @@ export default function RootLayout() {
   useNotifications(user?.uid ?? null);
   useRankWatcher(user?.uid ?? null, teamId);
 
-  // Subscribe to Firebase auth state
+  // Subscribe to Firebase auth state and hydrate teamId immediately
   useEffect(() => {
     const auth = getAuth();
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setAuthReady(true);
+      if (u) {
+        getUserProfile(u.uid).then((snap) => {
+          const profile = snap.exists() ? snap.data() : null;
+          if (profile?.teamId) setTeamId(profile.teamId);
+        });
+      }
     });
     return unsub;
   }, []);

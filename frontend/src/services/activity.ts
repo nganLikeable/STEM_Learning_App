@@ -190,12 +190,13 @@ export function calculateFinalPoints(
   return finalPoints;
 }
 
-// get points for activity5 and 7 - human performace lab; breath tracker
+// get points for activity5 and 7 , 4- human performace lab; breath tracker, sound
 // calculate final points for activity 5 (human performance):
 // finds which movement had the highest improvement score => hard to keep sturdy; award points if that matches prediction
 
 // for 7: the highest bpm is the result - same logic
-export function calculateFinalPoints57(
+// for 2: same
+export function calculateFinalPoints257(
   session: SessionDoc,
   bonusAwardAmount: number = 100,
 ): number {

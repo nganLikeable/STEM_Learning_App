@@ -1,5 +1,6 @@
 // useEarthquakeTest.ts
 import { calculateFinalPoints, setActivity4 } from "@/src/services/activity";
+import { updateTeamScore } from "@/src/services/teamScore";
 import { db } from "@/src/services/firestore";
 import { advanceSessionById, getActiveSession } from "@/src/services/session";
 import { useSessionStore } from "@/src/store/session-store";
@@ -138,7 +139,7 @@ export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
           "Missing teamId. Join or create a team before saving Activity 4.",
         );
       }
-      const activeSession = await getActiveSession(teamId);
+      const activeSession = await getActiveSession(teamId, 4);
       const targetsSessionId = sessionId || activeSession?.id;
 
       if (!targetsSessionId)
@@ -147,6 +148,7 @@ export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
       const activityDocId = await setActivity4(
         teamId,
         targetsSessionId,
+        4,
         result.stabilityScore,
       );
       const updatedSession = await advanceSessionById(
@@ -190,6 +192,7 @@ export default function useEarthquakeTest(designNumber: 1 | 2 | 3) {
         await updateDoc(doc(db, "sessions", sessionData.id), {
           totalPoints: finalPoints,
         });
+        if (teamId) await updateTeamScore(teamId);
       } catch (err) {
         console.error("Failed to update final points in Firestore:", err);
       }

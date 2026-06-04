@@ -12,6 +12,7 @@ import {
   ViewToken,
 } from "react-native";
 import { getAllTeams } from "../../services/firestore";
+import { subscribeToTeamScores } from "../../services/teamScore";
 import { useTeamStore } from "../../store/team-store";
 import { borderRadius, shadows, spacing } from "../../theme";
 import { getAvatarSource } from "../constants/avatars";
@@ -96,7 +97,7 @@ const RankRow: React.FC<{ team: Team; userTeamId: string | null }> = ({
             size={13}
             color="#F39C12"
           />
-          <Text style={s.rowPts}>{team.points} pts</Text>
+          <Text style={s.rowPts}>{team.points.toFixed(2)} pts</Text>
         </View>
       </View>
     </View>
@@ -127,36 +128,60 @@ const Leaderboard: React.FC = () => {
     },
   ).current;
 
+  // fetch points for each team
   useEffect(() => {
-    getAllTeams()
-      .then(
-        (
-          raw: Array<{
-            id: string;
-            name?: string;
-            points?: number;
-            avatarId?: string | null;
-          }>,
-        ) => {
-          const sorted = raw
-            .sort((a, b) => (b.points ?? 0) - (a.points ?? 0))
-            .map((t, i) => ({
-              id: t.id,
-              name: t.name ?? "Unknown",
-              points: t.points ?? 0,
-              rank: i + 1,
-              avatarId: t.avatarId ?? null,
-            }));
+    let unsubscribe: (() => void) | null = null;
+
+    getAllTeams().then(
+      (raw: Array<{ id: string; name?: string; avatarId?: string | null }>) => {
+        const teamMeta: Record<
+          string,
+          { name: string; avatarId: string | null }
+        > = {};
+        raw.forEach((t) => {
+          teamMeta[t.id] = {
+            name: t.name ?? "Unknown",
+            avatarId: t.avatarId ?? null,
+          };
+        });
+        const allTeamIds = raw.map((t) => t.id);
+
+        unsubscribe = subscribeToTeamScores((scores) => {
+          const scoreMap: Record<string, number> = {};
+          scores.forEach((s) => {
+            scoreMap[s.teamId] = s.totalScore ?? 0;
+          });
+
+          const sorted = allTeamIds
+            .map((id) => ({
+              id,
+              name: teamMeta[id]?.name ?? id,
+              points: Math.round((scoreMap[id] ?? 0) * 100) / 100,
+              avatarId: teamMeta[id]?.avatarId ?? null,
+            }))
+            .sort((a, b) => b.points - a.points)
+            .map((t, i) => ({ ...t, rank: i + 1 }));
+
           setTeams(sorted);
-        },
-      )
-      .finally(() => setLoading(false));
+          setLoading(false);
+        });
+      },
+    );
+
+    return () => unsubscribe?.();
   }, []);
 
   if (loading) {
     return (
       <View
-        style={[s.screen, { backgroundColor: colors.primary, justifyContent: "center", alignItems: "center" }]}
+        style={[
+          s.screen,
+          {
+            backgroundColor: colors.primary,
+            justifyContent: "center",
+            alignItems: "center",
+          },
+        ]}
       >
         <ActivityIndicator size="large" color="#9333EA" />
       </View>

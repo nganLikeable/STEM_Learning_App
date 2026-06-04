@@ -44,7 +44,7 @@ const TeamInfoCard: React.FC<TeamInfoCardProps> = ({ teamName, teamId, members, 
       {/* Stats */}
       <View style={styles.footer}>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{points ?? '—'} pts</Text>
+          <Text style={styles.statValue}>{points != null ? points.toFixed(2) : '—'} pts</Text>
           <Text style={styles.statLabel}>Points</Text>
         </View>
         <View style={styles.divider} />

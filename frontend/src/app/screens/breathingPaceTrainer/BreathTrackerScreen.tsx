@@ -1,6 +1,8 @@
 import BreathTracker from "@/src/features/breathTracker/BreathTracker";
-import { calculateFinalPoints57, setActivity7 } from "@/src/services/activity";
+import { calculateFinalPoints257, setActivity7 } from "@/src/services/activity";
+import { db } from "@/src/services/firestore";
 import { advanceSessionById } from "@/src/services/session";
+import { updateTeamScore } from "@/src/services/teamScore";
 import { useSessionStore } from "@/src/store/session-store";
 import { useTeamStore } from "@/src/store/team-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -8,7 +10,6 @@ import { doc, updateDoc } from "firebase/firestore";
 import { useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { db } from "@/src/services/firestore";
 
 export default function BreathTrackerScreen() {
   const router = useRouter();
@@ -32,10 +33,11 @@ export default function BreathTrackerScreen() {
       );
 
       if (updated?.completed) {
-        const finalPoints = calculateFinalPoints57(updated);
+        const finalPoints = calculateFinalPoints257(updated);
         await updateDoc(doc(db, "sessions", sessionId), {
           totalPoints: finalPoints,
         });
+        await updateTeamScore(teamId);
         router.replace("/screens/breathingPaceTrainer/ReflectionScreen");
         return;
       }

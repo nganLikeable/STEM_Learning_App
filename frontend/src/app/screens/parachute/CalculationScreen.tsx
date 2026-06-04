@@ -130,7 +130,7 @@ export default function CalculationFlow() {
       if (!teamId) throw new Error("Missing teamId.");
 
       // 1. Fetch current runtime continuous session tracking
-      const activeSession = await getActiveSession(teamId);
+      const activeSession = await getActiveSession(teamId, 1);
       const targetsSessionId = sessionId || activeSession?.id;
 
       if (!targetsSessionId)

@@ -3,9 +3,10 @@ import {
   MovementId,
   MovementResult,
 } from "@/src/features/humanPerformance/types";
-import { calculateFinalPoints57, setActivity5 } from "@/src/services/activity";
+import { calculateFinalPoints257, setActivity5 } from "@/src/services/activity";
 import { db } from "@/src/services/firestore";
 import { advanceSessionById, getSessionById } from "@/src/services/session";
+import { updateTeamScore } from "@/src/services/teamScore";
 import { useSessionStore } from "@/src/store/session-store";
 import { useTeamStore } from "@/src/store/team-store";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -72,10 +73,11 @@ export default function HumanPerformanceScreen() {
       );
 
       if (updated?.completed) {
-        const finalPoints = calculateFinalPoints57(updated);
+        const finalPoints = calculateFinalPoints257(updated);
         await updateDoc(doc(db, "sessions", sessionId), {
           totalPoints: finalPoints,
         });
+        await updateTeamScore(teamId);
         router.replace("/screens/humanPerformanceLab/ReflectionScreen");
         return;
       }

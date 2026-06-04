@@ -56,7 +56,7 @@ export default function PredictionTemplate({
 
       try {
         // get active session to fetch the right inputs by teamId and activityId
-        const activeSession = await getActiveSession(teamId);
+        const activeSession = await getActiveSession(teamId, activityId as 1 | 2 | 3 | 4 | 5 | 6 | 7);
         const savedDesigns = activeSession?.designs ?? [];
 
         if (cancelled) return;

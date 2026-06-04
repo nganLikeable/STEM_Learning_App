@@ -63,7 +63,10 @@ export default function Instruction({
       }
 
       try {
-        const activeSession = await getActiveSession(teamId);
+        const activeSession = await getActiveSession(
+          teamId,
+          activityId as 1 | 2 | 3 | 4 | 5 | 6 | 7 | undefined,
+        );
         if (!cancelled) {
           // to track progress and show the appropriate screen
           // if predictions are made but no phases completed yet -> show path
@@ -96,14 +99,13 @@ export default function Instruction({
     try {
       let activeSessionId: string | null = null;
 
-      const activeSession = await getActiveSession(teamId);
+      const activeSession = await getActiveSession(
+        teamId,
+        activityId as 1 | 2 | 3 | 4 | 5 | 6 | 7 | undefined,
+      );
       if (activeSession?.id) {
         activeSessionId = activeSession.id;
         setSessionId(activeSessionId);
-
-        const hasJourneyProgress =
-          (activeSession.currentPhase ?? 1) > 1 ||
-          activeSession.prediction != null;
 
         // Resume directly from the journey once the session has real progress.
         if (
@@ -126,7 +128,11 @@ export default function Instruction({
       }
 
       if (!activeSessionId) {
-        activeSessionId = await createSession(teamId, null);
+        activeSessionId = await createSession(
+          teamId,
+          null,
+          activityId as 1 | 2 | 3 | 4 | 5 | 6 | 7 | undefined,
+        );
         // persist the newly created session id into the global store
         setSessionId(activeSessionId);
       }

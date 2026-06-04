@@ -12,9 +12,10 @@
  * dBFS value from the microphone. Accuracy varies by device.
  */
 
-import { calculateFinalPoints, setActivity2 } from "@/src/services/activity";
+import { calculateFinalPoints257, setActivity2 } from "@/src/services/activity";
 import { db as dbFirestore } from "@/src/services/firestore";
 import { advanceSessionById, getActiveSession } from "@/src/services/session";
+import { updateTeamScore } from "@/src/services/teamScore";
 import { useSessionStore } from "@/src/store/session-store";
 import { useTeamStore } from "@/src/store/team-store";
 import { playPhaseCompleteSound } from "@/src/utils/playSound";
@@ -161,7 +162,7 @@ export default function SoundMeasureTracking() {
     try {
       if (!teamId) throw new Error("Missing teamId.");
       // 1. Fetch current runtime continuous session tracking
-      const activeSession = await getActiveSession(teamId);
+      const activeSession = await getActiveSession(teamId, 2);
       const targetsSessionId = sessionId || activeSession?.id;
 
       if (!targetsSessionId)
@@ -182,12 +183,12 @@ export default function SoundMeasureTracking() {
       playPhaseCompleteSound();
 
       if (updatedSession?.completed) {
-        const finalPoints = await calculateFinalPoints(updatedSession);
+        const finalPoints = await calculateFinalPoints257(updatedSession);
         console.log(finalPoints);
         await updateDoc(doc(dbFirestore, "sessions", updatedSession.id), {
           totalPoints: finalPoints,
         });
-
+        await updateTeamScore(teamId);
         router.replace("/screens/soundPollutionHunter/ReflectionScreen");
         return;
       }

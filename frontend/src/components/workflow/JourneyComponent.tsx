@@ -292,7 +292,7 @@ export default function JourneyComponent() {
   const loadActiveSession = React.useCallback(async () => {
     if (!teamId || !activityId) return;
     try {
-      const activeSession = await getActiveSession(teamId);
+      const activeSession = await getActiveSession(teamId, activityId as 1 | 2 | 3 | 4 | 5 | 6 | 7 | undefined);
       if (!activeSession) {
         setCompletedUpTo(0);
         return;

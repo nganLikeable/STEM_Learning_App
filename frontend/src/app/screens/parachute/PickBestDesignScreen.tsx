@@ -1,7 +1,9 @@
 import { calculateFinalPoints1 } from "@/src/services/activity";
 import { db } from "@/src/services/firestore";
 import { SessionDoc, getSessionById } from "@/src/services/session";
+import { updateTeamScore } from "@/src/services/teamScore";
 import { useSessionStore } from "@/src/store/session-store";
+import { useTeamStore } from "@/src/store/team-store";
 import { useRouter } from "expo-router";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
@@ -25,6 +27,7 @@ const BG = "#F4F6F9";
 export default function PickBestDesignScreen() {
   const router = useRouter();
   const { sessionId } = useSessionStore();
+  const { teamId } = useTeamStore();
 
   const [videoUrls, setVideoUrls] = useState<(string | null)[]>([
     null,
@@ -76,6 +79,7 @@ export default function PickBestDesignScreen() {
         bestDesign: selected,
         totalPoints: finalPoints,
       });
+      if (teamId) await updateTeamScore(teamId);
       router.replace("/screens/parachute/ReflectionScreen");
     } catch (e) {
       console.error("Failed to save best design", e);

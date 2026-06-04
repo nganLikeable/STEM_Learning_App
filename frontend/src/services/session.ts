@@ -25,6 +25,7 @@ export interface SessionActivityResult {
 export interface SessionDoc {
   id: string;
   teamId: string;
+  activityNo?: 1 | 2 | 3 | 4 | 5 | 6 | 7; // which activity this session belongs to
   prediction: number | null;
   currentPhase: number; // 1, 2, 3
   completed: boolean;
@@ -39,10 +40,12 @@ export interface SessionDoc {
 export const createSession = async (
   teamId: string,
   prediction: number | null,
+  activityNo?: 1 | 2 | 3 | 4 | 5 | 6 | 7,
 ) => {
   try {
     const docRef = await addDoc(collection(db, "sessions"), {
       teamId,
+      ...(activityNo !== undefined ? { activityNo } : {}),
       prediction,
       currentPhase: 1,
       completed: false,
@@ -57,16 +60,20 @@ export const createSession = async (
   }
 };
 
-// get active (incomplete) session for a team
+// get active (incomplete) session for a team, scoped to a specific activity
 export const getActiveSession = async (
   teamId: string,
+  activityNo?: 1 | 2 | 3 | 4 | 5 | 6 | 7,
 ): Promise<SessionDoc | null> => {
   try {
-    const q = query(
-      collection(db, "sessions"),
+    const constraints = [
       where("teamId", "==", teamId),
       where("completed", "==", false),
-    );
+      ...(activityNo !== undefined
+        ? [where("activityNo", "==", activityNo)]
+        : []),
+    ];
+    const q = query(collection(db, "sessions"), ...constraints);
     const snap = await getDocs(q);
 
     if (snap.empty) return null;
@@ -77,6 +84,7 @@ export const getActiveSession = async (
     return {
       id: sessionDoc.id,
       teamId: String(data.teamId ?? ""),
+      activityNo: data.activityNo ?? undefined,
       prediction: typeof data.prediction === "number" ? data.prediction : null,
       currentPhase:
         typeof data.currentPhase === "number" ? data.currentPhase : 1,
@@ -103,6 +111,7 @@ export const getSessionById = async (
     return {
       id: snap.id,
       teamId: String(data.teamId ?? ""),
+      activityNo: data.activityNo ?? undefined,
       prediction: typeof data.prediction === "number" ? data.prediction : null,
       currentPhase:
         typeof data.currentPhase === "number" ? data.currentPhase : 1,

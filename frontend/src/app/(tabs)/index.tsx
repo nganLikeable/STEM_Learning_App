@@ -28,7 +28,8 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { getUserProfile, getTeam, getTeamMembers, getAllTeams, markTodayAttendance } from '../../services/firestore';
+import { getUserProfile, getTeam, getTeamMembers, markTodayAttendance } from '../../services/firestore';
+import { subscribeToTeamScores } from '../../services/teamScore';
 
 // ─── Image assets ─────────────────────────────────────────────────────────────
 
@@ -485,6 +486,8 @@ export default function HomeScreen() {
   const [rank, setRank] = useState<number | null>(null);
   const [attendanceDates, setAttendanceDates] = useState<string[]>([]);
 
+  const currentTeamId = useRef<string | null>(null);
+
   const loadProfile = useCallback(async () => {
     const user = getAuth().currentUser;
     if (!user) return;
@@ -499,32 +502,37 @@ export default function HomeScreen() {
 
     if (profile.teamId) {
       setTeamId(profile.teamId);
+      currentTeamId.current = profile.teamId;
 
-      const [teamSnap, teamMembers, allTeams] = await Promise.all([
+      const [teamSnap, teamMembers] = await Promise.all([
         getTeam(profile.teamId),
         getTeamMembers(profile.teamId),
-        getAllTeams(),
       ]);
 
-      if (teamSnap.exists()) {
-        const teamData = teamSnap.data();
-        setTeamName(teamData.name);
-        setPoints(teamData.points ?? 0);
-      }
-
+      if (teamSnap.exists()) setTeamName(teamSnap.data().name);
       setMemberNames(teamMembers.map((m: any) => m.name));
-
-      const sorted = [...allTeams].sort((a: any, b: any) => (b.points ?? 0) - (a.points ?? 0));
-      const idx = sorted.findIndex((t: any) => t.id === profile.teamId);
-      setRank(idx >= 0 ? idx + 1 : null);
       return;
     }
 
+    currentTeamId.current = null;
     setTeamId("");
     setTeamName("");
     setMemberNames([]);
     setPoints(0);
     setRank(null);
+  }, []);
+
+  // Real-time points + rank from teamScores
+  useEffect(() => {
+    const unsub = subscribeToTeamScores((scores) => {
+      if (!currentTeamId.current) return;
+      const sorted = [...scores].sort((a, b) => (b.totalScore ?? 0) - (a.totalScore ?? 0));
+      const idx = sorted.findIndex((s) => s.teamId === currentTeamId.current);
+      const myScore = scores.find((s) => s.teamId === currentTeamId.current);
+      setPoints(Math.round((myScore?.totalScore ?? 0) * 100) / 100);
+      setRank(idx >= 0 ? idx + 1 : null);
+    });
+    return unsub;
   }, []);
 
   useEffect(() => {
