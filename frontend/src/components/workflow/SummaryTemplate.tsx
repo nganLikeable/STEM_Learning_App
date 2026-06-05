@@ -2,12 +2,15 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+
+const nhayVuiMung = require("../../../assets/images/mascot/nhayVuiMung.png");
 
 // ── Stat row ─────────────────────────────────────────────────────────────────
 
@@ -47,7 +50,9 @@ export function Section({ title, children }: SectionProps) {
   );
 }
 
-// ── Attempt row ───────────────────────────────────────────────────────────────
+// ── Attempt block (coloured card per attempt) ─────────────────────────────────
+
+const ATTEMPT_COLORS = ["#6b76ee", "#f97316", "#22c55e", "#a855f7", "#0ea5e9", "#ef4444", "#14b8a6"];
 
 interface AttemptRowProps {
   attempt: number;
@@ -58,14 +63,23 @@ interface AttemptRowProps {
 
 export function AttemptRow({ attempt, score, isBest, unit = "pts" }: AttemptRowProps) {
   const { colors } = useAppTheme();
+  const accent = ATTEMPT_COLORS[(attempt - 1) % ATTEMPT_COLORS.length];
   return (
-    <View style={[s.attemptRow, { borderBottomColor: colors.border }]}>
-      <Text style={[s.attemptLabel, { color: colors.textSecondary }]}>Attempt {attempt}</Text>
+    <View style={[s.attemptCard, { backgroundColor: colors.surface, borderLeftColor: accent }]}>
+      <View style={s.attemptCardLeft}>
+        <View style={[s.attemptCircle, { backgroundColor: accent + "22" }]}>
+          <Text style={[s.attemptNumber, { color: accent }]}>{attempt}</Text>
+        </View>
+        <Text style={[s.attemptLabel, { color: colors.text }]}>Attempt {attempt}</Text>
+      </View>
       <View style={s.attemptRight}>
-        {isBest && <Text style={s.bestBadge}>BEST</Text>}
-        <Text style={[s.attemptScore, { color: colors.text }, isBest && s.attemptScoreBest]}>
-          {score}{unit === "°" ? unit : ` ${unit}`}
-        </Text>
+        {isBest && (
+          <View style={[s.bestBadge, { backgroundColor: accent }]}>
+            <Text style={s.bestBadgeText}>BEST</Text>
+          </View>
+        )}
+        <Text style={[s.attemptScore, { color: accent }]}>{score}</Text>
+        <Text style={[s.attemptScoreUnit, { color: colors.textSecondary }]}>pts</Text>
       </View>
     </View>
   );
@@ -102,10 +116,10 @@ export default function SummaryTemplate({
         end={{ x: 1, y: 1 }}
         style={s.hero}
       >
-        <Text style={s.heroEmoji}>{emoji}</Text>
+        <Image source={nhayVuiMung} style={s.mascot} resizeMode="contain" />
         <Text style={s.heroTitle}>{activityTitle}</Text>
         <Text style={s.heroSubtitle}>TOTAL POINTS</Text>
-        <Text style={s.heroPoints}>{totalPoints.toFixed(2)}</Text>
+        <Text style={s.heroPoints}>{Math.round(totalPoints)}</Text>
         <Text style={s.heroPtLabel}>pts</Text>
       </LinearGradient>
 
@@ -155,7 +169,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 24,
     gap: 4,
   },
-  heroEmoji: { fontSize: 48, marginBottom: 4 },
+  mascot: { width: 100, height: 100, marginBottom: 4 },
   heroTitle: {
     fontSize: 16,
     fontWeight: "700",
@@ -194,7 +208,7 @@ const s = StyleSheet.create({
     elevation: 2,
   },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "800",
     color: "#6b76ee",
     letterSpacing: 1.5,
@@ -204,7 +218,7 @@ const s = StyleSheet.create({
     paddingBottom: 8,
     borderBottomWidth: 1,
   },
-  sectionBody: { paddingHorizontal: 16, paddingVertical: 8 },
+  sectionBody: { paddingHorizontal: 16, paddingVertical: 8, gap: 8 },
 
   statRow: {
     flexDirection: "row",
@@ -217,32 +231,50 @@ const s = StyleSheet.create({
   statValue: { fontSize: 15, fontWeight: "700" },
   statValueHighlight: { color: "#6b76ee", fontSize: 17 },
 
-  attemptRow: {
+  attemptCard: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 10,
-    borderBottomWidth: 1,
+    justifyContent: "space-between",
+    borderRadius: 14,
+    borderLeftWidth: 4,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  attemptLabel: { fontSize: 14 },
-  attemptRight: { flexDirection: "row", alignItems: "center", gap: 8 },
+  attemptCardLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
+  attemptCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  attemptNumber: { fontSize: 16, fontWeight: "900" },
+  attemptLabel: { fontSize: 16, fontWeight: "600" },
+  attemptRight: { flexDirection: "row", alignItems: "center", gap: 6 },
   bestBadge: {
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  bestBadgeText: {
     fontSize: 9,
     fontWeight: "800",
     color: "#fff",
-    backgroundColor: "#6b76ee",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
     letterSpacing: 0.5,
   },
-  attemptScore: { fontSize: 15, fontWeight: "700" },
-  attemptScoreBest: { color: "#6b76ee" },
+  attemptScore: { fontSize: 28, fontWeight: "900" },
+  attemptScoreUnit: { fontSize: 13, fontWeight: "600", marginTop: 6 },
 
   reflectionText: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 15,
+    lineHeight: 24,
     paddingVertical: 8,
+    fontStyle: "italic",
   },
 
   homeBtn: {

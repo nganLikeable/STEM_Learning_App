@@ -3,6 +3,7 @@ import {
   MovementId,
   MovementResult,
 } from "@/src/features/humanPerformance/types";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { calculateFinalPoints257, setActivity5 } from "@/src/services/activity";
 import { db } from "@/src/services/firestore";
 import { advanceSessionById, getSessionById } from "@/src/services/session";
@@ -34,6 +35,7 @@ export default function HumanPerformanceScreen() {
   const { teamId } = useTeamStore();
   const { sessionId } = useSessionStore();
 
+  const { colors } = useAppTheme();
   const [movementId, setMovementId] = useState<MovementId>(1);
   const [result, setResult] = useState<MovementResult | null>(null);
   const [saving, setSaving] = useState(false);
@@ -101,22 +103,22 @@ export default function HumanPerformanceScreen() {
   if (result) {
     const impColor = improvementColor(result.improvement);
     return (
-      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent}>
+      <ScrollView style={[s.scroll, { backgroundColor: colors.primary }]} contentContainerStyle={s.scrollContent}>
         <Text style={s.eyebrow}>MOVEMENT COMPLETE</Text>
         <Text style={s.bigEmoji}>{result.emoji}</Text>
-        <Text style={s.title}>{result.label}</Text>
+        <Text style={[s.title, { color: colors.text }]}>{result.label}</Text>
 
-        <View style={s.row}>
+        <View style={[s.row, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <View style={s.scoreBox}>
-            <Text style={s.scoreLabel}>Without feedback</Text>
+            <Text style={[s.scoreLabel, { color: colors.textSecondary }]}>Without feedback</Text>
             <Text style={s.scoreValue}>{result.attempt1.smoothnessScore}</Text>
-            <Text style={s.scoreUnit}>/ 100</Text>
+            <Text style={[s.scoreUnit, { color: colors.textSecondary }]}>/ 100</Text>
           </View>
-          <Text style={s.arrow}>→</Text>
+          <Text style={[s.arrow, { color: colors.border }]}>→</Text>
           <View style={s.scoreBox}>
-            <Text style={s.scoreLabel}>With buzz 📳</Text>
+            <Text style={[s.scoreLabel, { color: colors.textSecondary }]}>With buzz 📳</Text>
             <Text style={s.scoreValue}>{result.attempt2.smoothnessScore}</Text>
-            <Text style={s.scoreUnit}>/ 100</Text>
+            <Text style={[s.scoreUnit, { color: colors.textSecondary }]}>/ 100</Text>
           </View>
         </View>
 
@@ -128,7 +130,7 @@ export default function HumanPerformanceScreen() {
                 ? "No change"
                 : `${result.improvement} pts`}
           </Text>
-          <Text style={s.impLabel}>
+          <Text style={[s.impLabel, { color: colors.textSecondary }]}>
             {result.improvement > 0
               ? "Feedback helped ✓"
               : result.improvement === 0
@@ -156,7 +158,7 @@ export default function HumanPerformanceScreen() {
 }
 
 const s = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: "#0f172a" },
+  scroll: { flex: 1 },
   scrollContent: {
     paddingVertical: 48,
     paddingHorizontal: 24,
@@ -171,34 +173,21 @@ const s = StyleSheet.create({
     textAlign: "center",
   },
   bigEmoji: { fontSize: 52 },
-  title: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: "#f1f5f9",
-    textAlign: "center",
-  },
+  title: { fontSize: 28, fontWeight: "800", textAlign: "center" },
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
     width: "100%",
-    backgroundColor: "#1e293b",
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: "#334155",
   },
   scoreBox: { flex: 1, alignItems: "center", gap: 4 },
-  scoreLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#475569",
-    letterSpacing: 1,
-    textAlign: "center",
-  },
+  scoreLabel: { fontSize: 10, fontWeight: "700", letterSpacing: 1, textAlign: "center" },
   scoreValue: { fontSize: 36, fontWeight: "900", color: "#facc15" },
-  scoreUnit: { fontSize: 11, color: "#475569" },
-  arrow: { fontSize: 20, color: "#334155" },
+  scoreUnit: { fontSize: 11 },
+  arrow: { fontSize: 20 },
   impBox: {
     width: "100%",
     borderWidth: 1,
@@ -208,7 +197,7 @@ const s = StyleSheet.create({
     gap: 6,
   },
   impValue: { fontSize: 32, fontWeight: "900" },
-  impLabel: { fontSize: 13, color: "#94a3b8" },
+  impLabel: { fontSize: 13 },
   cta: {
     backgroundColor: "#facc15",
     paddingHorizontal: 40,

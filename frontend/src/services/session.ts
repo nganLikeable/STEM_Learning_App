@@ -192,6 +192,40 @@ export const addSessionReflection = async (
   }
 };
 
+// get all completed sessions for a team, grouped by activityNo
+export const getCompletedSessionsByTeam = async (
+  teamId: string,
+  activityNo?: 1 | 2 | 3 | 4 | 5 | 6 | 7,
+): Promise<SessionDoc[]> => {
+  try {
+    const constraints = [
+      where("teamId", "==", teamId),
+      where("completed", "==", true),
+      ...(activityNo !== undefined ? [where("activityNo", "==", activityNo)] : []),
+    ];
+    const snap = await getDocs(query(collection(db, "sessions"), ...constraints));
+    return snap.docs.map((d) => {
+      const data = d.data();
+      return {
+        id: d.id,
+        teamId: String(data.teamId ?? ""),
+        activityNo: data.activityNo ?? undefined,
+        prediction: typeof data.prediction === "number" ? data.prediction : null,
+        currentPhase: typeof data.currentPhase === "number" ? data.currentPhase : 1,
+        completed: true,
+        designs: Array.isArray(data.designs) ? data.designs : [],
+        activitiesCompleted: Array.isArray(data.activitiesCompleted) ? data.activitiesCompleted : [],
+        totalPoints: data.totalPoints ?? undefined,
+        bestDesign: data.bestDesign ?? undefined,
+        reflection: data.reflection ?? undefined,
+      };
+    });
+  } catch (e) {
+    console.error("Error fetching completed sessions", e);
+    throw e;
+  }
+};
+
 // advance a known session by ID — avoids re-querying when sessionId is already in store
 export const advanceSessionById = async (
   sessionId: string,

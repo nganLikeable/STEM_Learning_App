@@ -12,6 +12,7 @@
  * dBFS value from the microphone. Accuracy varies by device.
  */
 
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { calculateFinalPoints257, setActivity2 } from "@/src/services/activity";
 import { db as dbFirestore } from "@/src/services/firestore";
 import { advanceSessionById, getActiveSession } from "@/src/services/session";
@@ -87,6 +88,7 @@ export default function SoundMeasureTracking() {
 
   const meterAnim = useRef(new Animated.Value(0)).current;
 
+  const { colors } = useAppTheme();
   const { teamId } = useTeamStore();
   const { sessionId } = useSessionStore(); // Access globally tracking path state container
 
@@ -214,13 +216,13 @@ export default function SoundMeasureTracking() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.primary }]}>
       <StatusBar barStyle="light-content" />
 
       <View style={styles.container}>
         {/* Title */}
-        <Text style={styles.title}>Sound Level Meter</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.title, { color: colors.text }]}>Sound Level Meter</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
           Live microphone — dB SPL (estimated)
         </Text>
 
@@ -238,7 +240,7 @@ export default function SoundMeasureTracking() {
         </View>
 
         {/* Meter bar */}
-        <View style={styles.meterTrack}>
+        <View style={[styles.meterTrack, { backgroundColor: colors.surface }]}>
           <Animated.View
             style={[
               styles.meterFill,
@@ -273,7 +275,7 @@ export default function SoundMeasureTracking() {
         </View>
 
         {/* Reference guide */}
-        <View style={styles.referenceBox}>
+        <View style={[styles.referenceBox, { backgroundColor: colors.surface }]}>
           <Text style={styles.referenceTitle}>Reference levels</Text>
           <View style={styles.referenceRow}>
             <View
@@ -303,7 +305,7 @@ export default function SoundMeasureTracking() {
 
         {/* Status chip */}
         <View
-          style={[styles.statusChip, isRecording && styles.statusChipActive]}
+          style={[styles.statusChip, { backgroundColor: colors.surface }, isRecording && styles.statusChipActive]}
         >
           <View style={[styles.dot, isRecording && styles.dotActive]} />
           <Text style={styles.statusText}>
@@ -336,7 +338,6 @@ export default function SoundMeasureTracking() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#0f172a",
   },
   container: {
     flex: 1,
@@ -383,7 +384,6 @@ const styles = StyleSheet.create({
   meterTrack: {
     width: "100%",
     height: 28,
-    backgroundColor: "#1e293b",
     borderRadius: 6,
     overflow: "visible",
     position: "relative",
@@ -426,7 +426,6 @@ const styles = StyleSheet.create({
 
   referenceBox: {
     width: "100%",
-    backgroundColor: "#1e293b",
     borderRadius: 12,
     padding: 14,
     marginBottom: 24,
@@ -459,7 +458,6 @@ const styles = StyleSheet.create({
   statusChip: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1e293b",
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 20,

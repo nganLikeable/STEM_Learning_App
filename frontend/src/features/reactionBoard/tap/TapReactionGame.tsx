@@ -1,3 +1,4 @@
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 type Status = "idle" | "waiting" | "ready" | "done";
@@ -29,6 +30,7 @@ export default function TapReactionGame({
   phase,
   onNext,
 }: TapReactionGameProps) {
+  const { colors } = useAppTheme();
   const [status, setStatus] = useState<Status>("idle");
   const [reactionTime, setReactionTime] = useState<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
@@ -85,14 +87,14 @@ export default function TapReactionGame({
   }, [phase]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.primary }]}>
       <View style={styles.header}>
         <Text style={styles.title}>REACTION TEST</Text>
-        <Text style={styles.subtitle}>How fast{"\n"}are you?</Text>
+        <Text style={[styles.subtitle, { color: colors.text }]}>How fast{"\n"}are you?</Text>
         {/* Phase badge */}
-        <View style={styles.phaseBadge}>
+        <View style={[styles.phaseBadge, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={styles.phaseDot}>●</Text>
-          <Text style={styles.phaseText}>
+          <Text style={[styles.phaseText, { color: colors.textSecondary }]}>
             {phase === "dominant" ? "Dominant Hand" : "Non-dominant Hand"}
           </Text>
         </View>
@@ -124,10 +126,10 @@ export default function TapReactionGame({
         {feedback && status === "done" ? (
           <>
             <Text style={styles.feedbackEmoji}>{feedback.emoji}</Text>
-            <Text style={styles.feedbackLabel}>{feedback.label}</Text>
+            <Text style={[styles.feedbackLabel, { color: colors.text }]}>{feedback.label}</Text>
           </>
         ) : (
-          <Text style={styles.feedbackPlaceholder}>—</Text>
+          <Text style={[styles.feedbackPlaceholder, { color: colors.textSecondary }]}>—</Text>
         )}
       </View>
 
@@ -150,7 +152,7 @@ export default function TapReactionGame({
       </View>
 
       {/* instruction */}
-      <Text style={styles.instruction}>
+      <Text style={[styles.instruction, { color: colors.textSecondary }]}>
         {status === "waiting"
           ? "Wait for green, then tap!"
           : status === "idle"
@@ -171,6 +173,7 @@ const styles = StyleSheet.create({
     paddingVertical: 64,
     paddingHorizontal: 24,
   },
+  // background set dynamically via useAppTheme
   header: {
     alignItems: "center",
   },

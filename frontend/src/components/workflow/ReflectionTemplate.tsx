@@ -2,6 +2,7 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -12,6 +13,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const thinkingMascot = require("../../../assets/images/mascot/thinking.png");
 
 interface ReflectionTemplateProps {
   title?: string;
@@ -46,7 +49,7 @@ export default function ReflectionTemplate({
             end={{ x: 1, y: 1 }}
             style={s.hero}
           >
-            <Text style={s.heroEmoji}>📝</Text>
+            <Image source={thinkingMascot} style={s.mascot} resizeMode="contain" />
             <Text style={s.heroTitle}>{title}</Text>
           </LinearGradient>
 
@@ -105,7 +108,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 24,
     gap: 8,
   },
-  heroEmoji: { fontSize: 44 },
+  mascot: { width: 90, height: 90, marginBottom: 4 },
   heroTitle: {
     fontSize: 22,
     fontWeight: "800",

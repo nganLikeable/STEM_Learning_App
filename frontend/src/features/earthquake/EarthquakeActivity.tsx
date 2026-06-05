@@ -1,4 +1,5 @@
 // EarthquakeActivity.tsx
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { useState } from "react";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import useEarthquakeTest from "./useEarthquakeTest";
@@ -8,34 +9,20 @@ const SCREEN_W = Dimensions.get("window").width;
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function LiveMeter({
-  label,
-  value,
-  max,
-  unit,
-  color,
+  label, value, max, unit, color,
 }: {
-  label: string;
-  value: number;
-  max: number;
-  unit: string;
-  color: string;
+  label: string; value: number; max: number; unit: string; color: string;
 }) {
+  const { colors } = useAppTheme();
   const pct = Math.min(value / max, 1);
   return (
     <View style={meter.wrapper}>
       <View style={meter.row}>
-        <Text style={meter.label}>{label}</Text>
-        <Text style={[meter.value, { color }]}>
-          {value.toFixed(2)} {unit}
-        </Text>
+        <Text style={[meter.label, { color: colors.textSecondary }]}>{label}</Text>
+        <Text style={[meter.value, { color }]}>{value.toFixed(2)} {unit}</Text>
       </View>
-      <View style={meter.track}>
-        <View
-          style={[
-            meter.fill,
-            { width: `${pct * 100}%`, backgroundColor: color },
-          ]}
-        />
+      <View style={[meter.track, { backgroundColor: colors.surface }]}>
+        <View style={[meter.fill, { width: `${pct * 100}%`, backgroundColor: color }]} />
       </View>
     </View>
   );
@@ -85,6 +72,7 @@ interface Props {
 }
 
 export default function EarthquakeActivity({ designNumber }: Props) {
+  const { colors } = useAppTheme();
   const [labelInput, setLabelInput] = useState("");
 
   const {
@@ -101,7 +89,7 @@ export default function EarthquakeActivity({ designNumber }: Props) {
 
   if (status === "countdown") {
     return (
-      <View style={styles.screen}>
+      <View style={[styles.screen, { backgroundColor: colors.primary }]}>
         <Text style={styles.eyebrow}>PLACE PHONE ON STRUCTURE</Text>
         <Text style={styles.countdownNumber}>{countdown}</Text>
         <Text style={styles.countdownHint}>Earthquake starts soon…</Text>
@@ -113,7 +101,7 @@ export default function EarthquakeActivity({ designNumber }: Props) {
 
   if (status === "calibrating") {
     return (
-      <View style={styles.screen}>
+      <View style={[styles.screen, { backgroundColor: colors.primary }]}>
         <Text style={styles.eyebrow}>CALIBRATING</Text>
         <Text style={styles.calibratingText}>Hold still…</Text>
         <Text style={styles.countdownHint}>Measuring baseline</Text>
@@ -131,14 +119,14 @@ export default function EarthquakeActivity({ designNumber }: Props) {
       liveAccel > 0.3 ? "#ef4444" : liveAccel > 0.1 ? "#facc15" : "#22c55e";
 
     return (
-      <View style={styles.screen}>
+      <View style={[styles.screen, { backgroundColor: colors.primary }]}>
         <View style={styles.header}>
           <Text style={styles.eyebrow}>🔴 RECORDING</Text>
           <Text style={styles.title}>Earthquake{"\n"}in progress</Text>
         </View>
 
         {/* Progress bar */}
-        <View style={styles.progressTrack}>
+        <View style={[styles.progressTrack, { backgroundColor: colors.surface }]}>
           <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
         </View>
         <Text style={styles.progressLabel}>{progressPct}%</Text>
@@ -178,14 +166,14 @@ export default function EarthquakeActivity({ designNumber }: Props) {
           : "#ef4444";
 
     return (
-      <View style={styles.screen}>
+      <View style={[styles.screen, { backgroundColor: colors.primary }]}>
         <View style={styles.header}>
           <Text style={styles.eyebrow}>DESIGN {designNumber} RESULT</Text>
           <Text style={styles.title}>{result?.label}</Text>
         </View>
 
         {/* Big score */}
-        <View style={styles.scoreCircle}>
+        <View style={[styles.scoreCircle, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={[styles.scoreNumber, { color: scoreColor }]}>
             {stabilityScore}
           </Text>
@@ -234,7 +222,6 @@ export default function EarthquakeActivity({ designNumber }: Props) {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#0f172a",
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 64,
@@ -285,7 +272,6 @@ const styles = StyleSheet.create({
   progressTrack: {
     width: "100%",
     height: 8,
-    backgroundColor: "#1e293b",
     borderRadius: 4,
     overflow: "hidden",
   },
@@ -305,9 +291,7 @@ const styles = StyleSheet.create({
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: "#1e293b",
     borderWidth: 2,
-    borderColor: "#334155",
     justifyContent: "center",
     alignItems: "center",
     gap: 2,
@@ -351,7 +335,6 @@ const meter = StyleSheet.create({
   value: { fontSize: 13, fontWeight: "800" },
   track: {
     height: 10,
-    backgroundColor: "#1e293b",
     borderRadius: 5,
     overflow: "hidden",
   },

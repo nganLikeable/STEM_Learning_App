@@ -97,7 +97,7 @@ const RankRow: React.FC<{ team: Team; userTeamId: string | null }> = ({
             size={13}
             color="#F39C12"
           />
-          <Text style={s.rowPts}>{team.points.toFixed(2)} pts</Text>
+          <Text style={s.rowPts}>{Math.round(team.points)} pts</Text>
         </View>
       </View>
     </View>
