@@ -526,7 +526,7 @@ export default function HomeScreen() {
       const sorted = [...scores].sort((a, b) => (b.totalScore ?? 0) - (a.totalScore ?? 0));
       const idx = sorted.findIndex((s) => s.teamId === teamId);
       const myScore = scores.find((s) => s.teamId === teamId);
-      setPoints(Math.round((myScore?.totalScore ?? 0) * 100) / 100);
+      setPoints(Math.round(myScore?.totalScore ?? 0));
       setRank(idx >= 0 ? idx + 1 : null);
     });
     return unsub;

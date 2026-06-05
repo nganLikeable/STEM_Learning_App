@@ -2,12 +2,15 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+
+const nhayVuiMung = require("../../../assets/images/mascot/nhayVuiMung.png");
 
 // ── Stat row ─────────────────────────────────────────────────────────────────
 
@@ -112,10 +115,10 @@ export default function SummaryTemplate({
         end={{ x: 1, y: 1 }}
         style={s.hero}
       >
-        <Text style={s.heroEmoji}>{emoji}</Text>
+        <Image source={nhayVuiMung} style={s.mascot} resizeMode="contain" />
         <Text style={s.heroTitle}>{activityTitle}</Text>
         <Text style={s.heroSubtitle}>TOTAL POINTS</Text>
-        <Text style={s.heroPoints}>{totalPoints.toFixed(2)}</Text>
+        <Text style={s.heroPoints}>{Math.round(totalPoints)}</Text>
         <Text style={s.heroPtLabel}>pts</Text>
       </LinearGradient>
 
@@ -165,7 +168,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 24,
     gap: 4,
   },
-  heroEmoji: { fontSize: 48, marginBottom: 4 },
+  mascot: { width: 100, height: 100, marginBottom: 4 },
   heroTitle: {
     fontSize: 16,
     fontWeight: "700",

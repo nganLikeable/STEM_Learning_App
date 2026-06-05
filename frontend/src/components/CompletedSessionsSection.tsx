@@ -4,6 +4,8 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
+  ImageSourcePropType,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,14 +13,14 @@ import {
   View,
 } from "react-native";
 
-export const ACTIVITY_META: Record<number, { title: string; emoji: string; color: string }> = {
-  1: { title: "Parachute Drop",         emoji: "🪂", color: "#6b76ee" },
-  2: { title: "Sound Pollution Hunter", emoji: "🔊", color: "#f97316" },
-  3: { title: "Hand Fan Challenge",     emoji: "🌬️", color: "#0ea5e9" },
-  4: { title: "Earthquake Structure",   emoji: "🏗️", color: "#ef4444" },
-  5: { title: "Performance Lab",        emoji: "🏃", color: "#22c55e" },
-  6: { title: "Reaction Board",         emoji: "⚡", color: "#a855f7" },
-  7: { title: "Breathing Trainer",      emoji: "🫁", color: "#14b8a6" },
+export const ACTIVITY_META: Record<number, { title: string; mascot: ImageSourcePropType; color: string }> = {
+  1: { title: "Parachute Drop",         mascot: require("../../assets/images/mascot/heyjo.png"),        color: "#6b76ee" },
+  2: { title: "Sound Pollution Hunter", mascot: require("../../assets/images/mascot/nhayVuiMung.png"),  color: "#f97316" },
+  3: { title: "Hand Fan Challenge",     mascot: require("../../assets/images/mascot/chillMan.png"),     color: "#0ea5e9" },
+  4: { title: "Earthquake Structure",   mascot: require("../../assets/images/mascot/thinking.png"),     color: "#ef4444" },
+  5: { title: "Performance Lab",        mascot: require("../../assets/images/mascot/deokinhCool.png"), color: "#22c55e" },
+  6: { title: "Reaction Board",         mascot: require("../../assets/images/mascot/hehhe.png"),        color: "#a855f7" },
+  7: { title: "Breathing Trainer",      mascot: require("../../assets/images/mascot/chillMan.png"),     color: "#14b8a6" },
 };
 
 interface Props { teamId: string; }
@@ -58,34 +60,21 @@ export default function CompletedSessionsSection({ teamId }: Props) {
       <Text style={[s.sectionTitle, { color: colors.text }]}>Completed Sessions</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.row}>
         {entries.map(({ no, session }) => {
-          const meta = ACTIVITY_META[no] ?? { title: `Activity ${no}`, emoji: "📊", color: "#6b76ee" };
+          const meta = ACTIVITY_META[no] ?? { title: `Activity ${no}`, mascot: require("../../assets/images/mascot/heyjo.png"), color: "#6b76ee" };
           const bestScore = Math.max(0, ...session.activitiesCompleted.map((a) => a.score));
           return (
             <Pressable
               key={no}
-              style={({ pressed }) => [
-                s.card,
-                { backgroundColor: colors.surface },
-                pressed && s.cardPressed,
-              ]}
-              onPress={() =>
-                router.push({
-                  pathname: "/screens/ActivityHistoryScreen",
-                  params: { teamId, activityNo: String(no) },
-                } as any)
-              }
+              style={({ pressed }) => [s.card, { backgroundColor: colors.surface }, pressed && s.cardPressed]}
+              onPress={() => router.push({ pathname: "/screens/ActivityHistoryScreen", params: { teamId, activityNo: String(no) } } as any)}
             >
-              <View style={[s.cardAccent, { backgroundColor: meta.color + "33" }]}>
-                <Text style={s.cardEmoji}>{meta.emoji}</Text>
+              <View style={[s.mascotCircle, { backgroundColor: meta.color + "22" }]}>
+                <Image source={meta.mascot} style={s.mascotImg} resizeMode="contain" />
               </View>
               <Text style={[s.cardTitle, { color: colors.text }]} numberOfLines={2}>{meta.title}</Text>
-              <Text style={[s.cardScore, { color: meta.color }]}>
-                {(session.totalPoints ?? 0).toFixed(0)}
-              </Text>
+              <Text style={[s.cardScore, { color: meta.color }]}>{Math.round(session.totalPoints ?? 0)}</Text>
               <Text style={[s.cardScoreLabel, { color: colors.textSecondary }]}>pts</Text>
-              <Text style={[s.cardAttempts, { color: colors.textSecondary }]}>
-                Best: {bestScore.toFixed(0)}
-              </Text>
+              <Text style={[s.cardAttempts, { color: colors.textSecondary }]}>Best: {Math.round(bestScore)}</Text>
             </Pressable>
           );
         })}
@@ -112,15 +101,15 @@ const s = StyleSheet.create({
     elevation: 3,
   },
   cardPressed: { opacity: 0.82, transform: [{ scale: 0.97 }] },
-  cardAccent: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+  mascotCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 4,
   },
-  cardEmoji: { fontSize: 26 },
+  mascotImg: { width: 52, height: 52 },
   cardTitle: { fontSize: 12, fontWeight: "700", textAlign: "center", lineHeight: 16 },
   cardScore: { fontSize: 28, fontWeight: "900", lineHeight: 32, marginTop: 4 },
   cardScoreLabel: { fontSize: 11, fontWeight: "600", marginTop: -2 },

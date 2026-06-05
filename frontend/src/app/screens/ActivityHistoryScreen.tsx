@@ -152,31 +152,31 @@ function SessionBlock({
   isBestSession: boolean;
 }) {
   const { colors } = useAppTheme();
-  const blockColor = "#6b76ee";
   const bestAttemptIdx = session.activitiesCompleted.length > 0
     ? session.activitiesCompleted.reduce((max, cur, i, arr) =>
         cur.score > arr[max].score ? i : max, 0)
     : -1;
 
   return (
-    <View style={[b.block, { backgroundColor: colors.surface, borderLeftColor: blockColor }]}>
-      {/* Coloured top bar */}
-      <View style={[b.blockTopBar, { backgroundColor: blockColor }]}>
+    <View style={[b.block, { backgroundColor: colors.surface, borderLeftColor: "#6b76ee" }]}>
+      {/* Purple header bar */}
+      <View style={b.blockTopBar}>
         <Text style={b.sessionLabel}>Session {index + 1}</Text>
         {isBestSession && (
           <View style={b.topBadge}>
-            <Text style={b.topBadgeText}>⭐ TOP SESSION</Text>
+            <Text style={b.topBadgeText}>⭐ BEST</Text>
           </View>
         )}
         <Text style={b.totalPts}>
-          {(session.totalPoints ?? 0).toFixed(0)} pts
+          {Math.round(session.totalPoints ?? 0)} pts
         </Text>
       </View>
 
+      {/* Body */}
       <View style={b.blockBody}>
         {session.reflection && (
-          <View style={[b.reflectionBox, { backgroundColor: blockColor + "18", borderColor: blockColor + "55" }]}>
-            <Text style={[b.reflectionLabel, { color: blockColor }]}>💬 Reflection</Text>
+          <View style={[b.reflectionBox, { backgroundColor: "#6b76ee18", borderColor: "#6b76ee44" }]}>
+            <Text style={[b.reflectionLabel, { color: "#6b76ee" }]}>💬 Reflection</Text>
             <Text style={[b.reflectionText, { color: colors.text }]}>{session.reflection}</Text>
           </View>
         )}
@@ -200,10 +200,10 @@ const b = StyleSheet.create({
   block: {
     borderRadius: 18,
     overflow: "hidden",
-    borderLeftWidth: 5,
+    borderLeftWidth: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.07,
     shadowRadius: 8,
     elevation: 3,
   },
@@ -212,6 +212,7 @@ const b = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
+    backgroundColor: "#6b76ee",
     gap: 8,
   },
   blockBody: { padding: 12, gap: 10 },

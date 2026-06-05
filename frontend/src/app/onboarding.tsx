@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -185,6 +186,7 @@ export default function OnboardingScreen() {
       >
         <View style={s.card}>
           {/* ── Header ── */}
+          <Image source={require('../../assets/images/mascot/deokinhCool.png')} style={s.mascot} resizeMode="contain" />
           <Text style={s.title}>Almost There!</Text>
           <Text style={s.subtitle}>Tell us a bit about yourself</Text>
 
@@ -410,6 +412,7 @@ const s = StyleSheet.create({
     shadowRadius: 12,
     elevation: 5,
   },
+  mascot: { width: 90, height: 90, alignSelf: 'center', marginBottom: 8 },
 
   title: {
     fontSize: 26,

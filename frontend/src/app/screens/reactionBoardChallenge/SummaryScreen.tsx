@@ -69,7 +69,7 @@ export default function SummaryScreen() {
         <Section title="Best Attempt Breakdown">
           <StatRow label="Dominant hand" value={attempts[bestIndex].dominantMs} unit="ms" />
           <StatRow label="Non-dominant hand" value={attempts[bestIndex].nonDominantMs} unit="ms" />
-          <StatRow label="Tracing accuracy" value={`${attempts[bestIndex].tracingAccuracy.toFixed(1)}%`} highlight />
+          <StatRow label="Tracing accuracy" value={`${Math.round(attempts[bestIndex].tracingAccuracy)}%`} highlight />
         </Section>
       )}
       <Section title="Prediction">
@@ -78,7 +78,7 @@ export default function SummaryScreen() {
         <StatRow label="Correct" value={prediction === bestIndex + 1 ? "Yes ✓" : "No ✗"} highlight />
       </Section>
       <Section title="Score">
-        <StatRow label="Total score" value={totalPoints.toFixed(2)} unit="pts" highlight />
+        <StatRow label="Total score" value={Math.round(totalPoints)} unit="pts" highlight />
       </Section>
     </SummaryTemplate>
   );

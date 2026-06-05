@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Image,
   View,
   Text,
   TextInput,
@@ -44,6 +45,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={s.card}>
+        <Image source={require('../../assets/images/mascot/heyjo.png')} style={s.mascot} resizeMode="contain" />
         <Text style={s.title}>Welcome Back</Text>
         <Text style={s.subtitle}>Sign in to continue</Text>
 
@@ -109,6 +111,7 @@ const s = StyleSheet.create({
     shadowRadius: 12,
     elevation: 5,
   },
+  mascot: { width: 90, height: 90, alignSelf: 'center', marginBottom: 12 },
   title: {
     fontSize: 26,
     fontWeight: '800',

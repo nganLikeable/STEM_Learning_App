@@ -1,0 +1,5 @@
+{
+  "jest.jestCommandLine": "npm test --",
+  "jest.rootPath": "frontend",
+  "jest.runMode": "on-demand"
+}

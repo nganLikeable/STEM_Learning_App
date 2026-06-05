@@ -1,5 +1,8 @@
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { LinearGradient } from "expo-linear-gradient";
+import { Image } from "react-native";
+
+const hehheMascot = require("../../../assets/images/mascot/hehhe.png");
 import { getActiveSession } from "@/src/services/session";
 import { useTeamStore } from "@/src/store/team-store";
 import { useEffect, useState } from "react";
@@ -82,6 +85,7 @@ export default function PredictionTemplate({
           end={{ x: 1, y: 1 }}
           style={s.hero}
         >
+          <Image source={hehheMascot} style={s.mascot} resizeMode="contain" />
           <Text style={s.heroEyebrow}>ACTIVITY {activityId}</Text>
           <Text style={s.heroActivity}>{activityName}</Text>
           <Text style={s.heroTitle}>{title}</Text>
@@ -148,12 +152,13 @@ const s = StyleSheet.create({
   scroll: { paddingBottom: 40 },
 
   hero: {
-    paddingTop: 48,
-    paddingBottom: 32,
+    paddingTop: 32,
+    paddingBottom: 28,
     paddingHorizontal: 24,
     gap: 4,
     alignItems: "center",
   },
+  mascot: { width: 90, height: 90, marginBottom: 4 },
   heroEyebrow: {
     fontSize: 11,
     fontWeight: "700",

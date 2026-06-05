@@ -63,7 +63,7 @@ export default function SummaryScreen() {
       </Section>
       {attempts[bestIndex] && (
         <Section title="Best Structure">
-          <StatRow label="Stability score" value={attempts[bestIndex].stabilityScore.toFixed(2)} highlight />
+          <StatRow label="Stability score" value={Math.round(attempts[bestIndex].stabilityScore)} highlight />
         </Section>
       )}
       <Section title="Prediction">

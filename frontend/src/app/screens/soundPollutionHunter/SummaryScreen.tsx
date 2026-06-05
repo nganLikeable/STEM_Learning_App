@@ -66,7 +66,7 @@ export default function SummaryScreen() {
       </Section>
       {attempts[bestIndex] && (
         <Section title="Best Reading">
-          <StatRow label="Peak sound level" value={attempts[bestIndex].peakSound.toFixed(1)} unit="dB" highlight />
+          <StatRow label="Peak sound level" value={Math.round(attempts[bestIndex].peakSound)} unit="dB" highlight />
         </Section>
       )}
       <Section title="Prediction">

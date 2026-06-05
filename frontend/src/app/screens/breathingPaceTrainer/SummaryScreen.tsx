@@ -63,7 +63,7 @@ export default function SummaryScreen() {
       <Section title="Breathing Stats">
         <StatRow label="Highest BPM" value={attempts[bestIndex]?.breathsPerMinute ?? "—"} unit="breaths/min" highlight />
         <StatRow label="Average BPM" value={avgBpm} unit="breaths/min" />
-        <StatRow label="Total score" value={totalPoints.toFixed(2)} unit="pts" />
+        <StatRow label="Total score" value={Math.round(totalPoints)} unit="pts" />
       </Section>
       <Section title="Prediction">
         <StatRow label="You predicted" value={prediction != null ? `Recording ${prediction}` : "—"} />
