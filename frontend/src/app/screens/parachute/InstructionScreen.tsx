@@ -1,6 +1,7 @@
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { parachuteActivity } from "@/lib/activityPhaseDescriptions";
 import Instruction from "@/src/components/workflow/InstructionTemplate";
+import { useParachuteInterstitial } from "@/src/hooks/useInterstitialAd";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -41,6 +42,8 @@ What you'll do:
 
 export default function InstructionScreen() {
   const { colors } = useAppTheme();
+  const { showAd } = useParachuteInterstitial();
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.primary }}>
       <Instruction
@@ -51,6 +54,7 @@ export default function InstructionScreen() {
         formulas={instructionData.formulas}
         journeyParams={instructionData.journeyParams}
         predictionPath="/screens/parachute/PredictionScreen"
+        onBeforeStart={showAd}
       />
     </SafeAreaView>
   );

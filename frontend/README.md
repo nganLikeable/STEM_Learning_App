@@ -1,50 +1,71 @@
-# Welcome to your Expo app 👋
+# STEM Learning App (Expo Frontend)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This folder contains the React Native / Expo frontend for the CSE3MAD project. It is the main user-facing application where students register, join teams, complete STEM activities, and view their team scores.
 
-## Get started
+## What the app does
 
-1. Install dependencies
+- User authentication and onboarding
+- Team creation and joining
+- Activity-based STEM challenges
+- Leaderboard and team score tracking
+- Avatar selection and profile management
 
-   ```bash
-   npm install
-   ```
+## Main technologies
 
-2. Start the app
+- Expo SDK 54
+- React Native 0.81.5
+- TypeScript
+- Expo Router
+- Firebase Authentication and Firestore
+- Zustand
+- Jest for automated tests
 
-   ```bash
-   npx expo start
-   ```
+## Quick start
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+From the `frontend/` folder:
 
 ```bash
-npm run reset-project
+npm install
+npm start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Useful variants:
 
-## Learn more
+```bash
+npm run android
+npm run ios
+npm run web
+npm test
+npm run lint
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## Project layout
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```text
+src/app/           # Route screens and Expo Router pages
+src/components/    # Shared UI components
+src/features/      # Activity-specific features
+src/services/      # Firebase and app service wrappers
+src/store/         # Zustand stores
+hooks/             # Reusable hooks
+assets/            # Images, icons, and sound assets
+```
 
-## Join the community
+## Notes for contributors
 
-Join our community of developers creating universal apps.
+- The project uses file-based routing via Expo Router.
+- Firebase credentials and Expo settings are configured in the frontend project files.
+- The full design overview and architecture notes are available in the repository root `Design.md`.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Troubleshooting
+
+- If the app fails to start, remove the existing Expo cache and reinstall dependencies:
+  ```bash
+  npx expo start --clear
+  rm -rf node_modules package-lock.json
+  npm install
+  ```
+- For browser-based testing, use:
+  ```bash
+  npm run web
+  ```

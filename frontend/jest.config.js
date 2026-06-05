@@ -3,6 +3,8 @@ module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
   moduleFileExtensions: ["ts", "tsx", "js", "jsx"],
+  // only pick up files inside unit/ — not the mock stubs
+  testMatch: ["**/__tests__/unit/**/*.test.ts"],
   // stub out Firebase so ESM packages never get parsed by Jest
   moduleNameMapper: {
     "^firebase/(.*)$": "<rootDir>/src/__tests__/__mocks__/firebase.ts",

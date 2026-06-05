@@ -35,6 +35,8 @@ interface InstructionProps {
   journeyParams?: JourneyParams;
   setupPath?: PredictionPath;
   predictionPath?: PredictionPath;
+  /** Optional async gate called before session/navigation logic runs (e.g. show an ad). */
+  onBeforeStart?: () => Promise<void>;
 }
 
 export default function Instruction({
@@ -46,6 +48,7 @@ export default function Instruction({
   journeyParams,
   setupPath,
   predictionPath,
+  onBeforeStart,
 }: InstructionProps) {
   const { colors } = useAppTheme();
   const router = useRouter();
@@ -95,6 +98,9 @@ export default function Instruction({
 
   const handleStartExperiment = async () => {
     if (!teamId || !journeyParams) return;
+
+    // Show ad (or any async gate) before session/navigation work begins
+    if (onBeforeStart) await onBeforeStart();
 
     try {
       let activeSessionId: string | null = null;
