@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "frontend",
-    "slug": "frontend",
+    "slug": "stemm-learning-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/chuotdeadline.jpg",
@@ -14,7 +14,7 @@
         "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera.",
         "ITSAppUsesNonExemptEncryption": false
       },
-      "bundleIdentifier": "com.anonymous.frontend"
+      "bundleIdentifier": "com.steem.learningapp"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,8 +25,12 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "permissions": ["android.permission.CAMERA"],
-      "package": "com.anonymous.frontend"
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.steem.learningapp"
     },
     "web": {
       "output": "static",
@@ -71,7 +75,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "d6e4c5a5-b681-4081-b135-c4fd51847b1b"
+        "projectId": "f22de3ff-1bc5-4396-8dbe-86d98cda14cd"
       }
     },
     "runtimeVersion": {
@@ -79,6 +83,7 @@
     },
     "updates": {
       "url": "https://u.expo.dev/d6e4c5a5-b681-4081-b135-c4fd51847b1b"
-    }
+    },
+    "owner": "tiendat12s-organization"
   }
 }

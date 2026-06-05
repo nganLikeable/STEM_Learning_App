@@ -1,128 +1,154 @@
-  import React, { useState } from 'react';
+import { calculateFinalPoints257, setActivity3 } from '@/src/services/activity';
+import { advanceSessionById, getActiveSession } from '@/src/services/session';
+import { updateTeamScore } from '@/src/services/teamScore';
+import { useSessionStore } from '@/src/store/session-store';
+import { useTeamStore } from '@/src/store/team-store';
+import { useRouter } from 'expo-router';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import React, { useState } from 'react';
 import {
-  Modal,
+  ActivityIndicator,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Line } from 'react-native-svg';
-import { useVideoPlayer, VideoView } from 'expo-video';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/src/services/firestore';
 
 interface Props {
   videoUri: string;
   onRetake: () => void;
+  design: number;
+  journeyData?: string;
 }
 
 interface Point { x: number; y: number }
 
-// Which action the next tap on the video will perform
-type PendingMode = 'A' | 'B' | 'C' | 'CAL_1' | 'CAL_2' | null;
+type PendingMode = 'A' | 'B' | 'C' | null;
 
-const CROSS = 18;     // half-arm length for measurement crosshairs
-const CROSS_CAL = 13; // half-arm length for calibration crosshairs
+const CROSS = 18;
+const TOTAL_PHASES = 3;
 
-// ─── Inline crosshair component ──────────────────────────────────────────────
+// ─── Crosshair ───────────────────────────────────────────────────────────────
 
-function Crosshair({ pt, label, color, size }: {
-  pt: Point; label: string; color: string; size: number;
-}) {
+function Crosshair({ pt, label, color }: { pt: Point; label: string; color: string }) {
   return (
     <View
       pointerEvents="none"
-      style={[styles.crossWrap, { left: pt.x - size, top: pt.y - size, width: size * 2, height: size * 2 }]}
+      style={[styles.crossWrap, { left: pt.x - CROSS, top: pt.y - CROSS, width: CROSS * 2, height: CROSS * 2 }]}
     >
-      <View style={[styles.crossH, { width: size * 2, backgroundColor: color }]} />
-      <View style={[styles.crossV, { height: size * 2, backgroundColor: color }]} />
-      <Text style={[styles.crossLabel, { color, left: size + 4 }]}>{label}</Text>
+      <View style={[styles.crossH, { width: CROSS * 2, backgroundColor: color }]} />
+      <View style={[styles.crossV, { height: CROSS * 2, backgroundColor: color }]} />
+      <Text style={[styles.crossLabel, { color, left: CROSS + 4 }]}>{label}</Text>
     </View>
   );
 }
 
+// ─── Angle label floating at vertex C ────────────────────────────────────────
+
+function AngleLabel({ pt, angle }: { pt: Point; angle: number }) {
+  return (
+    <View
+      pointerEvents="none"
+      style={[styles.angleLabel, { left: pt.x - 56, top: pt.y + CROSS + 6 }]}
+    >
+      <Text style={styles.angleLabelText}>∠ACB = {angle.toFixed(1)}°</Text>
+    </View>
+  );
+}
+
+// ─── Angle ACB at vertex C using atan2(|cross|, dot) ─────────────────────────
+
+function calcAngleACB(a: Point, c: Point, b: Point): number {
+  const cax = a.x - c.x, cay = a.y - c.y;
+  const cbx = b.x - c.x, cby = b.y - c.y;
+  const dot   = cax * cbx + cay * cby;
+  const cross = Math.abs(cax * cby - cay * cbx);
+  return Math.atan2(cross, dot) * (180 / Math.PI);
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function HandFanVideoPreview({ videoUri, onRetake }: Props) {
-  // Measurement points
+export default function HandFanVideoPreview({ videoUri, onRetake, design, journeyData }: Props) {
+  const router = useRouter();
+  const { teamId } = useTeamStore();
+  const { sessionId } = useSessionStore();
+
   const [ptA, setPtA] = useState<Point | null>(null);
   const [ptB, setPtB] = useState<Point | null>(null);
   const [ptC, setPtC] = useState<Point | null>(null);
-
-  // Which button was last pressed — determines what the next tap does
   const [pending, setPending] = useState<PendingMode>(null);
-
-  // Playback
   const [isPlaying, setIsPlaying] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  // Calibration
-  const [calPt1, setCalPt1] = useState<Point | null>(null);
-  const [calPt2, setCalPt2] = useState<Point | null>(null);
-  const [pxPerCm, setPxPerCm] = useState<number | null>(null);
-  const [showCalModal, setShowCalModal] = useState(false);
-  const [calInput, setCalInput] = useState('');
+  const player = useVideoPlayer(videoUri, p => { p.loop = true; p.play(); });
 
-  const player = useVideoPlayer(videoUri, p => {
-    p.loop = true;
-    p.play();
-  });
-
-  // ── Play / pause ────────────────────────────────────────────────────────────
   function togglePlayPause() {
     if (isPlaying) player.pause(); else player.play();
     setIsPlaying(v => !v);
   }
 
-  // ── Distance ────────────────────────────────────────────────────────────────
-  const rawAB = ptA && ptB
-    ? Math.sqrt((ptB.x - ptA.x) ** 2 + (ptB.y - ptA.y) ** 2)
-    : null;
+  // ── Angle ────────────────────────────────────────────────────────────────────
+  const angle = ptA && ptB && ptC ? calcAngleACB(ptA, ptC, ptB) : null;
 
-  const rawBC = ptB && ptC
-    ? Math.sqrt((ptC.x - ptB.x) ** 2 + (ptC.y - ptB.y) ** 2)
-    : null;
-
-  function fmtDist(px: number | null) {
-    if (px === null) return null;
-    return pxPerCm ? `${(px / pxPerCm).toFixed(2)} cm` : `${px.toFixed(1)} px`;
-  }
-
-  const distABText = fmtDist(rawAB);
-  const distBCText = fmtDist(rawBC);
-
-  // ── HUD instruction ─────────────────────────────────────────────────────────
+  // ── HUD instruction (only shown when no angle yet) ───────────────────────────
   const hudText =
-    pending === 'A'     ? 'Tap video to place A' :
-    pending === 'B'     ? 'Tap video to place B' :
-    pending === 'C'     ? 'Tap video to place C' :
-    pending === 'CAL_1' ? 'Tap calibration point 1' :
-    pending === 'CAL_2' ? 'Tap calibration point 2' :
-    distABText          ? `A→B: ${distABText}${distBCText ? `   B→C: ${distBCText}` : ''}` :
-    'Press Set A / Set B / Set C to begin';
+    pending === 'A' ? 'Tap video to place A' :
+    pending === 'B' ? 'Tap video to place B' :
+    pending === 'C' ? 'Tap video to place C (vertex)' :
+    angle !== null  ? null :
+    'Set A, B and C to measure the angle';
 
-  // ── Calibration apply ───────────────────────────────────────────────────────
-  function applyCalibration() {
-    const cm = parseFloat(calInput);
-    if (!cm || cm <= 0 || !calPt1 || !calPt2) return;
-    const d = Math.sqrt((calPt2.x - calPt1.x) ** 2 + (calPt2.y - calPt1.y) ** 2);
-    setPxPerCm(d / cm);
-    setShowCalModal(false);
-    setCalInput('');
-  }
-
-  // ── Tap gesture ─────────────────────────────────────────────────────────────
+  // ── Tap gesture ──────────────────────────────────────────────────────────────
   const tapGesture = Gesture.Tap().runOnJS(true).onEnd((e) => {
     const pt = { x: e.x, y: e.y };
     switch (pending) {
-      case 'A':     setPtA(pt);      setPending(null);    break;
-      case 'B':     setPtB(pt);      setPending(null);    break;
-      case 'C':     setPtC(pt);      setPending(null);    break;
-      case 'CAL_1': setCalPt1(pt);   setCalPt2(null);  setPending('CAL_2'); break;
-      case 'CAL_2': setCalPt2(pt);   setPending(null);   setShowCalModal(true); break;
+      case 'A': setPtA(pt); setPending(null); break;
+      case 'B': setPtB(pt); setPending(null); break;
+      case 'C': setPtC(pt); setPending(null); break;
     }
   });
 
-  const isCalPending = pending === 'CAL_1' || pending === 'CAL_2';
+  // ── Finish: save → advance → navigate ────────────────────────────────────────
+  // Score = raw angle in degrees so calculateFinalPoints257 can compare designs.
+  // Points are only awarded if the prediction matches the design with highest angle.
+  async function handleFinish() {
+    if (angle === null || !teamId) return;
+
+    // Fall back to Firestore lookup if the store lost the session (e.g. nav reset)
+    const targetSessionId = sessionId ?? (await getActiveSession(teamId, 3))?.id;
+    if (!targetSessionId) return;
+    setSaving(true);
+    try {
+      const activityDocId = await setActivity3(teamId, targetSessionId, design, angle);
+      const score = Math.round(angle);
+      const updatedSession = await advanceSessionById(
+        targetSessionId, activityDocId, score, TOTAL_PHASES,
+        { angleACB: angle, designNo: design },
+      );
+
+      if (updatedSession?.completed) {
+        const finalPoints = calculateFinalPoints257(updatedSession);
+        await updateDoc(doc(db, 'sessions', targetSessionId), { totalPoints: finalPoints });
+        await updateTeamScore(teamId);
+        router.replace('/screens/handFanChallenge/ReflectionScreen');
+        return;
+      }
+
+      if (journeyData) {
+        router.replace({ pathname: '/journey', params: { journeyData } } as any);
+        return;
+      }
+
+      router.replace('/screens/handFanChallenge/InstructionScreen');
+    } catch (e) {
+      console.error('Failed to save hand fan result', e);
+      setSaving(false);
+    }
+  }
 
   return (
     <View style={styles.screen}>
@@ -130,63 +156,54 @@ export default function HandFanVideoPreview({ videoUri, onRetake }: Props) {
       {/* ── Video ── */}
       <VideoView player={player} style={styles.video} contentFit="contain" />
 
-      {/* ── SVG: dashed yellow line between A and B, green between B and C ── */}
+      {/* ── SVG lines: A–C yellow, C–B green ── */}
       <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
-        {ptA && ptB && (
-          <Line
-            x1={ptA.x} y1={ptA.y} x2={ptB.x} y2={ptB.y}
-            stroke="#facc15" strokeWidth={2} strokeDasharray="6,4"
-          />
+        {ptA && ptC && (
+          <Line x1={ptA.x} y1={ptA.y} x2={ptC.x} y2={ptC.y}
+            stroke="#facc15" strokeWidth={2} strokeDasharray="6,4" />
         )}
-        {ptB && ptC && (
-          <Line
-            x1={ptB.x} y1={ptB.y} x2={ptC.x} y2={ptC.y}
-            stroke="#4ade80" strokeWidth={2} strokeDasharray="6,4"
-          />
+        {ptC && ptB && (
+          <Line x1={ptC.x} y1={ptC.y} x2={ptB.x} y2={ptB.y}
+            stroke="#4ade80" strokeWidth={2} strokeDasharray="6,4" />
         )}
       </Svg>
 
-      {/* ── SVG: dashed cyan line between calibration points ── */}
-      {calPt1 && calPt2 && (
-        <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
-          <Line
-            x1={calPt1.x} y1={calPt1.y} x2={calPt2.x} y2={calPt2.y}
-            stroke="#22d3ee" strokeWidth={1.5} strokeDasharray="4,4"
-          />
-        </Svg>
-      )}
+      {/* ── Crosshairs ── */}
+      {ptA && <Crosshair pt={ptA} label="A" color="#facc15" />}
+      {ptB && <Crosshair pt={ptB} label="B" color="#4ade80" />}
+      {ptC && <Crosshair pt={ptC} label="C" color="#ef4444" />}
 
-      {/* ── Crosshair markers ── */}
-      {ptA    && <Crosshair pt={ptA}    label="A"  color="#ef4444" size={CROSS}     />}
-      {ptB    && <Crosshair pt={ptB}    label="B"  color="#ef4444" size={CROSS}     />}
-      {ptC    && <Crosshair pt={ptC}    label="C"  color="#4ade80" size={CROSS}     />}
-      {calPt1 && <Crosshair pt={calPt1} label="C1" color="#22d3ee" size={CROSS_CAL} />}
-      {calPt2 && <Crosshair pt={calPt2} label="C2" color="#22d3ee" size={CROSS_CAL} />}
+      {/* ── Angle label at vertex C ── */}
+      {ptC && angle !== null && <AngleLabel pt={ptC} angle={angle} />}
 
-      {/* ── Tap-capture overlay (under buttons) ── */}
+      {/* ── Tap overlay ── */}
       <GestureDetector gesture={tapGesture}>
         <View style={StyleSheet.absoluteFill} />
       </GestureDetector>
 
-      {/* ── HUD (top center) ── */}
-      <View style={styles.hud} pointerEvents="none">
-        <Text style={styles.hudText}>{hudText}</Text>
-        {pxPerCm && (
-          <Text style={styles.calBadge}>✓ calibrated</Text>
-        )}
+      {/* ── HUD — only shown while placing points ── */}
+      {hudText !== null && (
+        <View style={styles.hud} pointerEvents="none">
+          <Text style={styles.hudText}>{hudText}</Text>
+        </View>
+      )}
+
+      {/* ── Design badge ── */}
+      <View style={styles.designBadge} pointerEvents="none">
+        <Text style={styles.designBadgeText}>Design {design}</Text>
       </View>
 
-      {/* ── Right-side buttons: Set A / Set B / Cal ── */}
+      {/* ── Right buttons: Set A / B / C ── */}
       <View style={styles.rightBar}>
         <TouchableOpacity
-          style={[styles.sideBtn, pending === 'A' && styles.sideBtnA]}
+          style={[styles.sideBtn, pending === 'A' && styles.sideBtnActive]}
           onPress={() => setPending(p => p === 'A' ? null : 'A')}
         >
           <Text style={styles.sideBtnText}>Set A</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.sideBtn, pending === 'B' && styles.sideBtnB]}
+          style={[styles.sideBtn, pending === 'B' && styles.sideBtnActive]}
           onPress={() => setPending(p => p === 'B' ? null : 'B')}
         >
           <Text style={styles.sideBtnText}>Set B</Text>
@@ -197,22 +214,11 @@ export default function HandFanVideoPreview({ videoUri, onRetake }: Props) {
           onPress={() => setPending(p => p === 'C' ? null : 'C')}
         >
           <Text style={styles.sideBtnText}>Set C</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.sideBtn, isCalPending && styles.sideBtnCal]}
-          onPress={() => {
-            setCalPt1(null);
-            setCalPt2(null);
-            setPxPerCm(null);
-            setPending(isCalPending ? null : 'CAL_1');
-          }}
-        >
-          <Text style={styles.sideBtnText}>{pxPerCm ? 'Re-Cal' : 'Cal'}</Text>
+          <Text style={styles.sideBtnSub}>vertex</Text>
         </TouchableOpacity>
       </View>
 
-      {/* ── Bottom bar: pause / clear / retake ── */}
+      {/* ── Bottom bar ── */}
       <View style={styles.bottomBar}>
         <TouchableOpacity style={styles.btnIcon} onPress={togglePlayPause}>
           <Text style={styles.btnIconText}>{isPlaying ? '⏸' : '▶'}</Text>
@@ -230,45 +236,19 @@ export default function HandFanVideoPreview({ videoUri, onRetake }: Props) {
         </TouchableOpacity>
       </View>
 
-      {/* ── Calibration modal ── */}
-      <Modal
-        transparent
-        animationType="fade"
-        visible={showCalModal}
-        onRequestClose={() => setShowCalModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Set calibration scale</Text>
-            <Text style={styles.modalSub}>
-              How far apart are the two cyan points in real life?
-            </Text>
-
-            <View style={styles.modalInputRow}>
-              <TextInput
-                style={styles.modalInput}
-                keyboardType="numeric"
-                placeholder="e.g. 10"
-                placeholderTextColor="#94a3b8"
-                value={calInput}
-                onChangeText={setCalInput}
-              />
-              <Text style={styles.modalUnit}>cm</Text>
-            </View>
-
-            <TouchableOpacity style={styles.modalBtn} onPress={applyCalibration}>
-              <Text style={styles.modalBtnText}>Apply calibration</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.modalCancel}
-              onPress={() => setShowCalModal(false)}
-            >
-              <Text style={styles.modalCancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      {/* ── Finish — appears once angle is measured ── */}
+      {angle !== null && (
+        <TouchableOpacity
+          style={[styles.finishBtn, saving && styles.finishBtnDisabled]}
+          onPress={handleFinish}
+          disabled={saving}
+        >
+          {saving
+            ? <ActivityIndicator color="#fff" />
+            : <Text style={styles.finishBtnText}>Finish  →</Text>
+          }
+        </TouchableOpacity>
+      )}
 
     </View>
   );
@@ -280,44 +260,49 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#000' },
   video:  { flex: 1 },
 
-  // Crosshair
-  crossWrap: {
-    position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
-    pointerEvents: 'none',
-  },
-  crossH: { position: 'absolute', height: 2 },
-  crossV: { position: 'absolute', width: 2 },
-  crossLabel: {
-    position: 'absolute',
-    top: -18,
-    fontSize: 11,
-    fontWeight: '800',
-  },
+  crossWrap: { position: 'absolute', justifyContent: 'center', alignItems: 'center', pointerEvents: 'none' },
+  crossH:    { position: 'absolute', height: 2 },
+  crossV:    { position: 'absolute', width: 2 },
+  crossLabel: { position: 'absolute', top: -18, fontSize: 11, fontWeight: '800' },
 
-  // HUD
+  // Angle label pinned below vertex C
+  angleLabel: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ef4444',
+    width: 112,
+    alignItems: 'center',
+  },
+  angleLabelText: { color: '#facc15', fontSize: 13, fontWeight: '800' },
+
+  // HUD — instruction only, hidden once angle is set
   hud: {
     position: 'absolute',
     top: 16,
     alignSelf: 'center',
-    alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.65)',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    gap: 2,
   },
   hudText: { color: '#fff', fontSize: 13, fontWeight: '600' },
-  calBadge: { color: '#22d3ee', fontSize: 10, fontWeight: '700' },
 
-  // Right-side buttons
-  rightBar: {
+  designBadge: {
     position: 'absolute',
-    right: 12,
-    top: '30%',
-    gap: 10,
+    top: 16,
+    left: 16,
+    backgroundColor: 'rgba(108,99,255,0.85)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
+  designBadgeText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+
+  rightBar: { position: 'absolute', right: 12, top: '30%', gap: 10 },
   sideBtn: {
     backgroundColor: 'rgba(0,0,0,0.55)',
     borderWidth: 1,
@@ -327,16 +312,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
   },
-  sideBtnA:   { backgroundColor: '#ef4444', borderColor: '#ef4444' },
-  sideBtnB:   { backgroundColor: '#ef4444', borderColor: '#ef4444' },
-  sideBtnC:   { backgroundColor: '#16a34a', borderColor: '#4ade80' },
-  sideBtnCal: { backgroundColor: '#0891b2', borderColor: '#22d3ee' },
-  sideBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  sideBtnActive: { backgroundColor: '#ef4444', borderColor: '#ef4444' },
+  sideBtnC:      { backgroundColor: '#16a34a', borderColor: '#4ade80' },
+  sideBtnText:   { color: '#fff', fontSize: 13, fontWeight: '700' },
+  sideBtnSub:    { color: 'rgba(255,255,255,0.6)', fontSize: 9, marginTop: 2 },
 
-  // Bottom bar
   bottomBar: {
     position: 'absolute',
-    bottom: 40,
+    bottom: 100,
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
@@ -344,8 +327,7 @@ const styles = StyleSheet.create({
   },
   btnIcon: {
     backgroundColor: 'rgba(255,255,255,0.15)',
-    width: 52,
-    height: 52,
+    width: 52, height: 52,
     borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
@@ -370,66 +352,20 @@ const styles = StyleSheet.create({
   },
   btnDangerText: { color: '#fff', fontSize: 14, fontWeight: '600' },
 
-  // Calibration modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  finishBtn: {
+    position: 'absolute',
+    bottom: 36,
+    alignSelf: 'center',
+    backgroundColor: '#6C63FF',
+    paddingVertical: 15,
+    paddingHorizontal: 48,
+    borderRadius: 14,
+    shadowColor: '#6C63FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  modalCard: {
-    backgroundColor: '#1e293b',
-    borderRadius: 20,
-    padding: 24,
-    width: '80%',
-    alignItems: 'center',
-  },
-  modalTitle: {
-    color: '#f8fafc',
-    fontSize: 17,
-    fontWeight: '800',
-    marginBottom: 8,
-  },
-  modalSub: {
-    color: '#94a3b8',
-    fontSize: 13,
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 18,
-  },
-  modalInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 20,
-  },
-  modalInput: {
-    backgroundColor: '#0f172a',
-    color: '#f8fafc',
-    fontSize: 20,
-    fontWeight: '700',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 10,
-    width: 100,
-    textAlign: 'center',
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  modalUnit: {
-    color: '#94a3b8',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  modalBtn: {
-    backgroundColor: '#22d3ee',
-    borderRadius: 12,
-    paddingVertical: 13,
-    paddingHorizontal: 32,
-    width: '100%',
-    alignItems: 'center',
-  },
-  modalBtnText: { color: '#0f172a', fontSize: 15, fontWeight: '800' },
-  modalCancel: { marginTop: 12, paddingVertical: 6 },
-  modalCancelText: { color: '#64748b', fontSize: 13 },
+  finishBtnDisabled: { backgroundColor: '#4b4680', opacity: 0.7 },
+  finishBtnText: { color: '#fff', fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
 });

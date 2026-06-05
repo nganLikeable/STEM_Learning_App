@@ -53,9 +53,10 @@ interface AttemptRowProps {
   attempt: number;
   score: number;
   isBest?: boolean;
+  unit?: string;
 }
 
-export function AttemptRow({ attempt, score, isBest }: AttemptRowProps) {
+export function AttemptRow({ attempt, score, isBest, unit = "pts" }: AttemptRowProps) {
   const { colors } = useAppTheme();
   return (
     <View style={[s.attemptRow, { borderBottomColor: colors.border }]}>
@@ -63,7 +64,7 @@ export function AttemptRow({ attempt, score, isBest }: AttemptRowProps) {
       <View style={s.attemptRight}>
         {isBest && <Text style={s.bestBadge}>BEST</Text>}
         <Text style={[s.attemptScore, { color: colors.text }, isBest && s.attemptScoreBest]}>
-          {score} pts
+          {score}{unit === "°" ? unit : ` ${unit}`}
         </Text>
       </View>
     </View>

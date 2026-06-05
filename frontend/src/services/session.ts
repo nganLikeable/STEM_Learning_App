@@ -20,6 +20,7 @@ export interface SessionDesignInput {
 export interface SessionActivityResult {
   activityId: string; // The docRef.id generated from the activities collection
   score: number;
+  data?: Record<string, any>; // activity-specific result values stored inline
 }
 
 export interface SessionDoc {
@@ -197,13 +198,15 @@ export const advanceSessionById = async (
   activityDocId: string,
   score: number,
   totalPhases = 3,
+  data?: Record<string, any>,
 ): Promise<SessionDoc | null> => {
   const current = await getSessionById(sessionId);
   if (!current) return null;
 
+  const entry: SessionActivityResult = { activityId: activityDocId, score, ...(data ? { data } : {}) };
   const updatedActivities = [
     ...(current.activitiesCompleted || []),
-    { activityId: activityDocId, score },
+    entry,
   ];
 
   const isLastPhase = current.currentPhase >= totalPhases;

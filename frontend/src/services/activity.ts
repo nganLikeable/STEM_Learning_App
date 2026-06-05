@@ -63,6 +63,31 @@ export const setActivity2 = async (
   }
 };
 
+// activity 3 - hand fan challenge
+export const setActivity3 = async (
+  teamId: string,
+  sessionId: string,
+  designNo: number,
+  angleACB: number,
+): Promise<string> => {
+  try {
+    const docRef = await addDoc(collection(db, "activities"), {
+      teamId,
+      sessionId,
+      activityNo: 3,
+      designNo,
+      angleACB,
+      createdAt: serverTimestamp(),
+      completedAt: serverTimestamp(),
+    });
+    console.log("Saved activity 3 successfully", docRef.id);
+    return docRef.id;
+  } catch (e) {
+    console.error("Error saving activity 3 to Firestore", e);
+    throw e;
+  }
+};
+
 // activity 4 - earthquake
 export const setActivity4 = async (
   teamId: string,

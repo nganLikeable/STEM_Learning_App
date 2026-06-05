@@ -7,7 +7,7 @@ import {
 } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface BaseCameraProps {
   onVideoCaptured: (uri: string) => void;
@@ -59,24 +59,28 @@ export default function BaseCamera({
 
   // permission still loading
   if (!cameraPermission || !audioPermission) {
-    return <View />; // Show loading state in here later
+    return <View />;
   }
 
-  // // permission not granted yet
-  // if (!cameraPermission.granted || !audioPermission.granted) {
-  //   return (
-  //     <View>
-  //       <Text>Camera Permission needs to be granted to record</Text>
-  //       <Button
-  //         onPress={() => {
-  //           requestAudioPermission();
-  //           requestCameraPermission();
-  //         }}
-  //         title="grant permission"
-  //       />
-  //     </View>
-  //   );
-  // }
+  // permission not granted yet
+  if (!cameraPermission.granted || !audioPermission.granted) {
+    return (
+      <View style={styles.permissionContainer}>
+        <Text style={styles.permissionText}>
+          Camera and microphone access is required to record.
+        </Text>
+        <TouchableOpacity
+          style={styles.permissionButton}
+          onPress={() => {
+            requestCameraPermission();
+            requestAudioPermission();
+          }}
+        >
+          <Text style={styles.permissionButtonText}>Grant Permission</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   // flip camera
   function toggleCameraFunction() {
@@ -179,6 +183,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
+  },
+  permissionContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+    gap: 16,
+  },
+  permissionText: {
+    fontSize: 16,
+    textAlign: "center",
+    color: "#333",
+  },
+  permissionButton: {
+    backgroundColor: "#6C63FF",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  permissionButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
   camera: {
     flex: 1,
