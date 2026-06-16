@@ -7,8 +7,8 @@ CSE3MAD is a team-based STEM learning mobile application built with React Native
 <img width="207" height="448" alt="IMG_4110" src="https://github.com/user-attachments/assets/b275b39c-8611-43ab-ab75-af01f96063ab" />
 <img width="207" height="448" alt="IMG_4161" src="https://github.com/user-attachments/assets/436f15fd-86a3-4463-b792-f266e0ed0688" />
 <img width="207" height="448" alt="IMG_4153" src="https://github.com/user-attachments/assets/ad4ecc81-abf0-4de8-846b-49426a77c661" />
-<img width="414" height="896" alt="IMG_4230" src="https://github.com/user-attachments/assets/e8421b17-a6e5-4731-85e0-b7813e90e7ed" />
-<img width="414" height="896" alt="IMG_4124" src="https://github.com/user-attachments/assets/9a5f7b00-4b7e-440d-af27-3ad8b9a625c1" />
+<img width="207" height="448" alt="IMG_4230" src="https://github.com/user-attachments/assets/e8421b17-a6e5-4731-85e0-b7813e90e7ed" />
+<img width="207" height="448" alt="IMG_4124" src="https://github.com/user-attachments/assets/9a5f7b00-4b7e-440d-af27-3ad8b9a625c1" />
 
 ## Demo
 https://drive.google.com/drive/u/1/folders/1UqAyhNdow2MPMba7X7sBXyQJa-ThT_DS 
